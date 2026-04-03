@@ -48,7 +48,7 @@ export default function Signup() {
       } else {
         navigate('/');
       }
-    } catch (err) {
+    } catch {
       // Error is handled in context
     } finally {
       setIsLoading(false);

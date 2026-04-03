@@ -105,7 +105,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       await saveSettings(settings);
       setMessage('Settings saved successfully!');
       setTimeout(() => setMessage(''), 3000);
-    } catch (err) {
+    } catch {
       setMessage('Failed to save settings');
     } finally {
       setIsSaving(false);
@@ -122,7 +122,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       setMessage('Queue reset successfully!');
       loadData();
       setTimeout(() => setMessage(''), 3000);
-    } catch (err) {
+    } catch {
       setMessage('Failed to reset queue');
     }
   };
@@ -179,7 +179,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       setShowTransactionForm(false);
       loadData();
       setTimeout(() => setMessage(''), 3000);
-    } catch (err) {
+    } catch {
       setMessage('Failed to save transaction');
     } finally {
       setIsSaving(false);
@@ -190,7 +190,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     try {
       await updateTransactionType(t.id, { active: !t.active });
       loadData();
-    } catch (err) {
+    } catch {
       setMessage('Failed to update transaction');
     }
   };
@@ -232,7 +232,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       setShowWindowForm(false);
       loadData();
       setTimeout(() => setMessage(''), 3000);
-    } catch (err) {
+    } catch {
       setMessage('Failed to save window');
     } finally {
       setIsSaving(false);
@@ -243,7 +243,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     try {
       await updateWindow(w.id, { active: !w.active });
       loadData();
-    } catch (err) {
+    } catch {
       setMessage('Failed to update window');
     }
   };

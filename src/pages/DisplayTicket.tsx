@@ -93,7 +93,7 @@ export default function DisplayTicket() {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-      } catch (err) {
+      } catch {
         // User cancelled or error
       }
     } else {

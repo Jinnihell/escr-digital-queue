@@ -67,8 +67,17 @@ export const generateTicketNumber = async (prefix: string): Promise<string> => {
 
 // Get waiting tickets for a transaction type
 export const getWaitingTickets = async (transactionTypeId: string): Promise<QueueTicket[]> => {
-  const snapshot = await getDocs(collection(db, TICKETS_COLLECTION));
-  const allTickets = snapshot.docs.map(doc => ({
+  // Use composite index for efficient query
+  const q = query(
+    collection(db, TICKETS_COLLECTION),
+    where('transactionTypeId', '==', transactionTypeId),
+    where('status', '==', 'waiting'),
+    orderBy('priority', 'desc'),
+    orderBy('createdAt', 'asc')
+  );
+  
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data(),
     createdAt: toDate(doc.data().createdAt),
@@ -76,24 +85,21 @@ export const getWaitingTickets = async (transactionTypeId: string): Promise<Queu
     startedAt: toDate(doc.data().startedAt),
     completedAt: toDate(doc.data().completedAt)
   })) as QueueTicket[];
-  
-  // Filter and sort in memory
-  return allTickets
-    .filter(t => t.transactionTypeId === transactionTypeId && t.status === 'waiting')
-    .sort((a, b) => {
-      // Priority tickets first
-      if (a.priority !== b.priority) return a.priority ? -1 : 1;
-      // Then by creation time
-      const aTime = a.createdAt?.getTime() || 0;
-      const bTime = b.createdAt?.getTime() || 0;
-      return aTime - bTime;
-    });
 };
 
 // Get all active tickets (waiting + serving)
 export const getActiveTickets = async (): Promise<QueueTicket[]> => {
-  const snapshot = await getDocs(collection(db, TICKETS_COLLECTION));
-  const allTickets = snapshot.docs.map(doc => ({
+  // Use composite index for efficient query
+  const q = query(
+    collection(db, TICKETS_COLLECTION),
+    where('status', 'in', ['waiting', 'serving']),
+    orderBy('status', 'desc'),
+    orderBy('priority', 'desc'),
+    orderBy('createdAt', 'asc')
+  );
+  
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data(),
     createdAt: toDate(doc.data().createdAt),
@@ -101,20 +107,6 @@ export const getActiveTickets = async (): Promise<QueueTicket[]> => {
     startedAt: toDate(doc.data().startedAt),
     completedAt: toDate(doc.data().completedAt)
   })) as QueueTicket[];
-  
-  // Filter and sort in memory
-  return allTickets
-    .filter(t => t.status === 'waiting' || t.status === 'serving')
-    .sort((a, b) => {
-      // Serving first
-      if (a.status !== b.status) return a.status === 'serving' ? -1 : 1;
-      // Then priority
-      if (a.priority !== b.priority) return a.priority ? -1 : 1;
-      // Then by creation time
-      const aTime = a.createdAt?.getTime() || 0;
-      const bTime = b.createdAt?.getTime() || 0;
-      return aTime - bTime;
-    });
 };
 
 // Create new ticket
@@ -561,7 +553,7 @@ export const getHistoryWithFilters = async (
   transactionTypeId?: string,
   search?: string
 ): Promise<QueueTicket[]> => {
-  let q = query(
+  const q = query(
     collection(db, TICKETS_COLLECTION),
     where('status', '==', 'completed'),
     orderBy('completedAt', 'desc')

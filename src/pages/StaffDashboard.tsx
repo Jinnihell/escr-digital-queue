@@ -5,6 +5,7 @@ import {
   getTransactionTypes, 
   callNextTicket,
   completeTicket,
+  cancelTicket,
   subscribeToActiveTickets,
   getQueueStats
 } from '../services/queueService';
@@ -22,7 +23,11 @@ export default function StaffDashboard() {
   const [currentTicket, setCurrentTicket] = useState<QueueTicket | null>(null);
   const [stats, setStats] = useState<QueueStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCalling, setIsCalling] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [isNoShowing, setIsNoShowing] = useState(false);
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     // Check if window is selected
     const storedWindow = sessionStorage.getItem('selectedWindow');
@@ -97,15 +102,14 @@ export default function StaffDashboard() {
   };
 
   const handleCallNext = async () => {
-    if (!selectedTransaction || !selectedWindow) return;
+    if (!selectedTransaction || !selectedWindow || isCalling) return;
     
+    setIsCalling(true);
     try {
       const ticket = await callNextTicket(selectedTransaction, selectedWindow.id, selectedWindow.name);
       if (ticket) {
         setCurrentTicket(ticket);
-        // Play notification sound
         playNotificationSound();
-        // Voice announcement
         speakTicket(ticket.ticketNumber, selectedWindow.number.toString());
       } else {
         alert('No tickets waiting in queue');
@@ -114,19 +118,40 @@ export default function StaffDashboard() {
       console.error('Error calling ticket:', err);
       const errMsg = err instanceof Error ? err.message : 'Unknown error';
       alert(`Failed to call next ticket: ${errMsg}`);
+    } finally {
+      setIsCalling(false);
     }
   };
 
   const handleComplete = async () => {
-    if (!currentTicket) return;
+    if (!currentTicket || isCompleting) return;
 
+    setIsCompleting(true);
     try {
       await completeTicket(currentTicket.id);
       setCurrentTicket(null);
-      loadData(); // Refresh stats
+      loadData();
     } catch (err) {
       console.error('Error completing ticket:', err);
       alert('Failed to complete ticket');
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
+  const handleNoShow = async () => {
+    if (!currentTicket || isNoShowing) return;
+
+    setIsNoShowing(true);
+    try {
+      await cancelTicket(currentTicket.id);
+      setCurrentTicket(null);
+      loadData();
+    } catch (err) {
+      console.error('Error marking no show:', err);
+      alert('Failed to mark ticket as no show');
+    } finally {
+      setIsNoShowing(false);
     }
   };
 
@@ -152,7 +177,10 @@ export default function StaffDashboard() {
       gain1.connect(audioContext.destination);
       osc1.start(audioContext.currentTime);
       osc1.stop(audioContext.currentTime + 1);
-    } catch (err) {
+      
+      // Clean up audio context after playback
+      setTimeout(() => audioContext.close(), 1100);
+    } catch {
       console.log('Audio not available');
     }
   };
@@ -168,9 +196,13 @@ export default function StaffDashboard() {
       utterance.pitch = 1;
       utterance.volume = 1;
       
-      // Try to get a clear voice
-      const voices = speechSynthesis.getVoices();
-      const englishVoice = voices.find(v => v.lang.startsWith('en'));
+      // Get voices with fallback
+      const getVoice = () => {
+        const voices = speechSynthesis.getVoices();
+        return voices.find(v => v.lang.startsWith('en')) || voices[0] || null;
+      };
+      
+      const englishVoice = getVoice();
       if (englishVoice) {
         utterance.voice = englishVoice;
       }
@@ -204,7 +236,7 @@ export default function StaffDashboard() {
           </button>
         </div>
 
-        <nav className="flex-grow">
+        <nav className="grow">
           <ul className="space-y-2">
             <li>
               <button className="w-full text-left p-3 rounded-lg bg-white/10">
@@ -264,10 +296,10 @@ export default function StaffDashboard() {
                 <div className="flex flex-col gap-3">
                   <button
                     onClick={handleCallNext}
-                    disabled={!selectedTransaction || !selectedWindow}
+                    disabled={!selectedTransaction || !selectedWindow || isCalling}
                     className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-700 hover:to-blue-500 text-white font-bold py-4 px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
                   >
-                    📞 Call Next Ticket
+                    {isCalling ? '⏳ Calling...' : '📞 Call Next Ticket'}
                   </button>
                   <div className="flex gap-3">
                     <button
@@ -278,10 +310,17 @@ export default function StaffDashboard() {
                     </button>
                     <button
                       onClick={handleComplete}
-                      disabled={!currentTicket}
+                      disabled={!currentTicket || isCompleting}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                     >
-                      ✓ Complete
+                      {isCompleting ? '⏳' : '✓ Complete'}
+                    </button>
+                    <button
+                      onClick={handleNoShow}
+                      disabled={!currentTicket || isNoShowing}
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                    >
+                      {isNoShowing ? '⏳' : '✗ No Show'}
                     </button>
                   </div>
                 </div>
@@ -295,6 +334,7 @@ export default function StaffDashboard() {
             <div className="bg-white rounded-2xl shadow-xl p-5 mb-6">
               <h3 className="font-bold text-gray-800 mb-3">Select Transaction</h3>
               <select
+                title="Select transaction"
                 value={selectedTransaction}
                 onChange={(e) => setSelectedTransaction(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-800"

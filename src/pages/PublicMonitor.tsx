@@ -85,7 +85,7 @@ export default function PublicMonitor() {
       gain2.connect(audioContext.destination);
       osc2.start(audioContext.currentTime);
       osc2.stop(audioContext.currentTime + 0.8);
-    } catch (err) {
+    } catch {
       console.log('Audio not available');
     }
   };
