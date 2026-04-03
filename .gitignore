@@ -43,3 +43,5 @@ Thumbs.db
 # Vercel
 .vercel
 .vercel.json.bak
+
+.env*.local

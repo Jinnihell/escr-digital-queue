@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { createTicket, getQueueStats, subscribeToActiveTickets } from '../services/queueService';
-import { ArrowLeft, Home, Clock, AlertTriangle, Share2 } from 'lucide-react';
+import { Home, Clock, AlertTriangle, Share2 } from 'lucide-react';
+import Navbar from '../components/Navbar';
 import type { QueueTicket, QueueStats } from '../types';
 
 interface SelectedTransaction {
@@ -132,21 +133,33 @@ export default function DisplayTicket() {
     );
   }
 
+  const handleBack = () => {
+    navigate('/');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 p-4">
-      {/* Header */}
-      <div className="max-w-md mx-auto mb-4">
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Home
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200">
+      <Navbar 
+        title="Your Ticket" 
+        showBackButton 
+        onBack={handleBack}
+        helpContent={
+          <div className="space-y-3 text-gray-600">
+            <p>Your <b>ticket number</b> has been generated.</p>
+            <p>Check the <b>position in queue</b> to see how many people are ahead of you.</p>
+            <p>Wait for your number to be <b>called</b>.</p>
+            <p>When called, proceed to the <b>assigned window</b>.</p>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <p className="text-blue-800 text-sm">
+                <b>Tip:</b> You can share your ticket or check the display monitor for updates.
+              </p>
+            </div>
+          </div>
+        }
+      />
 
       {/* Ticket Card */}
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto p-4">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* Ticket Header */}
           <div className="bg-blue-600 p-6 text-white text-center">

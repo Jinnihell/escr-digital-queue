@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getHistoryWithFilters, getWindows } from '../services/queueService';
-import { ArrowLeft, History as HistoryIcon, Clock, CheckCircle, XCircle, AlertTriangle, Filter, Printer } from 'lucide-react';
+import { getHistoryWithFilters, getWindows, subscribeToActiveTickets } from '../services/queueService';
+import { History as HistoryIcon, Clock, CheckCircle, XCircle, AlertTriangle, Filter } from 'lucide-react';
+import Navbar from '../components/Navbar';
 import type { QueueTicket, Window } from '../types';
 
 export default function History() {
@@ -21,7 +22,13 @@ export default function History() {
   useEffect(() => {
     loadHistory();
     loadWindows();
-  }, []);
+
+    const unsubscribe = subscribeToActiveTickets(() => {
+      loadHistory();
+    });
+
+    return () => unsubscribe();
+  }, [user, startDate, endDate, windowFilter, searchTerm]);
 
   const loadWindows = async () => {
     try {
@@ -142,32 +149,25 @@ export default function History() {
     }).format(date);
   };
 
+  const handleBack = () => {
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <h1 className="text-xl font-bold text-gray-800">Queue History</h1>
-            </div>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => window.print()}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-              >
-                <Printer className="w-5 h-5" />
-              </button>
-            </div>
+      <Navbar 
+        title="Queue History" 
+        showBackButton 
+        onBack={handleBack}
+        helpContent={
+          <div className="space-y-3 text-gray-600">
+            <p>View your <b>queue history</b> here.</p>
+            <p>Use <b>filters</b> to narrow down your search by date.</p>
+            <p>The table shows your past tickets with their <b>status</b>.</p>
+            <p>Click <b>Print</b> to print a copy of your history.</p>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Filter Section - matches PHP design */}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTransactionTypes, initializeDefaultTransactions, initializeDefaultWindows, subscribeToActiveTickets } from '../services/queueService';
+import Navbar from '../components/Navbar';
 import type { TransactionType, QueueTicket } from '../types';
 
 // Transaction Selection Page - Matches MYPHPQUEUE transaction_selection.php design
@@ -118,7 +119,7 @@ export default function TransactionSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200">
       {/* Queue Status Tracker - matches PHP design */}
       {showTracker && myTicket && (
         <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-blue-800 to-blue-600 text-white p-2 shadow-lg">
@@ -172,23 +173,21 @@ export default function TransactionSelection() {
         </div>
       )}
 
-      {/* Header - matches PHP navbar design */}
-      <div className={`max-w-4xl mx-auto mb-6 ${showTracker ? 'mt-16' : ''}`}>
-        <div className="bg-white rounded-xl shadow p-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <img src="/escr-logo.png" alt="ESCR Logo" className="w-20 h-20 object-contain bg-white rounded-lg p-1" />
-            <div>
-              <p className="font-bold text-gray-800 text-sm">East Systems Colleges of Rizal</p>
+      <Navbar 
+        title="Select Transaction"
+        helpContent={
+          <div className="space-y-3 text-gray-600">
+            <p>1. <b>Select your transaction</b> type (Registrar, Cashier, etc.)</p>
+            <p>2. If you're a <b>Senior Citizen or PWD</b>, check the priority box.</p>
+            <p>3. Click <b>Continue</b> to proceed.</p>
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+              <p className="text-yellow-800 text-sm">
+                <b>Priority:</b> Priority queue is available for seniors and persons with disability.
+              </p>
             </div>
           </div>
-          <button
-            onClick={() => navigate('/')}
-            className="w-8 h-8 border-2 border-blue-800 rounded-full flex items-center justify-center text-blue-800 font-bold hover:bg-blue-800 hover:text-white transition"
-          >
-            ?
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Main Content - matches PHP design */}
       <div className="max-w-4xl mx-auto">

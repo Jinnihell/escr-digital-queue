@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, User, GraduationCap, Clock } from 'lucide-react';
+import { ArrowRight, User, GraduationCap, Clock } from 'lucide-react';
+import Navbar from '../components/Navbar';
 import type { Course, YearLevel } from '../types';
 
 interface SelectedTransaction {
@@ -85,20 +86,29 @@ export default function StudentDetails() {
   const selectedTransaction: SelectedTransaction = JSON.parse(stored);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 p-4">
-      {/* Header */}
-      <div className="max-w-2xl mx-auto mb-6">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200">
+      <Navbar 
+        title="Enter Details" 
+        showBackButton 
+        onBack={handleBack}
+        helpContent={
+          <div className="space-y-3 text-gray-600">
+            <p>1. Enter your <b>full name</b> as it appears on your enrollment.</p>
+            <p>2. Enter your <b>Student ID</b> (optional if not yet issued).</p>
+            <p>3. Select your <b>course</b> from the dropdown.</p>
+            <p>4. Select your <b>year level</b>.</p>
+            <p>5. Click <b>Generate Ticket</b> to get your queue number.</p>
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+              <p className="text-yellow-800 text-sm">
+                <b>Priority:</b> Senior Citizens and PWDs can request priority queue.
+              </p>
+            </div>
+          </div>
+        }
+      />
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto p-4">
         <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
           Enter Your Details
         </h1>

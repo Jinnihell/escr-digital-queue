@@ -11,9 +11,11 @@ import {
   getWindows,
   createWindow,
   updateWindow,
-  getReportData
+  getReportData,
+  subscribeToActiveTickets
 } from '../services/queueService';
-import { ArrowLeft, Save, RefreshCw, Settings, BarChart3, Monitor, Download, Printer } from 'lucide-react';
+import { Save, RefreshCw, Settings, BarChart3, Monitor, Download, Printer } from 'lucide-react';
+import Navbar from '../components/Navbar';
 import type { SystemSettings, TransactionType, QueueStats, Window as WindowType } from '../types';
 
 interface AdminDashboardProps {
@@ -73,11 +75,16 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
   useEffect(() => {
     loadData();
-    // Load initial report data
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     setStartDate(firstDay.toISOString().split('T')[0]);
     setEndDate(today.toISOString().split('T')[0]);
+
+    const unsubscribe = subscribeToActiveTickets(() => {
+      loadData();
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const loadData = async () => {
@@ -291,39 +298,52 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     );
   }
 
+  const handleBack = () => {
+    navigate('/admin');
+  };
+
+  const adminHelpContent = (
+    <div className="space-y-3 text-gray-600">
+      <p><b>Dashboard:</b> Overview of system stats and quick actions.</p>
+      <p><b>Reports:</b> View analytics and export reports.</p>
+      <p><b>Transactions:</b> Manage transaction types (add/edit).</p>
+      <p><b>Windows:</b> Manage service windows.</p>
+      <p><b>Settings:</b> Configure system settings.</p>
+      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+        <p className="text-red-800 text-sm">
+          <b>Warning:</b> Reset Queue clears all active tickets!
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+      <Navbar 
+        title="Admin Dashboard" 
+        showBackButton 
+        onBack={handleBack}
+        helpContent={adminHelpContent}
+      />
+      
+      {/* Tab Navigation - positioned below navbar */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex gap-2 overflow-x-auto">
+            {tabs.map((t) => (
               <button
-                onClick={() => navigate('/admin')}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                key={t.id}
+                onClick={() => setActiveTab(t.id as 'dashboard' | 'transactions' | 'windows' | 'settings')}
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition whitespace-nowrap ${
+                  activeTab === t.id
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
               >
-                <ArrowLeft className="w-5 h-5" />
+                <t.icon className="w-4 h-4" />
+                {t.label}
               </button>
-              <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
-            </div>
-            
-            {/* Tab Navigation */}
-            <div className="flex gap-2">
-              {tabs.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id as 'dashboard' | 'transactions' | 'windows' | 'settings')}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                    activeTab === t.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  <t.icon className="w-4 h-4" />
-                  {t.label}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </div>

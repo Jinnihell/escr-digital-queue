@@ -219,10 +219,59 @@ export default function StaffDashboard() {
     );
   }
 
+  const staffHelpContent = (
+    <div className="space-y-3 text-gray-600">
+      <p><b>Call Next Ticket:</b> Call the next person in queue.</p>
+      <p><b>Ring:</b> Play notification sound.</p>
+      <p><b>Complete:</b> Mark current ticket as done.</p>
+      <p><b>No Show:</b> Mark as no show (skip).</p>
+      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+        <p className="text-blue-800 text-sm">
+          <b>Tip:</b> Use keyboard shortcuts for faster processing.
+        </p>
+      </div>
+    </div>
+  );
+
+  const [showHelp, setShowHelp] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200">
+      {/* Top Header with Logo and Help */}
+      <div className="fixed top-0 left-0 right-0 bg-blue-800 text-white p-3 z-20 shadow-lg">
+        <div className="ml-64 flex items-center justify-between pr-4">
+          <div className="flex items-center gap-3">
+            <img src="/escr-logo.png" alt="ESCR Logo" className="w-12 h-12 object-contain bg-white rounded-full p-1" />
+            <div>
+              <h1 className="font-bold text-lg">Staff Dashboard</h1>
+              <p className="text-xs text-blue-200">East Systems Colleges of Rizal</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowHelp(true)}
+            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"
+          >
+            ?
+          </button>
+        </div>
+      </div>
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-t-4 border-blue-800" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Help</h2>
+              <button onClick={() => setShowHelp(false)} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div className="mb-6">{staffHelpContent}</div>
+            <button onClick={() => setShowHelp(false)} className="w-full bg-gradient-to-r from-blue-800 to-blue-600 text-white py-2 rounded-xl font-semibold">Got it</button>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar - matches PHP design */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-blue-800 text-white p-5 flex flex-col">
+      <div className="fixed left-0 top-0 h-full w-64 bg-blue-800 text-white p-5 flex flex-col z-10">
         <div className="text-center mb-8">
           <img src="/escr-logo.png" alt="ESCR Logo" className="w-40 h-40 object-contain mx-auto  bg-white rounded-full" />
           <h2 className="font-bold text-lg">ESCR DQMS</h2>
@@ -240,7 +289,7 @@ export default function StaffDashboard() {
           <ul className="space-y-2">
             <li>
               <button className="w-full text-left p-3 rounded-lg bg-white/10">
-                📊 Dashboard
+                Dashboard
               </button>
             </li>
             <li>
@@ -248,7 +297,7 @@ export default function StaffDashboard() {
                 onClick={() => navigate('/history')}
                 className="w-full text-left p-3 rounded-lg hover:bg-white/10"
               >
-                📋 History
+                History
               </button>
             </li>
           </ul>
@@ -259,13 +308,13 @@ export default function StaffDashboard() {
             onClick={handleLogout}
             className="w-full text-left p-3 rounded-lg hover:bg-white/10 flex items-center gap-2"
           >
-            🚪 Logout
+            Logout
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="ml-64 p-6">
+      <div className="ml-64 p-6 pt-24">
         <div className="flex flex-wrap gap-6">
           {/* Left Panel */}
           <div className="flex-1 min-w-[300px]">
