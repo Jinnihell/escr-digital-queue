@@ -1,0 +1,62 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // ============================================
+    // TRANSACTIONS COLLECTION (Transaction Types)
+    // ============================================
+    match /transactions/{transactionId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // ============================================
+    // WINDOWS COLLECTION
+    // ============================================
+    match /windows/{windowId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // ============================================
+    // TICKETS COLLECTION
+    // ============================================
+    match /tickets/{ticketId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ============================================
+    // SETTINGS COLLECTION
+    // ============================================
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // ============================================
+    // COUNTERS COLLECTION
+    // ============================================
+    match /counters/{counterId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+    match /users/{userId} {
+      allow create: if true;
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if isAuthenticated();
+    }
+  }
+}
