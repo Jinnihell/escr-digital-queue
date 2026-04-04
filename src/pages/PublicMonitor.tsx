@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { subscribeToActiveTickets, getWindows } from '../services/queueService';
 import type { QueueTicket, Window } from '../types';
 
@@ -10,6 +10,7 @@ export default function PublicMonitor() {
   const [isLoading, setIsLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
+  const prevTicketsRef = useRef<QueueTicket[]>([]);
 
   // Update clock
   useEffect(() => {
@@ -23,68 +24,80 @@ export default function PublicMonitor() {
 
   // Announce all serving windows every minute
   useEffect(() => {
+    let lastAnnouncedTime = 0;
+    
     const announceAll = () => {
       if (!soundEnabled) return;
-      const servingTickets = tickets.filter(t => t.status === 'serving');
-      if (servingTickets.length === 0) return;
+      
+      const serving = tickets.filter(t => t.status === 'serving');
+      if (serving.length === 0) return;
+      
+      // Check if we already announced within last 30 seconds
+      const now = Date.now();
+      if (now - lastAnnouncedTime < 30000) return;
+      lastAnnouncedTime = now;
       
       let announcement = '';
-      servingTickets.forEach((ticket, index) => {
-        if (index > 0) announcement += '. ';
-        announcement += `Queue ticket ${ticket.ticketNumber}, please proceed to ${ticket.windowName || '1'}`;
+      serving.forEach((ticket, idx) => {
+        if (idx > 0) announcement += '. ';
+        announcement += `Queue ticket ${ticket.ticketNumber}, please proceed to ${ticket.windowName}`;
       });
       
       if (announcement && 'speechSynthesis' in window) {
         speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(announcement);
-        utterance.rate = 0.85;
+        utterance.rate = 0.9;
+        utterance.lang = 'en-US';
         speechSynthesis.speak(utterance);
       }
     };
 
-    // Announce immediately on load, then every minute
-    const timer = setTimeout(announceAll, 2000);
-    const interval = setInterval(announceAll, 60000);
+    // Initial announcement after 3 seconds
+    const initialTimer = setTimeout(announceAll, 3000);
+    
+    // Then every 60 seconds
+    const intervalId = setInterval(announceAll, 60000);
     
     return () => {
-      clearTimeout(timer);
-      clearInterval(interval);
+      clearTimeout(initialTimer);
+      clearInterval(intervalId);
     };
   }, [tickets, soundEnabled]);
 
+  // Subscribe to real-time ticket updates
   useEffect(() => {
-    loadInitialData();
-
-    // Subscribe to real-time updates
     const unsubscribe = subscribeToActiveTickets((updatedTickets) => {
-      const previousServing = tickets.filter(t => t.status === 'serving');
+      // Find new serving tickets using ref
       const newServing = updatedTickets.filter(t => t.status === 'serving');
+      const prevServingIds = new Set(prevTicketsRef.current.filter(t => t.status === 'serving').map(t => t.id));
+      const newlyCalled = newServing.find(t => !prevServingIds.has(t.id));
       
-      // Check if a new ticket was called
-      const previousIds = new Set(previousServing.map(t => t.id));
-      const newCalled = newServing.find(t => !previousIds.has(t.id));
-      
-      if (newCalled && soundEnabled) {
+      if (newlyCalled && soundEnabled) {
         playNotificationSound();
-        speakTicket(newCalled.windowName || '1', newCalled.ticketNumber);
+        speakTicket(newlyCalled.windowName || '1', newlyCalled.ticketNumber);
       }
       
+      prevTicketsRef.current = updatedTickets;
       setTickets(updatedTickets);
     });
 
     return () => unsubscribe();
-  }, [soundEnabled, tickets]);
+  }, [soundEnabled]);
 
-  const loadInitialData = async () => {
-    try {
-      const windowList = await getWindows();
-      setWindows(windowList);
-    } catch (err) {
-      console.error('Error loading data:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Load initial windows data
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const windowList = await getWindows();
+        setWindows(windowList);
+      } catch (err) {
+        console.error('Error loading data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadInitialData();
+  }, []);
 
   // Bell sound - matches PHP design using Web Audio API
   const playNotificationSound = () => {
@@ -121,10 +134,10 @@ export default function PublicMonitor() {
     }
   };
 
-  // Voice announcement - matches PHP design
+  // Voice announcement - single ticket called
   const speakTicket = (windowName: string, ticketNumber: string) => {
     if ('speechSynthesis' in window) {
-      let message = `queue ticket ${ticketNumber}, please proceed to Window ${windowName}`;
+      let message = `queue ticket ${ticketNumber}, please proceed to ${windowName}`;
       const utterance = new SpeechSynthesisUtterance(message);
       utterance.rate = 0.85;
       speechSynthesis.speak(utterance);

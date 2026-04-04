@@ -57,7 +57,7 @@ export default function TransactionSelection() {
         console.error('Error parsing stored ticket:', e);
       }
     }
-  }, [user]);
+  }, [myTicket, user]);
 
   // Subscribe to active tickets for real-time updates
   useEffect(() => {
@@ -140,10 +140,10 @@ export default function TransactionSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       {/* Queue Status Tracker - matches PHP design */}
       {showTracker && myTicket && (
-        <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-blue-800 to-blue-600 text-white p-2 shadow-lg">
+        <div className="fixed top-0 left-0 right-0 z-40 bg-linear-to-r from-blue-800 to-blue-600 text-white p-2 shadow-lg">
           <div className="max-w-4xl mx-auto flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div>
@@ -195,7 +195,7 @@ export default function TransactionSelection() {
       )}
 
       <Navbar 
-        title="Select Transaction"
+        title="ESCR DQMS - Select Transaction"
         helpContent={
           <div className="space-y-3 text-gray-600">
             <p>1. <b>Select your transaction</b> type (Registrar, Cashier, etc.)</p>
@@ -249,7 +249,7 @@ export default function TransactionSelection() {
                     onClick={() => setSelectedId(transaction.id)}
                     className={`p-6 rounded-2xl text-center transition-all duration-300 flex flex-col items-center gap-3 ${
                       selectedId === transaction.id
-                        ? 'bg-gradient-to-r from-blue-800 to-blue-600 text-white shadow-xl transform scale-[1.02]'
+                        ? 'bg-linear-to-r from-blue-800 to-blue-600 text-white shadow-xl transform scale-[1.02]'
                         : 'bg-white hover:bg-blue-50 text-gray-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
                     }`}
                   >
@@ -294,7 +294,7 @@ export default function TransactionSelection() {
                 disabled={!selectedId}
                 className={`px-12 py-3 rounded-xl font-bold text-lg transition-all duration-300 ${
                   selectedId
-                    ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl hover:-translate-y-1'
+                    ? 'bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl hover:-translate-y-1'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
