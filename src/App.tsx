@@ -59,7 +59,7 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       <Route path="/history" element={
-        <ProtectedRoute allowedRoles={['student', 'admin']}>
+        <ProtectedRoute allowedRoles={['admin', 'staff']}>
           <History />
         </ProtectedRoute>
       } />
@@ -73,16 +73,6 @@ function AppRoutes() {
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <AdminDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin/settings" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <AdminDashboard tab="settings" />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin/reports" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <AdminDashboard tab="reports" />
         </ProtectedRoute>
       } />
       

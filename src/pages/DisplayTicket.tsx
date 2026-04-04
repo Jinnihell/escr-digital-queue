@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { createTicket, getQueueStats, subscribeToActiveTickets } from '../services/queueService';
-import { Home, Clock, AlertTriangle, Share2 } from 'lucide-react';
+import { createTicket, getQueueStats, subscribeToActiveTickets, getUserActiveTicket } from '../services/queueService';
+import { Clock, AlertTriangle } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import FeedbackModal from '../components/FeedbackModal';
 import type { QueueTicket, QueueStats } from '../types';
 
 interface SelectedTransaction {
@@ -21,25 +22,9 @@ export default function DisplayTicket() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [waitingPosition, setWaitingPosition] = useState(0);
-
-  useEffect(() => {
-    generateTicket();
-  }, []);
-
-  useEffect(() => {
-    // Subscribe to queue updates
-    const unsubscribe = subscribeToActiveTickets((tickets) => {
-      if (ticket) {
-        const waiting = tickets.filter(t => 
-          t.transactionTypeId === ticket.transactionTypeId && 
-          t.status === 'waiting'
-        );
-        setWaitingPosition(waiting.length);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [ticket]);
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [ticketServed, setTicketServed] = useState(false);
 
   const generateTicket = async () => {
     const stored = sessionStorage.getItem('selectedTransaction');
@@ -54,6 +39,18 @@ export default function DisplayTicket() {
     const studentDetails = studentStored ? JSON.parse(studentStored) : undefined;
 
     try {
+      // Check if user already has an active ticket for this transaction
+      if (user?.id) {
+        const existingTicket = await getUserActiveTicket(user.id, selected.id);
+        if (existingTicket) {
+          setTicket(existingTicket);
+          const queueStats = await getQueueStats(selected.id);
+          setStats(queueStats);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // Get current stats
       const queueStats = await getQueueStats(selected.id);
       setStats(queueStats);
@@ -83,30 +80,44 @@ export default function DisplayTicket() {
     }
   };
 
-  const handleShare = async () => {
-    if (!ticket) return;
-    
-    const shareData = {
-      title: 'My Queue Ticket',
-      text: `Ticket Number: ${ticket.ticketNumber}\nTransaction: ${ticket.transactionTypeName}\nPosition: #${waitingPosition}`,
-    };
+  useEffect(() => {
+    generateTicket();
+  }, []);
 
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch {
-        // User cancelled or error
+  useEffect(() => {
+    const unsubscribe = subscribeToActiveTickets((tickets) => {
+      if (ticket) {
+        const currentTicket = tickets.find(t => t.id === ticket.id);
+        
+        if (currentTicket) {
+          if (currentTicket.status === 'serving') {
+            setWaitingPosition(0);
+          }
+          
+          if (currentTicket.status === 'completed' && !ticketServed) {
+            setTicketServed(true);
+            setTimeout(() => setShowFeedback(true), 500);
+          }
+        }
+        
+        const waitingTickets = tickets.filter(t => 
+          t.transactionTypeId === ticket.transactionTypeId && 
+          t.status === 'waiting'
+        );
+        
+        const userTicketIndex = waitingTickets.findIndex(t => t.id === ticket.id);
+        const position = userTicketIndex >= 0 ? userTicketIndex + 1 : waitingTickets.length + 1;
+        
+        setWaitingPosition(position - 1);
       }
-    } else {
-      // Fallback: copy to clipboard
-      await navigator.clipboard.writeText(shareData.text);
-      alert('Ticket info copied to clipboard!');
-    }
-  };
+    });
+
+    return () => unsubscribe();
+  }, [ticket]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-700 font-medium">Generating your ticket...</p>
@@ -117,7 +128,7 @@ export default function DisplayTicket() {
 
   if (error || !ticket) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-800 mb-2">Error</h2>
@@ -138,7 +149,7 @@ export default function DisplayTicket() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200">
+    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       <Navbar 
         title="Your Ticket" 
         showBackButton 
@@ -159,7 +170,7 @@ export default function DisplayTicket() {
       />
 
       {/* Ticket Card */}
-      <div className="max-w-md mx-auto p-4">
+      <div className="max-w-md mx-auto p-4 pt-8">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* Ticket Header */}
           <div className="bg-blue-600 p-6 text-white text-center">
@@ -224,19 +235,15 @@ export default function DisplayTicket() {
             {/* Actions */}
             <div className="mt-6 space-y-3">
               <button
-                onClick={handleShare}
+                onClick={() => {
+                  sessionStorage.removeItem('selectedTransaction');
+                  sessionStorage.removeItem('studentDetails');
+                  sessionStorage.removeItem('currentTicket');
+                  setShowThankYou(true);
+                }}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition"
               >
-                <Share2 className="w-5 h-5" />
-                Share Ticket
-              </button>
-              
-              <button
-                onClick={() => navigate('/')}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition"
-              >
-                <Home className="w-5 h-5" />
-                Back to Home
+                Done
               </button>
             </div>
 
@@ -247,6 +254,40 @@ export default function DisplayTicket() {
           </div>
         </div>
       </div>
+
+      {/* Thank You Modal */}
+      {showThankYou && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center">
+            <div className="mb-4">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-4xl">✓</span>
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Thank You!</h2>
+            <p className="text-gray-600 mb-6">Your ticket has been generated. Please wait for your number to be called.</p>
+            <button
+              onClick={() => {
+                setShowThankYou(false);
+                setShowFeedback(true);
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition"
+            >
+              Go to Home
+            </button>
+          </div>
+        </div>
+      )}
+
+      <FeedbackModal
+        isOpen={showFeedback}
+        onClose={() => {
+          setShowFeedback(false);
+          navigate('/');
+        }}
+        ticketNumber={ticket?.ticketNumber}
+        transactionType={ticket?.transactionTypeName}
+      />
     </div>
   );
 }

@@ -8,6 +8,16 @@ service cloud.firestore {
     }
     
     // ============================================
+    // FEEDBACK COLLECTION
+    // ============================================
+    match /feedback/{feedbackId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ============================================
     // TRANSACTIONS COLLECTION (Transaction Types)
     // ============================================
     match /transactions/{transactionId} {

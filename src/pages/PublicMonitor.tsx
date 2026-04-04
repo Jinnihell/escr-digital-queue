@@ -21,6 +21,37 @@ export default function PublicMonitor() {
     return () => clearInterval(interval);
   }, []);
 
+  // Announce all serving windows every minute
+  useEffect(() => {
+    const announceAll = () => {
+      if (!soundEnabled) return;
+      const servingTickets = tickets.filter(t => t.status === 'serving');
+      if (servingTickets.length === 0) return;
+      
+      let announcement = '';
+      servingTickets.forEach((ticket, index) => {
+        if (index > 0) announcement += '. ';
+        announcement += `Queue ticket ${ticket.ticketNumber}, please proceed to ${ticket.windowName || '1'}`;
+      });
+      
+      if (announcement && 'speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(announcement);
+        utterance.rate = 0.85;
+        speechSynthesis.speak(utterance);
+      }
+    };
+
+    // Announce immediately on load, then every minute
+    const timer = setTimeout(announceAll, 2000);
+    const interval = setInterval(announceAll, 60000);
+    
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [tickets, soundEnabled]);
+
   useEffect(() => {
     loadInitialData();
 
@@ -35,7 +66,7 @@ export default function PublicMonitor() {
       
       if (newCalled && soundEnabled) {
         playNotificationSound();
-        speakTicket(newCalled.ticketNumber, newCalled.windowName || '1');
+        speakTicket(newCalled.windowName || '1', newCalled.ticketNumber);
       }
       
       setTickets(updatedTickets);
@@ -91,9 +122,10 @@ export default function PublicMonitor() {
   };
 
   // Voice announcement - matches PHP design
-  const speakTicket = (ticketNumber: string, windowNum: string) => {
+  const speakTicket = (windowName: string, ticketNumber: string) => {
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(`Ticket ${ticketNumber} proceed to window ${windowNum}`);
+      let message = `queue ticket ${ticketNumber}, please proceed to Window ${windowName}`;
+      const utterance = new SpeechSynthesisUtterance(message);
       utterance.rate = 0.85;
       speechSynthesis.speak(utterance);
     }
@@ -135,7 +167,7 @@ export default function PublicMonitor() {
                 }`}
               >
                 <span className="absolute top-3 bg-blue-800 text-white px-4 py-1 rounded-lg font-bold">
-                  WINDOW {window.number}
+                  {window.name}
                 </span>
                 <p className="text-6xl md:text-8xl font-black mt-8">
                   {windowTicket?.ticketNumber || '---'}

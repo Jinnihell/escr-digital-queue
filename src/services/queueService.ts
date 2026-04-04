@@ -310,16 +310,18 @@ export const initializeDefaultWindows = async (): Promise<void> => {
   if (existing.length > 0) return;
 
   const defaultWindows = [
-    { name: 'Window 1', number: 1, active: true },
-    { name: 'Window 2', number: 2, active: true },
-    { name: 'Window 3', number: 3, active: true },
-    { name: 'Window 4', number: 4, active: true }
+    { name: 'Assessments', number: 1, active: true },
+    { name: 'Enrollment', number: 2, active: true },
+    { name: 'Payments', number: 3, active: true },
+    { name: 'Other Concerns', number: 4, active: true }
   ];
 
   for (const w of defaultWindows) {
     await addDoc(collection(db, WINDOWS_COLLECTION), {
       ...w,
-      currentTicketId: null
+      currentTicketId: null,
+      staffId: null,
+      lockedAt: null
     });
   }
 };
@@ -381,7 +383,9 @@ export const createWindow = async (
     name,
     number,
     active: true,
-    currentTicketId: null
+    currentTicketId: null,
+    staffId: null,
+    lockedAt: null
   });
   
   return {
@@ -389,7 +393,9 @@ export const createWindow = async (
     name,
     number,
     active: true,
-    currentTicketId: null
+    currentTicketId: null,
+    staffId: null,
+    lockedAt: null
   };
 };
 
@@ -399,6 +405,22 @@ export const updateWindow = async (
   updates: Partial<Window>
 ): Promise<void> => {
   await updateDoc(doc(db, WINDOWS_COLLECTION, id), updates);
+};
+
+// Lock window for staff
+export const lockWindow = async (windowId: string, staffId: string): Promise<void> => {
+  await updateDoc(doc(db, WINDOWS_COLLECTION, windowId), {
+    staffId,
+    lockedAt: serverTimestamp()
+  });
+};
+
+// Unlock window (called on logout)
+export const unlockWindow = async (windowId: string): Promise<void> => {
+  await updateDoc(doc(db, WINDOWS_COLLECTION, windowId), {
+    staffId: null,
+    lockedAt: null
+  });
 };
 
 // Get settings
@@ -439,6 +461,28 @@ export const subscribeToActiveTickets = (
     orderBy('status', 'desc'),
     orderBy('priority', 'desc'),
     orderBy('createdAt', 'asc')
+  );
+  
+  return onSnapshot(q, (snapshot) => {
+    const tickets = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: toDate(doc.data().createdAt),
+      calledAt: toDate(doc.data().calledAt),
+      startedAt: toDate(doc.data().startedAt),
+      completedAt: toDate(doc.data().completedAt)
+    })) as QueueTicket[];
+    callback(tickets);
+  });
+};
+
+// Subscribe to ALL tickets for real-time history/reports (including completed)
+export const subscribeToAllTickets = (
+  callback: (tickets: QueueTicket[]) => void
+) => {
+  const q = query(
+    collection(db, TICKETS_COLLECTION),
+    orderBy('createdAt', 'desc')
   );
   
   return onSnapshot(q, (snapshot) => {
@@ -523,8 +567,50 @@ export const getTicketsByTransaction = async (transactionTypeId: string): Promis
   })) as QueueTicket[];
 };
 
-// Helper to import setDoc
-// import { setDoc } from 'firebase/firestore';
+// Get active ticket for a specific user and transaction type
+export const getUserActiveTicket = async (
+  userId: string,
+  transactionTypeId: string
+): Promise<QueueTicket | null> => {
+  const q = query(
+    collection(db, TICKETS_COLLECTION),
+    where('userId', '==', userId),
+    where('transactionTypeId', '==', transactionTypeId),
+    where('status', 'in', ['waiting', 'serving'])
+  );
+  
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) return null;
+  
+  const doc = snapshot.docs[0];
+  return {
+    id: doc.id,
+    ...doc.data(),
+    createdAt: toDate(doc.data().createdAt),
+    calledAt: toDate(doc.data().calledAt),
+    startedAt: toDate(doc.data().startedAt),
+    completedAt: toDate(doc.data().completedAt)
+  } as QueueTicket;
+};
+
+// Get all active tickets for a user
+export const getUserActiveTickets = async (userId: string): Promise<QueueTicket[]> => {
+  const q = query(
+    collection(db, TICKETS_COLLECTION),
+    where('userId', '==', userId),
+    where('status', 'in', ['waiting', 'serving'])
+  );
+  
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    createdAt: toDate(doc.data().createdAt),
+    calledAt: toDate(doc.data().calledAt),
+    startedAt: toDate(doc.data().startedAt),
+    completedAt: toDate(doc.data().completedAt)
+  })) as QueueTicket[];
+};
 
 // Get tickets by window
 export const getTicketsByWindow = async (windowId: string): Promise<QueueTicket[]> => {

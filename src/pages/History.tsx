@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getHistoryWithFilters, getWindows, subscribeToActiveTickets } from '../services/queueService';
+import { getWindows, subscribeToAllTickets } from '../services/queueService';
 import { History as HistoryIcon, Clock, CheckCircle, XCircle, AlertTriangle, Filter } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import type { QueueTicket, Window } from '../types';
@@ -20,15 +20,49 @@ export default function History() {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
-    loadHistory();
     loadWindows();
 
-    const unsubscribe = subscribeToActiveTickets(() => {
-      loadHistory();
+    // Subscribe to all tickets for real-time updates including completed
+    const unsubscribe = subscribeToAllTickets((allTickets) => {
+      let filteredTickets = allTickets;
+        
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0);
+        filteredTickets = filteredTickets.filter(t => t.createdAt && t.createdAt >= start);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59);
+        filteredTickets = filteredTickets.filter(t => t.createdAt && t.createdAt <= end);
+      }
+      if (windowFilter) {
+        filteredTickets = filteredTickets.filter(t => t.windowId === windowFilter);
+      }
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        filteredTickets = filteredTickets.filter(t => 
+          t.ticketNumber?.toLowerCase().includes(searchLower) ||
+          t.studentName?.toLowerCase().includes(searchLower) ||
+          t.transactionTypeName?.toLowerCase().includes(searchLower)
+        );
+      }
+        
+      // Filter by role
+      if (user?.role === 'student') {
+        filteredTickets = filteredTickets.filter(t => 
+          t.userId === user.id || 
+          (t.studentName && t.studentName.toLowerCase().includes(user.username?.toLowerCase() || ''))
+        );
+      }
+        
+      // Show first 50
+      setTickets(filteredTickets.slice(0, 50));
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user, startDate, endDate, windowFilter, searchTerm]);
+  }, [user]);
 
   const loadWindows = async () => {
     try {
@@ -39,47 +73,11 @@ export default function History() {
     }
   };
 
-  const loadHistory = async () => {
-    if (!user) return;
-
-    try {
-      let start: Date | undefined;
-      let end: Date | undefined;
-      
-      if (startDate) {
-        start = new Date(startDate);
-        start.setHours(0, 0, 0);
-      }
-      if (endDate) {
-        end = new Date(endDate);
-        end.setHours(23, 59, 59);
-      }
-
-      const ticketData = await getHistoryWithFilters(
-        start,
-        end,
-        windowFilter || undefined,
-        undefined,
-        searchTerm || undefined
-      );
-      
-      // Filter by userId for student view, show all for admin/staff
-      let filteredTickets = ticketData;
-      if (user.role === 'student') {
-        filteredTickets = ticketData.filter(t => t.userId === user.id);
-      }
-      
-      setTickets(filteredTickets.slice(0, 50));
-    } catch (err) {
-      console.error('Error loading history:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleFilter = () => {
+    // Just trigger re-render, useEffect will handle it
     setIsLoading(true);
-    loadHistory();
+    // Trigger a refresh
+    window.location.reload();
   };
 
   const handleReset = () => {
@@ -88,7 +86,7 @@ export default function History() {
     setWindowFilter('');
     setSearchTerm('');
     setIsLoading(true);
-    loadHistory();
+    window.location.reload();
   };
 
   const getStatusIcon = (status: string) => {
@@ -154,7 +152,7 @@ export default function History() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       <Navbar 
         title="Queue History" 
         showBackButton 

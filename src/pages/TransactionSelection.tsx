@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTransactionTypes, initializeDefaultTransactions, initializeDefaultWindows, subscribeToActiveTickets } from '../services/queueService';
+import { useAuth } from '../context/AuthContext';
+import { getTransactionTypes, initializeDefaultTransactions, initializeDefaultWindows, subscribeToActiveTickets, getUserActiveTickets } from '../services/queueService';
 import Navbar from '../components/Navbar';
 import type { TransactionType, QueueTicket } from '../types';
 
@@ -8,6 +9,7 @@ import type { TransactionType, QueueTicket } from '../types';
 
 export default function TransactionSelection() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isPriority, setIsPriority] = useState(false);
@@ -25,9 +27,28 @@ export default function TransactionSelection() {
   useEffect(() => {
     loadTransactions();
     
-    // Check if user already has a ticket in session
+    // Check if user already has active tickets from Firestore
+    const checkExistingTickets = async () => {
+      if (user?.id) {
+        try {
+          const activeTickets = await getUserActiveTickets(user.id);
+          if (activeTickets.length > 0) {
+            // Use the most recent active ticket
+            const ticket = activeTickets[0];
+            setMyTicket(ticket);
+            setShowTracker(true);
+            sessionStorage.setItem('currentTicket', JSON.stringify(ticket));
+          }
+        } catch (e) {
+          console.error('Error checking existing tickets:', e);
+        }
+      }
+    };
+    checkExistingTickets();
+    
+    // Check session storage as fallback
     const storedTicket = sessionStorage.getItem('currentTicket');
-    if (storedTicket) {
+    if (storedTicket && !myTicket) {
       try {
         const ticket = JSON.parse(storedTicket);
         setMyTicket(ticket);
@@ -36,7 +57,7 @@ export default function TransactionSelection() {
         console.error('Error parsing stored ticket:', e);
       }
     }
-  }, []);
+  }, [user]);
 
   // Subscribe to active tickets for real-time updates
   useEffect(() => {
@@ -119,7 +140,7 @@ export default function TransactionSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200">
+    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       {/* Queue Status Tracker - matches PHP design */}
       {showTracker && myTicket && (
         <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-blue-800 to-blue-600 text-white p-2 shadow-lg">
@@ -190,8 +211,8 @@ export default function TransactionSelection() {
       />
 
       {/* Main Content - matches PHP design */}
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-extrabold text-gray-800 text-center mb-2">
+      <div className="max-w-4xl mx-auto pt-16">
+        <h1 className="text-3xl font-extrabold text-gray-800 text-center mb-2 mt-8">
           WELCOME!
         </h1>
         <p className="text-gray-600 text-center mb-8 font-semibold">

@@ -6,7 +6,19 @@
       "parentBranch": "main",
       "createdAt": "2026-04-03T03:10:49.725Z",
       "remote": "origin"
+    },
+    "wt-1775284735239-1": {
+      "branch": "lavish-whale",
+      "path": "c:\\Users\\admin\\OneDrive\\Desktop\\queueby jayrome\\.kilo\\worktrees\\lavish-whale",
+      "parentBranch": "main",
+      "createdAt": "2026-04-04T06:38:55.239Z",
+      "remote": "origin"
     }
   },
-  "sessions": {}
+  "sessions": {
+    "ses_2a8c8a724ffepSQdDJ5Xtr7gmt": {
+      "worktreeId": "wt-1775284735239-1",
+      "createdAt": "2026-04-04T06:39:03.274Z"
+    }
+  }
 }

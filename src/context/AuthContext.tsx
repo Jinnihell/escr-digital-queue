@@ -23,7 +23,7 @@ interface AuthContextType {
   clearError: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -41,19 +41,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            setUser({
+            const userObj = {
               id: firebaseUser.uid,
               email: firebaseUser.email || '',
               username: userData.username || '',
               role: userData.role || 'student',
               createdAt: userData.createdAt?.toDate() || new Date()
-            });
+            };
+            setUser(userObj);
+            sessionStorage.setItem('user', JSON.stringify(userObj));
           }
         } catch (err) {
           console.error('Error fetching user data:', err);
         }
       } else {
         setUser(null);
+        sessionStorage.removeItem('user');
       }
       
       setLoading(false);
@@ -97,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await signOut(auth);
       setUser(null);
+      sessionStorage.removeItem('user');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Logout failed';
       setError(message);

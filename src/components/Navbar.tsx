@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HelpCircle, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import logo from '../assets/escr-logo.png';
 
 interface NavbarProps {
   title?: string;
@@ -25,35 +26,35 @@ export default function Navbar({ title, showBackButton, onBack, helpContent }: N
 
   return (
     <>
-      <div className="w-full bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <div className="px-4 py-3 bg-gradient-to-r from-blue-800/90 to-blue-600/90 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {showBackButton && (
                 <button
                   onClick={onBack || (() => navigate(-1))}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
+                  className="flex items-center gap-2 text-white hover:text-blue-200 transition"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
               )}
               <div className="flex items-center gap-3">
                 <img 
-                  src="/escr-logo.png" 
+                  src={logo} 
                   alt="ESCR Logo" 
-                  className="w-12 h-12 object-contain bg-white rounded-full p-1"
+                  className="w-14 h-14 object-contain bg-white/20 rounded-full p-1"
                 />
                 <div>
-                  <h1 className="text-lg font-bold text-gray-800">{title || 'ESCR DQMS'}</h1>
-                  <p className="text-xs text-gray-500 hidden sm:block">East Systems Colleges of Rizal</p>
+                  <h1 className="text-xl font-bold text-white">{title || 'ESCR DQMS'}</h1>
+                  <p className="text-xs text-blue-200 hidden sm:block">East Systems Colleges of Rizal</p>
                 </div>
               </div>
             </div>
             <button
               onClick={() => setShowHelp(true)}
-              className="w-10 h-10 bg-blue-800 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition shadow-md"
+              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
             >
-              <HelpCircle className="w-5 h-5" />
+              ?
             </button>
           </div>
         </div>

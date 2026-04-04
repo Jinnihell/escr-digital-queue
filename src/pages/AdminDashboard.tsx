@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  getSettings, 
-  saveSettings, 
   getTransactionTypes, 
   getQueueStats, 
   resetQueue,
@@ -11,28 +9,19 @@ import {
   getWindows,
   createWindow,
   updateWindow,
-  getReportData,
-  subscribeToActiveTickets
+  subscribeToAllTickets
 } from '../services/queueService';
-import { Save, RefreshCw, Settings, BarChart3, Monitor, Download, Printer } from 'lucide-react';
+import { RefreshCw, BarChart3, Monitor } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import type { SystemSettings, TransactionType, QueueStats, Window as WindowType } from '../types';
+import type { TransactionType, QueueStats, Window as WindowType } from '../types';
 
 interface AdminDashboardProps {
-  tab?: 'dashboard' | 'settings' | 'reports' | 'transactions' | 'windows';
+  tab?: 'dashboard' | 'transactions' | 'windows';
 }
 
 export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProps) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'settings' | 'reports' | 'transactions' | 'windows'>(tab);
-  const [settings, setSettings] = useState<SystemSettings>({
-    systemName: 'ESCR Digital Queueing System',
-    resetTime: '00:00',
-    maxDailyTickets: 100,
-    enablePriority: true,
-    enableNotifications: true,
-    averageServiceTime: 300
-  });
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'windows'>(tab);
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [windows, setWindows] = useState<WindowType[]>([]);
   const [stats, setStats] = useState<QueueStats | null>(null);
@@ -52,20 +41,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     windowNumber: 1
   });
 
-  // Date filter state for reports
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-  const [reportData, setReportData] = useState<{
-    totalServed: number;
-    byTransaction: Record<string, number>;
-    byWindow: Record<string, number>;
-    hourlyData: number[];
-  }>({
-    totalServed: 0,
-    byTransaction: {},
-    byWindow: {},
-    hourlyData: Array(10).fill(0)
-  });
   const [showWindowForm, setShowWindowForm] = useState(false);
   const [editingWindow, setEditingWindow] = useState<WindowType | null>(null);
   const [windowForm, setWindowForm] = useState({
@@ -75,12 +50,8 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
   useEffect(() => {
     loadData();
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    setStartDate(firstDay.toISOString().split('T')[0]);
-    setEndDate(today.toISOString().split('T')[0]);
 
-    const unsubscribe = subscribeToActiveTickets(() => {
+    const unsubscribe = subscribeToAllTickets(() => {
       loadData();
     });
 
@@ -89,13 +60,11 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
   const loadData = async () => {
     try {
-      const [settingsData, transactionTypes, queueStats, windowList] = await Promise.all([
-        getSettings(),
+      const [transactionTypes, queueStats, windowList] = await Promise.all([
         getTransactionTypes(),
         getQueueStats(),
         getWindows()
       ]);
-      setSettings(settingsData);
       setTransactions(transactionTypes);
       setStats(queueStats);
       setWindows(windowList);
@@ -103,19 +72,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       console.error('Error loading data:', err);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleSaveSettings = async () => {
-    setIsSaving(true);
-    try {
-      await saveSettings(settings);
-      setMessage('Settings saved successfully!');
-      setTimeout(() => setMessage(''), 3000);
-    } catch {
-      setMessage('Failed to save settings');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -255,44 +211,15 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     }
   };
 
-  // Load report data - now uses the new getReportData function
-  const loadReportData = async () => {
-    try {
-      let start: Date | undefined;
-      let end: Date | undefined;
-      
-      if (startDate && endDate) {
-        start = new Date(startDate);
-        end = new Date(endDate);
-        end.setHours(23, 59, 59);
-      }
-      
-      const report = await getReportData(start, end);
-      
-      setReportData({
-        totalServed: report.totalServed,
-        byTransaction: Object.fromEntries(
-          Object.entries(report.byTransaction).map(([k, v]) => [k, v.count])
-        ),
-        byWindow: report.byWindow,
-        hourlyData: report.hourlyData
-      });
-    } catch (err) {
-      console.error('Error loading report data:', err);
-    }
-  };
-
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'transactions', label: 'Transactions', icon: Settings },
-    { id: 'windows', label: 'Windows', icon: Monitor },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { id: 'transactions', label: 'Transactions', icon: BarChart3 },
+    { id: 'windows', label: 'Windows', icon: Monitor }
   ];
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
       </div>
     );
@@ -318,7 +245,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   );
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       <Navbar 
         title="Admin Dashboard" 
         showBackButton 
@@ -327,13 +254,13 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       />
       
       {/* Tab Navigation - positioned below navbar */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white shadow-sm pt-16">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex gap-2 overflow-x-auto">
             {tabs.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setActiveTab(t.id as 'dashboard' | 'transactions' | 'windows' | 'settings')}
+                onClick={() => setActiveTab(t.id as 'dashboard' | 'transactions' | 'windows')}
                 className={`px-4 py-2 rounded-lg flex items-center gap-2 transition whitespace-nowrap ${
                   activeTab === t.id
                     ? 'bg-blue-600 text-white'
@@ -426,227 +353,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
               </button>
             </div>
           </div>
-        )}
-
-        {activeTab === 'reports' && (
-          <div className="space-y-6">
-            {/* Reports Header - matches PHP design */}
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-blue-800">📊 System Performance</h2>
-                <div className="flex gap-2">
-                  <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                    <Download className="w-4 h-4" /> Export PDF
-                  </button>
-                  <button 
-                    onClick={() => window.print()}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                  >
-                    <Printer className="w-4 h-4" /> Print
-                  </button>
-                </div>
-              </div>
-
-              {/* Date Filter - matches PHP design */}
-              <div className="flex flex-wrap gap-4 items-end mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">From Date:</label>
-                  <input 
-                    type="date" 
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="px-3 py-2 border rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">To Date:</label>
-                  <input 
-                    type="date" 
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="px-3 py-2 border rounded-lg"
-                  />
-                </div>
-                <button 
-                  onClick={loadReportData}
-                  className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-                >
-                  Filter
-                </button>
-              </div>
-
-              {/* Summary Cards - matches PHP design */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-gradient-to-r from-blue-800 to-blue-600 text-white rounded-xl p-6">
-                  <p className="text-blue-100 uppercase text-sm">Total Students Served</p>
-                  <p className="text-5xl font-bold">{reportData.totalServed}</p>
-                </div>
-                <div className="bg-gradient-to-r from-orange-500 to-orange-400 text-white rounded-xl p-6">
-                  <p className="text-orange-100 uppercase text-sm">Best Service Window</p>
-                  <p className="text-3xl font-bold">
-                    {Object.entries(reportData.byWindow).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'}
-                  </p>
-                  <p className="text-sm text-orange-100">
-                    {Object.entries(reportData.byWindow).sort((a, b) => b[1] - a[1])[0]?.[1] || 0} served
-                  </p>
-                </div>
-              </div>
-
-              {/* Charts Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {/* Transaction Breakdown */}
-                <div className="bg-white rounded-xl p-4 border">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">Transaction Type Breakdown</h3>
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {Object.entries(reportData.byTransaction).map(([key, value], index) => (
-                      <div key={key} className="text-center">
-                        <div 
-                          className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl"
-                          style={{ backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'][index % 4] }}
-                        >
-                          {value}
-                        </div>
-                        <p className="text-xs mt-1">{key}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Bar Chart - Transactions by Type */}
-                <div className="bg-white rounded-xl p-4 border">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">Transactions by Type</h3>
-                  <div className="space-y-3">
-                    {Object.entries(reportData.byTransaction).map(([key, value]) => {
-                      const max = Math.max(...Object.values(reportData.byTransaction), 1);
-                      const percentage = (value / max) * 100;
-                      return (
-                        <div key={key}>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>{key}</span>
-                            <span className="font-bold">{value}</span>
-                          </div>
-                          <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-blue-800 rounded-full transition-all duration-500"
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Hourly Traffic Chart */}
-              <div className="bg-white rounded-xl p-4 border">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">Hourly Student Traffic</h3>
-                <div className="flex items-end justify-around h-40 gap-2">
-                  {['8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM'].map((hour, index) => {
-                    const max = Math.max(...reportData.hourlyData, 1);
-                    const height = (reportData.hourlyData[index] / max) * 100 || 5;
-                    return (
-                      <div key={hour} className="flex flex-col items-center flex-1">
-                        <div 
-                          className="w-full bg-blue-800 rounded-t transition-all duration-500"
-                          style={{ height: `${height}%`, minHeight: '4px' }}
-                        ></div>
-                        <span className="text-xs text-gray-500 mt-1">{hour}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'settings' && (
-          <div className="bg-white rounded-xl shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-6">System Settings</h2>
-            
-            <div className="space-y-4 max-w-xl">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  System Name
-                </label>
-                <input
-                  type="text"
-                  value={settings.systemName}
-                  onChange={(e) => setSettings({ ...settings, systemName: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Daily Reset Time
-                </label>
-                <input
-                  type="time"
-                  value={settings.resetTime}
-                  onChange={(e) => setSettings({ ...settings, resetTime: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Max Daily Tickets
-                </label>
-                <input
-                  type="number"
-                  value={settings.maxDailyTickets}
-                  onChange={(e) => setSettings({ ...settings, maxDailyTickets: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Average Service Time (seconds)
-                </label>
-                <input
-                  type="number"
-                  value={settings.averageServiceTime}
-                  onChange={(e) => setSettings({ ...settings, averageServiceTime: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center gap-6">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={settings.enablePriority}
-                    onChange={(e) => setSettings({ ...settings, enablePriority: e.target.checked })}
-                    className="w-4 h-4 rounded text-blue-600"
-                  />
-                  <span className="text-gray-700">Enable Priority Queue</span>
-                </label>
-
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={settings.enableNotifications}
-                    onChange={(e) => setSettings({ ...settings, enableNotifications: e.target.checked })}
-                    className="w-4 h-4 rounded text-blue-600"
-                  />
-                  <span className="text-gray-700">Enable Notifications</span>
-                </label>
-              </div>
-
-              <button
-                onClick={handleSaveSettings}
-                disabled={isSaving}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                {isSaving ? 'Saving...' : 'Save Settings'}
-              </button>
-            </div>
-          </div>
-        )}
+)}
 
         {activeTab === 'transactions' && (
           <div className="bg-white rounded-xl shadow p-6">
@@ -679,7 +386,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
                       </button>
                       <button
                         onClick={() => handleToggleTransactionActive(t)}
-                        className={`text-sm px-2 py-1 rounded ${t.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}
+                        className={`text-sm px-2 py-1 rounded ${t.active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'}`}
                       >
                         {t.active ? 'Active' : 'Inactive'}
                       </button>
@@ -722,7 +429,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
                       </button>
                       <button
                         onClick={() => handleToggleWindowActive(w)}
-                        className={`text-sm px-2 py-1 rounded ${w.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}
+                        className={`text-sm px-2 py-1 rounded ${w.active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'}`}
                       >
                         {w.active ? 'Active' : 'Inactive'}
                       </button>

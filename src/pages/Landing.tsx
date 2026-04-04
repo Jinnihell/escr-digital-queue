@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import FeedbackModal from '../components/FeedbackModal';
 
 // ESCR Landing Page - Matches MYPHPQUEUE landing.php design
 
@@ -9,6 +10,7 @@ export default function Landing() {
   const navigate = useNavigate();
   const [showHelp, setShowHelp] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   // Floating animation for logo
   const handleGetStarted = () => {
@@ -20,12 +22,17 @@ export default function Landing() {
   };
 
   const handleLogout = async () => {
+    setShowFeedback(true);
+  };
+
+  const handleFeedbackClose = async () => {
+    setShowFeedback(false);
     await logout();
     navigate('/login?message=logged_out');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200">
+    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300">
       {/* Help Button - matches PHP design */}
       <div className="fixed top-6 right-6 z-50">
         <button 
@@ -55,19 +62,6 @@ export default function Landing() {
         <p className="text-gray-600 text-center mb-8 font-semibold tracking-widest uppercase text-sm md:text-base">
           Digital Queueing System
         </p>
-
-        {/* User Info - Show for logged in users */}
-        {user && (
-          <div className="bg-white/80 backdrop-blur rounded-xl px-6 py-4 mb-8 flex items-center gap-4 shadow">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-bold">{user.username?.charAt(0).toUpperCase()}</span>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-800">{user.username}</p>
-              <p className="text-sm text-gray-500 capitalize">{user.role}</p>
-            </div>
-          </div>
-        )}
 
         {/* Get Started Button - matches PHP design */}
         <button
@@ -147,6 +141,11 @@ export default function Landing() {
           </div>
         </div>
       )}
+
+      <FeedbackModal
+        isOpen={showFeedback}
+        onClose={handleFeedbackClose}
+      />
     </div>
   );
 }

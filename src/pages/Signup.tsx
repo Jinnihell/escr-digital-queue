@@ -2,14 +2,13 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, UserPlus, AlertCircle } from 'lucide-react';
-import type { UserRole } from '../types';
 
 export default function Signup() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('student');
+  const role: 'student' = 'student';
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,14 +39,7 @@ export default function Signup() {
 
     try {
       await signup(email, password, username, role);
-      // Role-based redirect after signup
-      if (role === 'admin') {
-        navigate('/admin');
-      } else if (role === 'staff') {
-        navigate('/window-selection');
-      } else {
-        navigate('/');
-      }
+      navigate('/');
     } catch {
       // Error is handled in context
     } finally {
@@ -110,22 +102,7 @@ export default function Signup() {
               />
             </div>
 
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                Account Type
-              </label>
-              <select
-                id="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value as UserRole)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-              >
-                <option value="student">Student</option>
-                <option value="staff">Staff</option>
-                <option value="admin">Admin</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">Select your role (admin/staff requires approval)</p>
-            </div>
+            
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">

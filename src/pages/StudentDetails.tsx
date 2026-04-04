@@ -13,8 +13,10 @@ interface SelectedTransaction {
 
 // Course options from PHP system
 const COURSES: Course[] = [
-  'Senior High - Grade 11',
-  'Senior High - Grade 12',
+  'Senior High - GAS',
+  'Senior High - HUMSS',
+  'Senior High - ICT',
+  'Senior High - STEM',
   'BSBA',
   'BSAIS',
   'BSOA',
@@ -28,7 +30,8 @@ const COURSES: Course[] = [
 
 // Year level options from PHP system
 const YEAR_LEVELS: YearLevel[] = [
-  'Senior High',
+  'Senior High - Grade 11',
+  'Senior High - Grade 12', 
   '1st Year',
   '2nd Year',
   '3rd Year',
@@ -86,9 +89,9 @@ export default function StudentDetails() {
   const selectedTransaction: SelectedTransaction = JSON.parse(stored);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       <Navbar 
-        title="Enter Details" 
+        title="Student Details" 
         showBackButton 
         onBack={handleBack}
         helpContent={
@@ -108,11 +111,13 @@ export default function StudentDetails() {
       />
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto p-4">
+      <div className="max-w-2xl mx-auto p-4 pt-8">
         <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
-          Enter Your Details
-        </h1>
-        <p className="text-gray-600 text-center mb-8">
+         📌 Student Details
+        </h1><p className="text-gray-600 text-center mb-2">
+        Kindly enter your details to generate your queue ticket for the selected transaction.
+        </p>
+        <p className="text-gray-600 text-center mb-2">
           Transaction: <span className="font-semibold text-blue-600">{selectedTransaction.name}</span>
         </p>
 

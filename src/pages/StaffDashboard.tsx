@@ -1,35 +1,38 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAlert } from '../context/useAlert';
 import { 
-  getTransactionTypes, 
+  getTransactionTypes,
   callNextTicket,
   completeTicket,
   cancelTicket,
   subscribeToActiveTickets,
-  getQueueStats
+  getQueueStats,
+  unlockWindow
 } from '../services/queueService';
-import type { TransactionType, QueueTicket, QueueStats } from '../types';
+import type { QueueTicket, QueueStats, TransactionType } from '../types';
 
 // Staff Dashboard - Matches MYPHPQUEUE staff_dashboard.php design
 
 export default function StaffDashboard() {
   const { logout } = useAuth();
+  const { showAlert } = useAlert();
   const navigate = useNavigate();
-  const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [selectedTransaction, setSelectedTransaction] = useState<string>('');
   const [selectedWindow, setSelectedWindow] = useState<{id: string; name: string; number: number} | null>(null);
-  const [waitingTickets, setWaitingTickets] = useState<QueueTicket[]>([]);
+  const [allTickets, setAllTickets] = useState<QueueTicket[]>([]);
   const [currentTicket, setCurrentTicket] = useState<QueueTicket | null>(null);
   const [stats, setStats] = useState<QueueStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCalling, setIsCalling] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isNoShowing, setIsNoShowing] = useState(false);
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [allTransactions, setAllTransactions] = useState<TransactionType[]>([]);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    // Check if window is selected
     const storedWindow = sessionStorage.getItem('selectedWindow');
     if (!storedWindow) {
       navigate('/window-selection');
@@ -38,61 +41,47 @@ export default function StaffDashboard() {
     
     const windowData = JSON.parse(storedWindow);
     setSelectedWindow(windowData);
-    loadData();
+    loadData(windowData.number);
   }, []);
 
   useEffect(() => {
-    if (!selectedWindow || !selectedTransaction) return;
+    if (!selectedWindow) return;
     
-    // Subscribe to active tickets for real-time updates
     const unsubscribe = subscribeToActiveTickets((tickets) => {
-      const waiting = tickets.filter(t => 
-        t.status === 'waiting' && 
-        t.transactionTypeId === selectedTransaction
-      );
-      setWaitingTickets(waiting);
+      setAllTickets(tickets);
       
+      // Find serving ticket for this window
       const serving = tickets.find(t => 
         t.status === 'serving' && 
         t.windowId === selectedWindow.id
       );
-      if (serving) {
-        setCurrentTicket(serving);
-      } else {
-        setCurrentTicket(null);
-      }
+      setCurrentTicket(serving || null);
     });
 
     return () => unsubscribe();
-  }, [selectedTransaction, selectedWindow]);
+  }, [selectedWindow]);
 
-  const loadData = async () => {
+  const loadData = async (windowNumber: number) => {
     try {
       const [transactionTypes, queueStats] = await Promise.all([
         getTransactionTypes(),
         getQueueStats()
       ]);
       
-      const activeTransactions = transactionTypes.filter(t => t.active);
+      // Filter transactions that this window can serve
+      const myTransactions = transactionTypes.filter(
+        t => t.active && (t.windowNumber === windowNumber || !t.windowNumber)
+      );
       
-      // Filter transactions by window number if window is selected
-      let filteredTransactions = activeTransactions;
-      if (selectedWindow) {
-        filteredTransactions = activeTransactions.filter(
-          t => t.windowNumber === selectedWindow.number
-        );
-        
-        // If no specific transactions for this window, show all
-        if (filteredTransactions.length === 0) {
-          filteredTransactions = activeTransactions;
-        }
-      }
+      // Store all transactions for "Call Others" feature
+      const allActiveTransactions = transactionTypes.filter(t => t.active);
+      setAllTransactions(allActiveTransactions);
       
-      setTransactions(filteredTransactions);
       setStats(queueStats);
       
-      if (filteredTransactions.length > 0) {
-        setSelectedTransaction(filteredTransactions[0].id);
+      // Select first matching transaction by default
+      if (myTransactions.length > 0) {
+        setSelectedTransaction(myTransactions[0].id);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -100,6 +89,12 @@ export default function StaffDashboard() {
       setIsLoading(false);
     }
   };
+
+  // Get waiting tickets for selected transaction
+  const waitingTickets = allTickets.filter(t => 
+    t.status === 'waiting' && 
+    t.transactionTypeId === selectedTransaction
+  );
 
   const handleCallNext = async () => {
     if (!selectedTransaction || !selectedWindow || isCalling) return;
@@ -111,13 +106,14 @@ export default function StaffDashboard() {
         setCurrentTicket(ticket);
         playNotificationSound();
         speakTicket(ticket.ticketNumber, selectedWindow.number.toString());
+        showAlert('success', `Ticket ${ticket.ticketNumber} called`);
       } else {
-        alert('No tickets waiting in queue');
+        showAlert('warning', 'No tickets waiting in queue');
       }
     } catch (err) {
       console.error('Error calling ticket:', err);
       const errMsg = err instanceof Error ? err.message : 'Unknown error';
-      alert(`Failed to call next ticket: ${errMsg}`);
+      showAlert('error', `Failed to call next ticket: ${errMsg}`);
     } finally {
       setIsCalling(false);
     }
@@ -130,10 +126,11 @@ export default function StaffDashboard() {
     try {
       await completeTicket(currentTicket.id);
       setCurrentTicket(null);
-      loadData();
+      loadData(selectedWindow?.number || 1);
+      showAlert('success', 'Ticket completed successfully');
     } catch (err) {
       console.error('Error completing ticket:', err);
-      alert('Failed to complete ticket');
+      showAlert('error', 'Failed to complete ticket');
     } finally {
       setIsCompleting(false);
     }
@@ -146,26 +143,34 @@ export default function StaffDashboard() {
     try {
       await cancelTicket(currentTicket.id);
       setCurrentTicket(null);
-      loadData();
+      loadData(selectedWindow?.number || 1);
+      showAlert('info', 'Ticket marked as no show');
     } catch (err) {
       console.error('Error marking no show:', err);
-      alert('Failed to mark ticket as no show');
+      showAlert('error', 'Failed to mark ticket as no show');
     } finally {
       setIsNoShowing(false);
     }
   };
 
   const handleLogout = async () => {
+    // Unlock the window before logging out
+    if (selectedWindow) {
+      try {
+        await unlockWindow(selectedWindow.id);
+      } catch (err) {
+        console.error('Error unlocking window:', err);
+      }
+    }
     await logout();
     navigate('/login?message=logged_out');
   };
 
-  // Ringer/Notification sound - matches PHP design
+  // Ringer/Notification sound
   const playNotificationSound = () => {
     try {
       const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       
-      // Main tone
       const osc1 = audioContext.createOscillator();
       const gain1 = audioContext.createGain();
       osc1.type = 'sine';
@@ -178,17 +183,15 @@ export default function StaffDashboard() {
       osc1.start(audioContext.currentTime);
       osc1.stop(audioContext.currentTime + 1);
       
-      // Clean up audio context after playback
       setTimeout(() => audioContext.close(), 1100);
     } catch {
       console.log('Audio not available');
     }
   };
 
-  // Voice announcement - matches PHP design
+  // Voice announcement
   const speakTicket = (ticketNumber: string, windowNum: string) => {
     if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
       speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(`Ticket ${ticketNumber}, please proceed to window ${windowNum}`);
@@ -196,7 +199,6 @@ export default function StaffDashboard() {
       utterance.pitch = 1;
       utterance.volume = 1;
       
-      // Get voices with fallback
       const getVoice = () => {
         const voices = speechSynthesis.getVoices();
         return voices.find(v => v.lang.startsWith('en')) || voices[0] || null;
@@ -213,63 +215,14 @@ export default function StaffDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-800 border-t-transparent"></div>
       </div>
     );
   }
 
-  const staffHelpContent = (
-    <div className="space-y-3 text-gray-600">
-      <p><b>Call Next Ticket:</b> Call the next person in queue.</p>
-      <p><b>Ring:</b> Play notification sound.</p>
-      <p><b>Complete:</b> Mark current ticket as done.</p>
-      <p><b>No Show:</b> Mark as no show (skip).</p>
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
-        <p className="text-blue-800 text-sm">
-          <b>Tip:</b> Use keyboard shortcuts for faster processing.
-        </p>
-      </div>
-    </div>
-  );
-
-  const [showHelp, setShowHelp] = useState(false);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-blue-200">
-      {/* Top Header with Logo and Help */}
-      <div className="fixed top-0 left-0 right-0 bg-blue-800 text-white p-3 z-20 shadow-lg">
-        <div className="ml-64 flex items-center justify-between pr-4">
-          <div className="flex items-center gap-3">
-            <img src="/escr-logo.png" alt="ESCR Logo" className="w-12 h-12 object-contain bg-white rounded-full p-1" />
-            <div>
-              <h1 className="font-bold text-lg">Staff Dashboard</h1>
-              <p className="text-xs text-blue-200">East Systems Colleges of Rizal</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowHelp(true)}
-            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition"
-          >
-            ?
-          </button>
-        </div>
-      </div>
-
-      {/* Help Modal */}
-      {showHelp && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowHelp(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-t-4 border-blue-800" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Help</h2>
-              <button onClick={() => setShowHelp(false)} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-            </div>
-            <div className="mb-6">{staffHelpContent}</div>
-            <button onClick={() => setShowHelp(false)} className="w-full bg-gradient-to-r from-blue-800 to-blue-600 text-white py-2 rounded-xl font-semibold">Got it</button>
-          </div>
-        </div>
-      )}
-
+    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300">
       {/* Sidebar - matches PHP design */}
       <div className="fixed left-0 top-0 h-full w-64 bg-blue-800 text-white p-5 flex flex-col z-10">
         <div className="text-center mb-8">
@@ -350,6 +303,42 @@ export default function StaffDashboard() {
                   >
                     {isCalling ? '⏳ Calling...' : '📞 Call Next Ticket'}
                   </button>
+                  
+                  {/* Call Others Button */}
+                  <button
+                    onClick={() => setShowAllTransactions(!showAllTransactions)}
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  >
+                    📋 {showAllTransactions ? 'Hide Others' : 'Call Others'}
+                  </button>
+                  
+                  {/* Other Transactions Dropdown */}
+                  {showAllTransactions && (
+                    <div className="bg-white rounded-xl shadow-lg p-4 border-2 border-gray-300">
+                      <p className="text-sm font-semibold text-gray-600 mb-2">Select Transaction to Call:</p>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {allTransactions
+                          .filter(t => t.id !== selectedTransaction)
+                          .map(t => (
+                            <button
+                              key={t.id}
+                              onClick={async () => {
+                                setSelectedTransaction(t.id);
+                                setShowAllTransactions(false);
+                                // Small delay to ensure state is set before calling
+                                setTimeout(async () => {
+                                  await handleCallNext();
+                                }, 100);
+                              }}
+                              className="w-full text-left p-2 rounded-lg bg-gray-100 hover:bg-blue-100 text-gray-800 font-medium"
+                            >
+                              {t.name}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="flex gap-3">
                     <button
                       onClick={playNotificationSound}
@@ -379,30 +368,19 @@ export default function StaffDashboard() {
 
           {/* Right Panel */}
           <div className="w-full md:w-72">
-            {/* Transaction Selection - matches PHP design */}
-            <div className="bg-white rounded-2xl shadow-xl p-5 mb-6">
-              <h3 className="font-bold text-gray-800 mb-3">Select Transaction</h3>
-              <select
-                title="Select transaction"
-                value={selectedTransaction}
-                onChange={(e) => setSelectedTransaction(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-800"
-              >
-                {transactions.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-            </div>
-
             {/* Stats - matches PHP design */}
             <div className="flex gap-3 mb-6">
               <div className="flex-1 bg-white rounded-2xl shadow-xl p-4 text-center">
                 <p className="text-gray-500 text-xs uppercase">Waiting</p>
-                <p className="text-3xl font-bold text-orange-500">{stats?.waitingTickets || 0}</p>
+                <p className="text-3xl font-bold text-orange-500">
+                  {waitingTickets.length}
+                </p>
               </div>
               <div className="flex-1 bg-white rounded-2xl shadow-xl p-4 text-center">
                 <p className="text-gray-500 text-xs uppercase">Completed</p>
-                <p className="text-3xl font-bold text-green-600">{stats?.completedTickets || 0}</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {stats?.completedTickets || 0}
+                </p>
               </div>
             </div>
 
@@ -434,18 +412,7 @@ export default function StaffDashboard() {
               </div>
             </div>
 
-            {/* Window Info */}
-            <div className="bg-white rounded-2xl shadow-xl p-5 mt-6">
-              <h3 className="font-bold text-gray-800 mb-2">Your Window</h3>
-              <p className="text-3xl font-bold text-blue-800">Window {selectedWindow?.number}</p>
-              <p className="text-gray-500">{selectedWindow?.name}</p>
-              <button
-                onClick={() => navigate('/window-selection')}
-                className="mt-3 text-blue-600 text-sm hover:underline"
-              >
-                Change Window
-              </button>
-            </div>
+            
           </div>
         </div>
       </div>

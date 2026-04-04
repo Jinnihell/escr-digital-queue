@@ -14,6 +14,10 @@ export interface User {
 export type Course = 
   | 'Senior High - Grade 11'
   | 'Senior High - Grade 12'
+  | 'Senior High - GAS'
+  | 'Senior High - HUMSS'
+  | 'Senior High - ICT'
+  | 'Senior High - STEM'
   | 'BSBA'
   | 'BSAIS'
   | 'BSOA'
@@ -26,6 +30,8 @@ export type Course =
 
 // Year level options
 export type YearLevel = 
+  | 'Senior High - Grade 11'
+  | 'Senior High - Grade 12'
   | 'Senior High'
   | '1st Year'
   | '2nd Year'
@@ -59,6 +65,8 @@ export interface Window {
   number: number;
   active: boolean;
   currentTicketId: string | null;
+  staffId: string | null; // Track which staff is using this window
+  lockedAt: Date | null; // When the window was locked
 }
 
 // Queue ticket status

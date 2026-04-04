@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getWindows } from '../services/queueService';
-import { Monitor, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { getWindows, lockWindow } from '../services/queueService';
+import { Monitor, ArrowRight, Lock } from 'lucide-react';
 import type { Window as WindowType } from '../types';
 
 export default function WindowSelection() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [windows, setWindows] = useState<WindowType[]>([]);
   const [selectedWindow, setSelectedWindow] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [locking, setLocking] = useState(false);
 
   useEffect(() => {
     loadWindows();
@@ -17,7 +20,6 @@ export default function WindowSelection() {
   const loadWindows = async () => {
     try {
       const data = await getWindows();
-      // Only show active windows
       setWindows(data.filter(w => w.active));
     } catch (err) {
       console.error('Error loading windows:', err);
@@ -26,20 +28,42 @@ export default function WindowSelection() {
     }
   };
 
-  const handleContinue = () => {
-    if (!selectedWindow) return;
+  const isWindowLocked = (window: WindowType) => {
+    if (!window.staffId) return false;
+    // Window is locked if it has a staffId and it's not the current user
+    return window.staffId !== user?.id;
+  };
+
+  const handleWindowSelect = (windowId: string) => {
+    const window = windows.find(w => w.id === windowId);
+    if (!window || isWindowLocked(window)) return;
+    setSelectedWindow(windowId);
+  };
+
+  const handleContinue = async () => {
+    if (!selectedWindow || !user) return;
 
     const window = windows.find(w => w.id === selectedWindow);
     if (!window) return;
 
-    // Store selected window in sessionStorage
-    sessionStorage.setItem('selectedWindow', JSON.stringify({
-      id: window.id,
-      name: window.name,
-      number: window.number
-    }));
+    setLocking(true);
+    try {
+      // Lock the window for this staff
+      await lockWindow(window.id, user.id);
 
-    navigate('/staff');
+      // Store selected window in sessionStorage
+      sessionStorage.setItem('selectedWindow', JSON.stringify({
+        id: window.id,
+        name: window.name,
+        number: window.number
+      }));
+
+      navigate('/staff');
+    } catch (err) {
+      console.error('Error locking window:', err);
+    } finally {
+      setLocking(false);
+    }
   };
 
   if (isLoading) {
@@ -55,8 +79,37 @@ export default function WindowSelection() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 p-4">
+      {/* Navbar */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <div className="px-4 py-3 bg-gradient-to-r from-blue-800/90 to-blue-600/90 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <Monitor className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-white">Select Window</h1>
+                <p className="text-xs text-blue-200">Choose your assigned window</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto pt-20">
+        {/* Logo */}
+        <div className="text-center mb-6">
+          <img 
+            src="/escr-logo.png" 
+            alt="ESCR Logo" 
+            className="w-32 h-32 object-contain mx-auto bg-white rounded-full p-2 shadow-lg"
+          />
+          <h1 className="text-2xl font-bold text-gray-800 text-center mt-4">
+            East Systems Colleges of Rizal
+          </h1>
+        </div>
+
         <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
           Select Your Window
         </h1>
@@ -74,70 +127,89 @@ export default function WindowSelection() {
           <>
             {/* Window List */}
             <div className="space-y-3 mb-6">
-              {windows.map((window) => (
-                <button
-                  key={window.id}
-                  onClick={() => setSelectedWindow(window.id)}
-                  className={`w-full p-4 rounded-xl text-left transition-all duration-200 ${
-                    selectedWindow === window.id
-                      ? 'bg-blue-600 text-white shadow-lg transform scale-[1.02]'
-                      : 'bg-white hover:bg-blue-50 text-gray-800 shadow'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      selectedWindow === window.id
-                        ? 'bg-white/20'
-                        : 'bg-blue-100'
-                    }`}>
-                      <span className={`text-xl font-bold ${
-                        selectedWindow === window.id
-                          ? 'text-white'
-                          : 'text-blue-600'
+              {windows.map((window) => {
+                const locked = isWindowLocked(window);
+                const isSelected = selectedWindow === window.id;
+
+                return (
+                  <button
+                    key={window.id}
+                    onClick={() => handleWindowSelect(window.id)}
+                    disabled={locked}
+                    className={`w-full p-4 rounded-xl text-left transition-all duration-200 ${
+                      locked
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60'
+                        : isSelected
+                          ? 'bg-blue-600 text-white shadow-lg transform scale-[1.02]'
+                          : 'bg-white hover:bg-blue-50 text-gray-800 shadow'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                        locked
+                          ? 'bg-gray-300'
+                          : isSelected
+                            ? 'bg-white/20'
+                            : 'bg-blue-100'
                       }`}>
-                        {window.number}
-                      </span>
+                        {locked ? (
+                          <Lock className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-gray-500'}`} />
+                        ) : (
+                          <span className={`text-xl font-bold ${
+                            isSelected
+                              ? 'text-white'
+                              : 'text-blue-600'
+                          }`}>
+                            {window.number}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-lg">{window.name}</p>
+                        <p className={`text-sm ${
+                          locked
+                            ? 'text-gray-400'
+                            : isSelected
+                              ? 'text-blue-100'
+                              : 'text-gray-500'
+                        }`}>
+                          {locked ? 'In use by another staff' : `Window ${window.number}`}
+                        </p>
+                      </div>
+                      {locked && <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">Locked</span>}
                     </div>
-                    <div>
-                      <p className="font-semibold text-lg">{window.name}</p>
-                      <p className={`text-sm ${
-                        selectedWindow === window.id
-                          ? 'text-blue-100'
-                          : 'text-gray-500'
-                      }`}>
-                        Window {window.number}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Continue Button */}
             <button
               onClick={handleContinue}
-              disabled={!selectedWindow}
+              disabled={!selectedWindow || locking}
               className={`w-full py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-all duration-200 ${
-                selectedWindow
+                selectedWindow && !locking
                   ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Continue
+              {locking ? 'Locking...' : 'Continue'}
               <ArrowRight className="w-5 h-5" />
             </button>
           </>
         )}
 
-        {/* Admin Link */}
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => navigate('/admin')}
-            className="text-gray-500 hover:text-gray-700 text-sm"
-          >
-            Go to Admin Dashboard
-          </button>
-        </div>
+        {/* Admin Link - only show for admins */}
+        {user?.role === 'admin' && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => navigate('/admin')}
+              className="text-gray-500 hover:text-gray-700 text-sm"
+            >
+              Go to Admin Dashboard
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
