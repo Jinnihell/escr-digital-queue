@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { subscribeToActiveTickets, getWindows } from '../services/queueService';
 import type { QueueTicket, Window } from '../types';
 
@@ -10,7 +10,6 @@ export default function PublicMonitor() {
   const [isLoading, setIsLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
-  const prevTicketsRef = useRef<QueueTicket[]>([]);
 
   // Update clock
   useEffect(() => {
@@ -22,25 +21,27 @@ export default function PublicMonitor() {
     return () => clearInterval(interval);
   }, []);
 
-  // Announce all serving windows every minute
+  // Announce serving tickets per window every minute
   useEffect(() => {
-    let lastAnnouncedTime = 0;
-    
-    const announceAll = () => {
-      if (!soundEnabled) return;
+    const announceServingTickets = () => {
+      if (!soundEnabled || windows.length === 0) return;
       
+      // Get serving tickets from state
       const serving = tickets.filter(t => t.status === 'serving');
-      if (serving.length === 0) return;
       
-      // Check if we already announced within last 30 seconds
-      const now = Date.now();
-      if (now - lastAnnouncedTime < 30000) return;
-      lastAnnouncedTime = now;
+      // Get the first serving ticket for each window
+      const windowsWithTickets = windows.map(w => {
+        const ticket = serving.find(t => t.windowId === w.id);
+        return ticket ? { windowNumber: w.number, windowName: w.name, ticketNumber: ticket.ticketNumber } : null;
+      }).filter(Boolean);
       
+      if (windowsWithTickets.length === 0) return;
+      
+      // Build announcement for all serving tickets
       let announcement = '';
-      serving.forEach((ticket, idx) => {
+      windowsWithTickets.forEach((w, idx) => {
         if (idx > 0) announcement += '. ';
-        announcement += `Queue ticket ${ticket.ticketNumber}, please proceed to ${ticket.windowName}`;
+        announcement += `Queue ticket ${w?.ticketNumber}, please proceed to window ${w?.windowNumber}`;
       });
       
       if (announcement && 'speechSynthesis' in window) {
@@ -53,36 +54,25 @@ export default function PublicMonitor() {
     };
 
     // Initial announcement after 3 seconds
-    const initialTimer = setTimeout(announceAll, 3000);
+    const initialTimer = setTimeout(announceServingTickets, 3000);
     
     // Then every 60 seconds
-    const intervalId = setInterval(announceAll, 60000);
+    const intervalId = setInterval(announceServingTickets, 60000);
     
     return () => {
       clearTimeout(initialTimer);
       clearInterval(intervalId);
     };
-  }, [tickets, soundEnabled]);
+  }, [tickets, windows, soundEnabled]);
 
   // Subscribe to real-time ticket updates
   useEffect(() => {
     const unsubscribe = subscribeToActiveTickets((updatedTickets) => {
-      // Find new serving tickets using ref
-      const newServing = updatedTickets.filter(t => t.status === 'serving');
-      const prevServingIds = new Set(prevTicketsRef.current.filter(t => t.status === 'serving').map(t => t.id));
-      const newlyCalled = newServing.find(t => !prevServingIds.has(t.id));
-      
-      if (newlyCalled && soundEnabled) {
-        playNotificationSound();
-        speakTicket(newlyCalled.windowName || '1', newlyCalled.ticketNumber);
-      }
-      
-      prevTicketsRef.current = updatedTickets;
       setTickets(updatedTickets);
     });
 
     return () => unsubscribe();
-  }, [soundEnabled]);
+  }, []);
 
   // Load initial windows data
   useEffect(() => {
@@ -98,51 +88,6 @@ export default function PublicMonitor() {
     };
     loadInitialData();
   }, []);
-
-  // Bell sound - matches PHP design using Web Audio API
-  const playNotificationSound = () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      
-      // Main tone - loud and clear (1000Hz)
-      const osc1 = audioContext.createOscillator();
-      const gain1 = audioContext.createGain();
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(1000, audioContext.currentTime);
-      gain1.gain.setValueAtTime(0, audioContext.currentTime);
-      gain1.gain.linearRampToValueAtTime(0.9, audioContext.currentTime + 0.01);
-      gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.2);
-      osc1.connect(gain1);
-      gain1.connect(audioContext.destination);
-      osc1.start(audioContext.currentTime);
-      osc1.stop(audioContext.currentTime + 1.2);
-      
-      // Harmonic overtone (stronger bell sound)
-      const osc2 = audioContext.createOscillator();
-      const gain2 = audioContext.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(2000, audioContext.currentTime);
-      gain2.gain.setValueAtTime(0, audioContext.currentTime);
-      gain2.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.01);
-      gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
-      osc2.connect(gain2);
-      gain2.connect(audioContext.destination);
-      osc2.start(audioContext.currentTime);
-      osc2.stop(audioContext.currentTime + 0.8);
-    } catch {
-      console.log('Audio not available');
-    }
-  };
-
-  // Voice announcement - single ticket called
-  const speakTicket = (windowName: string, ticketNumber: string) => {
-    if ('speechSynthesis' in window) {
-      const message = `queue ticket ${ticketNumber}, please proceed to ${windowName}`;
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.rate = 0.85;
-      speechSynthesis.speak(utterance);
-    }
-  };
 
   const waitingTickets = tickets.filter(t => t.status === 'waiting');
   const servingTickets = tickets.filter(t => t.status === 'serving');
