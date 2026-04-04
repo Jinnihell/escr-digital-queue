@@ -115,6 +115,31 @@ export interface SystemSettings {
   enablePriority: boolean;
   enableNotifications: boolean;
   averageServiceTime: number;
+  // Operating Hours
+  operatingHours: {
+    enabled: boolean;
+    monday: { start: string; end: string };
+    tuesday: { start: string; end: string };
+    wednesday: { start: string; end: string };
+    thursday: { start: string; end: string };
+    friday: { start: string; end: string };
+    saturday: { start: string; end: string };
+    sunday: { start: string; end: string };
+  };
+  // In-App Alerts
+  alerts: {
+    enabled: boolean;
+    announcerVoice: boolean;
+    showAllWindows: boolean;
+  };
+  // Display Mode
+  displayMode: 'standard' | 'compact' | 'large';
+  // Queue Settings
+  autoReset: boolean;
+  autoResetTime: string;
+  maxWaitTime: number;
+  // Backup
+  lastBackup: string | null;
 }
 
 // Report data

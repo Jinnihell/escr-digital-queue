@@ -9,12 +9,14 @@ import {
   getWindows,
   createWindow,
   updateWindow,
-  subscribeToAllTickets
+  subscribeToAllTickets,
+  getSettings,
+  saveSettings
 } from '../services/queueService';
-import { RefreshCw, BarChart3, Monitor, Settings, Download, Printer } from 'lucide-react';
+import { RefreshCw, BarChart3, Settings, Download, Printer, Clock, Bell, Zap, Save, RotateCcw, DatabaseBackup, Monitor } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Navbar from '../components/Navbar';
-import type { TransactionType, QueueStats, Window as WindowType, QueueTicket } from '../types';
+import type { TransactionType, QueueStats, Window as WindowType, QueueTicket, SystemSettings } from '../types';
 
 interface AdminDashboardProps {
   tab?: 'dashboard' | 'reports' | 'settings' | 'transactions' | 'windows';
@@ -50,6 +52,9 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     name: '',
     number: 1
   });
+
+  // Settings state
+  const [settingsForm, setSettingsForm] = useState<SystemSettings | null>(null);
 
   useEffect(() => {
     loadData();
@@ -96,19 +101,55 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
   const loadData = async () => {
     try {
-      const [transactionTypes, queueStats, windowList] = await Promise.all([
+      const [transactionTypes, queueStats, windowList, systemSettings] = await Promise.all([
         getTransactionTypes(),
         getQueueStats(),
-        getWindows()
+        getWindows(),
+        getSettings()
       ]);
       setTransactions(transactionTypes);
       setStats(queueStats);
       setWindows(windowList);
+      setSettingsForm(systemSettings);
     } catch (err) {
       console.error('Error loading data:', err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSaveSettings = async () => {
+    if (!settingsForm) return;
+    setIsSaving(true);
+    try {
+      await saveSettings(settingsForm);
+      setMessage('Settings saved successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      console.error('Error saving settings:', err);
+      setMessage('Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleBackup = async () => {
+    if (!confirm('Create a backup of all queue data?')) return;
+    const backupData = {
+      transactions,
+      windows,
+      settings: settingsForm,
+      createdAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `escr-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setMessage('Backup created successfully!');
+    setTimeout(() => setMessage(''), 3000);
   };
 
   const handleResetQueue = async () => {
@@ -479,10 +520,291 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
           </div>
         )}
 
-        {activeTab === 'settings' && (
-          <div className="bg-white rounded-xl shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-6">System Settings</h2>
-            <p className="text-gray-500">Settings configuration coming soon.</p>
+        {activeTab === 'settings' && settingsForm && (
+          <div className="space-y-6">
+            {message && (
+              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                {message}
+              </div>
+            )}
+
+            {/* General Settings */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Settings className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-800">General Settings</h2>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">System Name</label>
+                  <input
+                    type="text"
+                    value={settingsForm.systemName}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, systemName: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Daily Reset Time</label>
+                  <input
+                    type="time"
+                    value={settingsForm.resetTime}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, resetTime: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Daily Tickets</label>
+                  <input
+                    type="number"
+                    value={settingsForm.maxDailyTickets}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, maxDailyTickets: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min={1}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Average Service Time (seconds)</label>
+                  <input
+                    type="number"
+                    value={settingsForm.averageServiceTime}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, averageServiceTime: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min={60}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Operating Hours */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg font-semibold text-gray-800">Operating Hours</h2>
+                </div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={settingsForm.operatingHours.enabled}
+                    onChange={(e) => setSettingsForm({ 
+                      ...settingsForm, 
+                      operatingHours: { ...settingsForm.operatingHours, enabled: e.target.checked }
+                    })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-600">Enable Operating Hours</span>
+                </label>
+              </div>
+              {settingsForm.operatingHours.enabled && (
+                <div className="space-y-2">
+                  {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((day) => (
+                    <div key={day} className="flex items-center gap-4">
+                      <span className="w-24 text-sm font-medium text-gray-700 capitalize">{day}</span>
+                      <input
+                        type="time"
+                        value={settingsForm.operatingHours[day].start}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          operatingHours: {
+                            ...settingsForm.operatingHours,
+                            [day]: { ...settingsForm.operatingHours[day], start: e.target.value }
+                          }
+                        })}
+                        className="px-2 py-1 border rounded"
+                      />
+                      <span className="text-gray-500">to</span>
+                      <input
+                        type="time"
+                        value={settingsForm.operatingHours[day].end}
+                        onChange={(e) => setSettingsForm({
+                          ...settingsForm,
+                          operatingHours: {
+                            ...settingsForm.operatingHours,
+                            [day]: { ...settingsForm.operatingHours[day], end: e.target.value }
+                          }
+                        })}
+                        className="px-2 py-1 border rounded"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* In-App Alerts */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Bell className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-800">In-App Alerts</h2>
+              </div>
+              <div className="space-y-3">
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={settingsForm.alerts.enabled}
+                    onChange={(e) => setSettingsForm({ 
+                      ...settingsForm, 
+                      alerts: { ...settingsForm.alerts, enabled: e.target.checked }
+                    })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-700">Enable Alerts</span>
+                </label>
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={settingsForm.alerts.announcerVoice}
+                    onChange={(e) => setSettingsForm({ 
+                      ...settingsForm, 
+                      alerts: { ...settingsForm.alerts, announcerVoice: e.target.checked }
+                    })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-700">Voice Announcements</span>
+                </label>
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={settingsForm.alerts.showAllWindows}
+                    onChange={(e) => setSettingsForm({ 
+                      ...settingsForm, 
+                      alerts: { ...settingsForm.alerts, showAllWindows: e.target.checked }
+                    })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-700">Show All Active Windows</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Display Mode */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Monitor className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-800">Display Mode</h2>
+              </div>
+              <div className="flex gap-4">
+                {(['standard', 'compact', 'large'] as const).map((mode) => (
+                  <label key={mode} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="displayMode"
+                      value={mode}
+                      checked={settingsForm.displayMode === mode}
+                      onChange={(e) => setSettingsForm({ 
+                        ...settingsForm, 
+                        displayMode: e.target.value as 'standard' | 'compact' | 'large'
+                      })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-700 capitalize">{mode}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Queue Settings */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-800">Queue Settings</h2>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.autoReset}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, autoReset: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-700">Auto Reset Daily</span>
+                  </label>
+                </div>
+                {settingsForm.autoReset && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Auto Reset Time</label>
+                    <input
+                      type="time"
+                      value={settingsForm.autoResetTime}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, autoResetTime: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Wait Time (seconds)</label>
+                  <input
+                    type="number"
+                    value={settingsForm.maxWaitTime}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, maxWaitTime: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min={300}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Enable Priority</label>
+                  <label className="flex items-center gap-3 mt-2">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.enablePriority}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, enablePriority: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-700">Allow Priority Queue</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Backup & Recovery */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <DatabaseBackup className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-800">Backup & Recovery</h2>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Last Backup</p>
+                    <p className="text-sm text-gray-500">
+                      {settingsForm.lastBackup ? new Date(settingsForm.lastBackup).toLocaleString() : 'Never'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleBackup}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                  >
+                    <DatabaseBackup className="w-4 h-4" /> Create Backup
+                  </button>
+                </div>
+                <button
+                  onClick={handleResetQueue}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" /> Reset Queue
+                </button>
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={loadData}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSettings}
+                disabled={isSaving}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? 'Saving...' : 'Save Settings'}
+              </button>
+            </div>
           </div>
         )}
 
