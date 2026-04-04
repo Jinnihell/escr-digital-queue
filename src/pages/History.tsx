@@ -19,6 +19,15 @@ export default function History() {
   const [windowFilter, setWindowFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
+  const loadWindows = async () => {
+    try {
+      const windowList = await getWindows();
+      setWindows(windowList);
+    } catch (err) {
+      console.error('Error loading windows:', err);
+    }
+  };
+
   useEffect(() => {
     loadWindows();
 
@@ -63,15 +72,6 @@ export default function History() {
 
     return () => unsubscribe();
   }, [user]);
-
-  const loadWindows = async () => {
-    try {
-      const windowList = await getWindows();
-      setWindows(windowList);
-    } catch (err) {
-      console.error('Error loading windows:', err);
-    }
-  };
 
   const handleFilter = () => {
     // Just trigger re-render, useEffect will handle it

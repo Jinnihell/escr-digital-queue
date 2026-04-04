@@ -137,7 +137,7 @@ export default function PublicMonitor() {
   // Voice announcement - single ticket called
   const speakTicket = (windowName: string, ticketNumber: string) => {
     if ('speechSynthesis' in window) {
-      let message = `queue ticket ${ticketNumber}, please proceed to ${windowName}`;
+      const message = `queue ticket ${ticketNumber}, please proceed to ${windowName}`;
       const utterance = new SpeechSynthesisUtterance(message);
       utterance.rate = 0.85;
       speechSynthesis.speak(utterance);
