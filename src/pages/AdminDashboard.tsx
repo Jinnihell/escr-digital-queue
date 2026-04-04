@@ -12,8 +12,9 @@ import {
   subscribeToAllTickets
 } from '../services/queueService';
 import { RefreshCw, BarChart3, Monitor, Settings, Download, Printer } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Navbar from '../components/Navbar';
-import type { TransactionType, QueueStats, Window as WindowType } from '../types';
+import type { TransactionType, QueueStats, Window as WindowType, QueueTicket } from '../types';
 
 interface AdminDashboardProps {
   tab?: 'dashboard' | 'reports' | 'settings' | 'transactions' | 'windows';
@@ -29,9 +30,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Date filter state for reports
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+  const [allTickets, setAllTickets] = useState<QueueTicket[]>([]);
 
   // Transaction form state
   const [showTransactionForm, setShowTransactionForm] = useState(false);
@@ -55,12 +54,45 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   useEffect(() => {
     loadData();
 
-    const unsubscribe = subscribeToAllTickets(() => {
+    const unsubscribe = subscribeToAllTickets((tickets) => {
       loadData();
+      setAllTickets(tickets);
     });
 
     return () => unsubscribe();
   }, []);
+
+  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+
+  const getTicketsByWindow = () => {
+    const windowMap = new Map<string, number>();
+    windows.forEach(w => windowMap.set(w.name, 0));
+    allTickets.forEach(ticket => {
+      if (ticket.windowName) {
+        const current = windowMap.get(ticket.windowName) || 0;
+        windowMap.set(ticket.windowName, current + 1);
+      }
+    });
+    return windows.map(w => ({
+      name: w.name,
+      value: windowMap.get(w.name) || 0
+    })).filter(item => item.value > 0);
+  };
+
+  const getTicketsByTransaction = () => {
+    const transMap = new Map<string, number>();
+    transactions.forEach(t => transMap.set(t.name, 0));
+    allTickets.forEach(ticket => {
+      if (ticket.transactionTypeName) {
+        const current = transMap.get(ticket.transactionTypeName) || 0;
+        transMap.set(ticket.transactionTypeName, current + 1);
+      }
+    });
+    return transactions.map(t => ({
+      name: t.name,
+      value: transMap.get(t.name) || 0
+    })).filter(item => item.value > 0);
+  };
 
   const loadData = async () => {
     try {
@@ -362,56 +394,87 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 )}
 
         {activeTab === 'reports' && (
-          <div className="bg-white rounded-xl shadow p-6">
-            <h2 className="text-2xl font-bold text-blue-800 mb-6">Reports</h2>
-            <div className="flex flex-wrap gap-4 items-end mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">From Date:</label>
-                <input 
-                  type="date" 
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">To Date:</label>
-                <input 
-                  type="date" 
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-blue-800">{stats?.totalTickets || 0}</p>
-                <p className="text-sm text-gray-600">Total Tickets</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-green-800">{stats?.completedTickets || 0}</p>
-                <p className="text-sm text-gray-600">Completed</p>
-              </div>
-              <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-yellow-800">{stats?.waitingTickets || 0}</p>
-                <p className="text-sm text-gray-600">Waiting</p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-purple-800">{stats?.servingTickets || 0}</p>
-                <p className="text-sm text-gray-600">Serving</p>
+          <div className="space-y-6">
+            {/* Stats Cards */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <h2 className="text-2xl font-bold text-blue-800 mb-6">Reports Overview</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                  <p className="text-3xl font-bold text-blue-800">{allTickets.length}</p>
+                  <p className="text-sm text-gray-600">Total Tickets</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg text-center">
+                  <p className="text-3xl font-bold text-green-800">{allTickets.filter(t => t.status === 'completed').length}</p>
+                  <p className="text-sm text-gray-600">Completed</p>
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-lg text-center">
+                  <p className="text-3xl font-bold text-yellow-800">{allTickets.filter(t => t.status === 'waiting').length}</p>
+                  <p className="text-sm text-gray-600">Waiting</p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg text-center">
+                  <p className="text-3xl font-bold text-purple-800">{allTickets.filter(t => t.status === 'serving').length}</p>
+                  <p className="text-sm text-gray-600">Serving</p>
+                </div>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                <Download className="w-4 h-4" /> Export PDF
-              </button>
-              <button 
-                onClick={() => window.print()}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-              >
-                <Printer className="w-4 h-4" /> Print
-              </button>
+
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Pie Chart - Tickets by Window */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Tickets by Window</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={getTicketsByWindow()}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      paddingAngle={5}
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
+                    >
+                      {getTicketsByWindow().map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Bar Chart - Tickets by Transaction */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Tickets by Transaction</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={getTicketsByTransaction()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#3B82F6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Export Buttons */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="flex gap-2">
+                <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                  <Download className="w-4 h-4" /> Export PDF
+                </button>
+                <button 
+                  onClick={() => window.print()}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <Printer className="w-4 h-4" /> Print
+                </button>
+              </div>
             </div>
           </div>
         )}
