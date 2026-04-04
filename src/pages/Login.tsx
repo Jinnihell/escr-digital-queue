@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, LogIn, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -58,6 +58,13 @@ export default function Login() {
             <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
               <LogIn className="w-5 h-5" />
               You have been logged out successfully.
+            </div>
+          )}
+          
+          {message === 'feedback_submitted' && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Thank you for your feedback!
             </div>
           )}
           

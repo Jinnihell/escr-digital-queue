@@ -283,7 +283,7 @@ export default function DisplayTicket() {
         isOpen={showFeedback}
         onClose={() => {
           setShowFeedback(false);
-          navigate('/');
+          navigate('/login?message=feedback_submitted');
         }}
         ticketNumber={ticket?.ticketNumber}
         transactionType={ticket?.transactionTypeName}
