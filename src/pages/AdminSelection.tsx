@@ -23,8 +23,8 @@ export default function AdminSelection() {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', description: 'View queue statistics and reports', color: 'bg-blue-600', action: () => navigate('/admin/dashboard') },
-    { icon: BarChart3, label: 'Reports', description: 'Generate and view detailed reports', color: 'bg-green-600', action: () => navigate('/admin/dashboard?tab=reports') },
-    { icon: Settings, label: 'Settings', description: 'Manage windows and transactions', color: 'bg-gray-600', action: () => navigate('/admin/dashboard?tab=settings') },
+    { icon: BarChart3, label: 'Reports', description: 'Generate and view detailed reports', color: 'bg-green-600', action: () => navigate('/admin/reports') },
+    { icon: Settings, label: 'Settings', description: 'Manage windows and transactions', color: 'bg-gray-600', action: () => navigate('/admin/settings') },
     { icon: Monitor, label: 'Public Display', description: 'View the public monitor', color: 'bg-purple-600', action: () => navigate('/monitor') }
   ];
 

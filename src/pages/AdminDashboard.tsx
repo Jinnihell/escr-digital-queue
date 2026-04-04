@@ -11,23 +11,27 @@ import {
   updateWindow,
   subscribeToAllTickets
 } from '../services/queueService';
-import { RefreshCw, BarChart3, Monitor } from 'lucide-react';
+import { RefreshCw, BarChart3, Monitor, Settings, Download, Printer } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import type { TransactionType, QueueStats, Window as WindowType } from '../types';
 
 interface AdminDashboardProps {
-  tab?: 'dashboard' | 'transactions' | 'windows';
+  tab?: 'dashboard' | 'reports' | 'settings' | 'transactions' | 'windows';
 }
 
 export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProps) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'windows'>(tab);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'settings' | 'transactions' | 'windows'>(tab);
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [windows, setWindows] = useState<WindowType[]>([]);
   const [stats, setStats] = useState<QueueStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
+
+  // Date filter state for reports
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   // Transaction form state
   const [showTransactionForm, setShowTransactionForm] = useState(false);
@@ -213,7 +217,9 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'transactions', label: 'Transactions', icon: BarChart3 },
+    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'transactions', label: 'Transactions', icon: Monitor },
     { id: 'windows', label: 'Windows', icon: Monitor }
   ];
 
@@ -354,6 +360,68 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
             </div>
           </div>
 )}
+
+        {activeTab === 'reports' && (
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-2xl font-bold text-blue-800 mb-6">Reports</h2>
+            <div className="flex flex-wrap gap-4 items-end mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">From Date:</label>
+                <input 
+                  type="date" 
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">To Date:</label>
+                <input 
+                  type="date" 
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-blue-50 p-4 rounded-lg text-center">
+                <p className="text-3xl font-bold text-blue-800">{stats?.totalTickets || 0}</p>
+                <p className="text-sm text-gray-600">Total Tickets</p>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg text-center">
+                <p className="text-3xl font-bold text-green-800">{stats?.completedTickets || 0}</p>
+                <p className="text-sm text-gray-600">Completed</p>
+              </div>
+              <div className="bg-yellow-50 p-4 rounded-lg text-center">
+                <p className="text-3xl font-bold text-yellow-800">{stats?.waitingTickets || 0}</p>
+                <p className="text-sm text-gray-600">Waiting</p>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-lg text-center">
+                <p className="text-3xl font-bold text-purple-800">{stats?.servingTickets || 0}</p>
+                <p className="text-sm text-gray-600">Serving</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                <Download className="w-4 h-4" /> Export PDF
+              </button>
+              <button 
+                onClick={() => window.print()}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              >
+                <Printer className="w-4 h-4" /> Print
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-6">System Settings</h2>
+            <p className="text-gray-500">Settings configuration coming soon.</p>
+          </div>
+        )}
 
         {activeTab === 'transactions' && (
           <div className="bg-white rounded-xl shadow p-6">
