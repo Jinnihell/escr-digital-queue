@@ -13,7 +13,7 @@ import {
   getSettings,
   saveSettings
 } from '../services/queueService';
-import { RefreshCw, Settings, Download, Printer, Clock, Bell, Zap, Save, RotateCcw, DatabaseBackup, Monitor, Filter } from 'lucide-react';
+import { RefreshCw, Settings, Download, Printer, Bell, Zap, Save, RotateCcw, DatabaseBackup, Filter } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import Navbar from '../components/Navbar';
 import type { TransactionType, QueueStats, Window as WindowType, QueueTicket, SystemSettings } from '../types';
@@ -737,62 +737,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
               </div>
             </div>
 
-            {/* Operating Hours */}
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-lg font-semibold text-gray-800">Operating Hours</h2>
-                </div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={settingsForm.operatingHours.enabled}
-                    onChange={(e) => setSettingsForm({ 
-                      ...settingsForm, 
-                      operatingHours: { ...settingsForm.operatingHours, enabled: e.target.checked }
-                    })}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm text-gray-600">Enable Operating Hours</span>
-                </label>
-              </div>
-              {settingsForm.operatingHours.enabled && (
-                <div className="space-y-2">
-                  {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((day) => (
-                    <div key={day} className="flex items-center gap-4">
-                      <span className="w-24 text-sm font-medium text-gray-700 capitalize">{day}</span>
-                      <input
-                        type="time"
-                        value={settingsForm.operatingHours[day].start}
-                        onChange={(e) => setSettingsForm({
-                          ...settingsForm,
-                          operatingHours: {
-                            ...settingsForm.operatingHours,
-                            [day]: { ...settingsForm.operatingHours[day], start: e.target.value }
-                          }
-                        })}
-                        className="px-2 py-1 border rounded"
-                      />
-                      <span className="text-gray-500">to</span>
-                      <input
-                        type="time"
-                        value={settingsForm.operatingHours[day].end}
-                        onChange={(e) => setSettingsForm({
-                          ...settingsForm,
-                          operatingHours: {
-                            ...settingsForm.operatingHours,
-                            [day]: { ...settingsForm.operatingHours[day], end: e.target.value }
-                          }
-                        })}
-                        className="px-2 py-1 border rounded"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* In-App Alerts */}
             <div className="bg-white rounded-xl shadow p-6">
               <div className="flex items-center gap-2 mb-4">
@@ -836,32 +780,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
                   />
                   <span className="text-sm text-gray-700">Show All Active Windows</span>
                 </label>
-              </div>
-            </div>
-
-            {/* Display Mode */}
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Monitor className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-semibold text-gray-800">Display Mode</h2>
-              </div>
-              <div className="flex gap-4">
-                {(['standard', 'compact', 'large'] as const).map((mode) => (
-                  <label key={mode} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="displayMode"
-                      value={mode}
-                      checked={settingsForm.displayMode === mode}
-                      onChange={(e) => setSettingsForm({ 
-                        ...settingsForm, 
-                        displayMode: e.target.value as 'standard' | 'compact' | 'large'
-                      })}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm text-gray-700 capitalize">{mode}</span>
-                  </label>
-                ))}
               </div>
             </div>
 
