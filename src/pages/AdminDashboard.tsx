@@ -308,8 +308,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     <div className="space-y-3 text-gray-600">
       <p><b>Dashboard:</b> Overview of system stats and quick actions.</p>
       <p><b>Reports:</b> View analytics and export reports.</p>
-      <p><b>Transactions:</b> Manage transaction types (add/edit).</p>
-      <p><b>Windows:</b> Manage service windows.</p>
       <p><b>Settings:</b> Configure system settings.</p>
       <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
         <p className="text-red-800 text-sm">

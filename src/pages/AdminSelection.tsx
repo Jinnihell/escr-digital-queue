@@ -62,11 +62,6 @@ export default function AdminSelection() {
       {/* Main Content */}
       <div className="pt-24 p-4">
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* Welcome */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <p className="text-gray-500">Welcome back, <span className="font-semibold text-gray-800">{user?.username}</span></p>
-          </div>
-
           {/* Menu */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {menuItems.map((item, index) => (
