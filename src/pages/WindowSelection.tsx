@@ -137,9 +137,11 @@ export default function WindowSelection() {
 
                 return (
                   <button
+                    type="button"
                     key={window.id}
                     onClick={() => handleWindowSelect(window.id)}
                     disabled={locked}
+                    aria-label={`Select ${window.name} window`}
                     className={`w-full p-4 rounded-xl text-left transition-all duration-200 ${
                       locked
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60'
@@ -189,8 +191,10 @@ export default function WindowSelection() {
 
             {/* Continue Button */}
             <button
+              type="button"
               onClick={handleContinue}
               disabled={!selectedWindow || locking}
+              aria-label={locking ? "Locking window" : "Continue to staff dashboard"}
               className={`w-full py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-all duration-200 ${
                 selectedWindow && !locking
                   ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
@@ -207,7 +211,9 @@ export default function WindowSelection() {
         {user?.role === 'admin' && (
           <div className="mt-6 text-center">
             <button
+              type="button"
               onClick={() => navigate('/admin')}
+              aria-label="Go to admin dashboard"
               className="text-gray-500 hover:text-gray-700 text-sm"
             >
               Go to Admin Dashboard
