@@ -267,7 +267,7 @@ export default function StaffDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="ml-64 p-6 pt-24">
+      <div className="ml-64 p-6">
         <div className="flex flex-wrap gap-6">
           {/* Left Panel */}
           <div className="flex-1 min-w-[300px]">
@@ -276,6 +276,9 @@ export default function StaffDashboard() {
               <div className="text-center">
                 {/* Logo */}
                 <img src="/escr-logo.png" alt="ESCR Logo" className="w-40 h-40 object-contain mx-auto" />
+                
+                {/* Now Serving Title */}
+                <h3 className="text-3xl font-bold text-orange-600 mt-2">NOW SERVING!</h3>
                 
                 {/* Queue Number */}
                 <div className="border-4 border-blue-800 rounded-2xl p-6 my-4">
