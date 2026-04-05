@@ -84,9 +84,9 @@ export default function Landing() {
       <div className="fixed bottom-6 right-6">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full shadow-lg transition"
+          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full shadow-lg transition text-base font-semibold"
         >
-          <span className="text-sm font-semibold">Exit</span>
+          Exit
         </button>
       </div>
 
