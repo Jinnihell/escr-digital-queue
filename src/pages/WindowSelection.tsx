@@ -115,7 +115,7 @@ export default function WindowSelection() {
           Select Window
         </h1>
         <p className="text-gray-600 text-center mb-8">
-          Choose your assigned window
+          Choose your preferred serving window...
         </p>
 
         {windows.length === 0 ? (
