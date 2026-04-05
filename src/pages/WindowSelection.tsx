@@ -106,7 +106,7 @@ export default function WindowSelection() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto pt-8">
+      <div className="max-w-2xl mx-auto pt-20">
         <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
           Select Window
         </h1>
