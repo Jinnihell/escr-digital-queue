@@ -58,33 +58,35 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
                 </div>
               </div>
             </div>
-            {showAdminNav && (
-              <div className="hidden md:flex items-center gap-1 ml-4">
-                {adminNavItems.map((item) => {
-                  const isActive = location.pathname === item.path;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => navigate(item.path)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition ${
-                        isActive
-                          ? 'bg-white/30 text-white'
-                          : 'text-blue-200 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            <button
-              onClick={() => setShowHelp(true)}
-              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
-            >
-              ?
-            </button>
+            <div className="flex items-center gap-2">
+              {showAdminNav && (
+                <div className="hidden md:flex items-center gap-1">
+                  {adminNavItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => navigate(item.path)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition ${
+                          isActive
+                            ? 'bg-white/30 text-white'
+                            : 'text-blue-200 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <button
+                onClick={() => setShowHelp(true)}
+                className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
+              >
+                ?
+              </button>
+            </div>
           </div>
         </div>
       </div>
