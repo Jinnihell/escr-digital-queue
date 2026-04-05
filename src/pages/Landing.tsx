@@ -80,13 +80,13 @@ export default function Landing() {
         </button>
       </div>
 
-      {/* Logout Button */}
-      <div className="fixed bottom-6 left-6">
+      {/* Exit Button */}
+      <div className="fixed bottom-6 right-6">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow hover:bg-red-50 text-gray-700 hover:text-red-600 transition"
+          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full shadow-lg transition"
         >
-          <span className="text-sm">Logout</span>
+          <span className="text-sm font-semibold">Exit</span>
         </button>
       </div>
 
