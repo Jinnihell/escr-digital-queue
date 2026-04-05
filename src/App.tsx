@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { AlertProvider } from './context/AlertContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
@@ -15,6 +16,7 @@ import History from './pages/History';
 import WindowSelection from './pages/WindowSelection';
 import FeedbackMonitoring from './pages/FeedbackMonitoring';
 import ProtectedRoute from './components/ProtectedRoute';
+import Alert from './components/Alert';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -124,7 +126,10 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <AlertProvider>
+          <Alert />
+          <AppRoutes />
+        </AlertProvider>
       </AuthProvider>
     </Router>
   );
