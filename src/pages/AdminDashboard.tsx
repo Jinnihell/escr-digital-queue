@@ -13,8 +13,8 @@ import {
   getSettings,
   saveSettings
 } from '../services/queueService';
-import { RefreshCw, Settings, Download, Printer, Clock, Bell, Zap, Save, RotateCcw, DatabaseBackup, Monitor } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { RefreshCw, Settings, Download, Printer, Clock, Bell, Zap, Save, RotateCcw, DatabaseBackup, Monitor, Filter } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import Navbar from '../components/Navbar';
 import type { TransactionType, QueueStats, Window as WindowType, QueueTicket, SystemSettings } from '../types';
 
@@ -56,6 +56,13 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   // Settings state
   const [settingsForm, setSettingsForm] = useState<SystemSettings | null>(null);
 
+  // Date filter state
+  const [dateFilter, setDateFilter] = useState({
+    startDate: '',
+    endDate: ''
+  });
+  const [showFilter, setShowFilter] = useState(false);
+
   useEffect(() => {
     setActiveTab(tab);
   }, [tab]);
@@ -73,10 +80,28 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
+  const getFilteredTickets = () => {
+    if (!dateFilter.startDate && !dateFilter.endDate) return allTickets;
+    return allTickets.filter(ticket => {
+      const ticketDate = ticket.createdAt ? new Date(ticket.createdAt) : null;
+      if (!ticketDate) return false;
+      const start = dateFilter.startDate ? new Date(dateFilter.startDate) : null;
+      const end = dateFilter.endDate ? new Date(dateFilter.endDate) : null;
+      if (start && ticketDate < start) return false;
+      if (end) {
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59);
+        if (ticketDate > endDate) return false;
+      }
+      return true;
+    });
+  };
+
   const getTicketsByWindow = () => {
+    const filteredTickets = getFilteredTickets();
     const windowMap = new Map<string, number>();
     windows.forEach(w => windowMap.set(w.name, 0));
-    allTickets.forEach(ticket => {
+    filteredTickets.forEach(ticket => {
       if (ticket.windowName) {
         const current = windowMap.get(ticket.windowName) || 0;
         windowMap.set(ticket.windowName, current + 1);
@@ -89,9 +114,10 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   };
 
   const getTicketsByTransaction = () => {
+    const filteredTickets = getFilteredTickets();
     const transMap = new Map<string, number>();
     transactions.forEach(t => transMap.set(t.name, 0));
-    allTickets.forEach(ticket => {
+    filteredTickets.forEach(ticket => {
       if (ticket.transactionTypeName) {
         const current = transMap.get(ticket.transactionTypeName) || 0;
         transMap.set(ticket.transactionTypeName, current + 1);
@@ -101,6 +127,51 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       name: t.name,
       value: transMap.get(t.name) || 0
     })).filter(item => item.value > 0);
+  };
+
+  const getDailyTracking = () => {
+    const filteredTickets = getFilteredTickets();
+    const dailyMap = new Map<string, number>();
+    filteredTickets.forEach(ticket => {
+      if (ticket.createdAt) {
+        const date = new Date(ticket.createdAt).toLocaleDateString();
+        dailyMap.set(date, (dailyMap.get(date) || 0) + 1);
+      }
+    });
+    return Array.from(dailyMap.entries())
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
+
+  const getPeakHours = () => {
+    const filteredTickets = getFilteredTickets();
+    const hourMap = new Map<number, number>();
+    for (let i = 8; i <= 17; i++) hourMap.set(i, 0);
+    filteredTickets.forEach(ticket => {
+      if (ticket.createdAt) {
+        const hour = new Date(ticket.createdAt).getHours();
+        if (hour >= 8 && hour <= 17) {
+          hourMap.set(hour, (hourMap.get(hour) || 0) + 1);
+        }
+      }
+    });
+    return Array.from(hourMap.entries())
+      .map(([hour, count]) => ({ hour: `${hour}:00`, count }))
+      .filter(item => item.count > 0);
+  };
+
+  const getMostServedWindows = () => {
+    const data = getTicketsByWindow();
+    return data.sort((a, b) => b.value - a.value);
+  };
+
+  const applyFilter = () => {
+    setShowFilter(false);
+  };
+
+  const clearFilter = () => {
+    setDateFilter({ startDate: '', endDate: '' });
+    setShowFilter(false);
   };
 
   const loadData = async () => {
@@ -409,26 +480,143 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
         {activeTab === 'reports' && (
           <div className="space-y-6">
+            {/* Header with Filter */}
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-blue-800">Reports Overview</h2>
+              <button
+                onClick={() => setShowFilter(true)}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              >
+                <Filter className="w-4 h-4" />
+                Filter
+              </button>
+            </div>
+
+            {/* Filter Modal */}
+            {showFilter && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowFilter(false)}>
+                <div className="bg-white rounded-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+                  <h3 className="text-lg font-semibold mb-4">Filter by Date</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                      <input
+                        type="date"
+                        value={dateFilter.startDate}
+                        onChange={(e) => setDateFilter({ ...dateFilter, startDate: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                      <input
+                        type="date"
+                        value={dateFilter.endDate}
+                        onChange={(e) => setDateFilter({ ...dateFilter, endDate: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={clearFilter}
+                      className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      onClick={applyFilter}
+                      className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Stats Cards */}
             <div className="bg-white rounded-xl shadow p-6">
-              <h2 className="text-2xl font-bold text-blue-800 mb-6">Reports Overview</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <p className="text-3xl font-bold text-blue-800">{allTickets.length}</p>
+                  <p className="text-3xl font-bold text-blue-800">{getFilteredTickets().length}</p>
                   <p className="text-sm text-gray-600">Total Tickets</p>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <p className="text-3xl font-bold text-green-800">{allTickets.filter(t => t.status === 'completed').length}</p>
+                  <p className="text-3xl font-bold text-green-800">{getFilteredTickets().filter(t => t.status === 'completed').length}</p>
                   <p className="text-sm text-gray-600">Completed</p>
                 </div>
                 <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                  <p className="text-3xl font-bold text-yellow-800">{allTickets.filter(t => t.status === 'waiting').length}</p>
+                  <p className="text-3xl font-bold text-yellow-800">{getFilteredTickets().filter(t => t.status === 'waiting').length}</p>
                   <p className="text-sm text-gray-600">Waiting</p>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg text-center">
-                  <p className="text-3xl font-bold text-purple-800">{allTickets.filter(t => t.status === 'serving').length}</p>
+                  <p className="text-3xl font-bold text-purple-800">{getFilteredTickets().filter(t => t.status === 'serving').length}</p>
                   <p className="text-sm text-gray-600">Serving</p>
                 </div>
+              </div>
+            </div>
+
+            {/* Daily Tracking Chart */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Daily Tracking</h3>
+              {getDailyTracking().length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={getDailyTracking()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="count" stroke="#3B82F6" strokeWidth={2} name="Tickets" />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-gray-500 text-center py-8">No data available</p>
+              )}
+            </div>
+
+            {/* Peak Hours and Most Served Windows Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Peak Hours - Bar Chart */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Peak Hours</h3>
+                {getPeakHours().length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={getPeakHours()}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="count" fill="#F59E0B" name="Tickets" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No data available</p>
+                )}
+              </div>
+
+              {/* Most Served Windows - List */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Most Served Windows</h3>
+                {getMostServedWindows().length > 0 ? (
+                  <div className="space-y-3">
+                    {getMostServedWindows().map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold">
+                            {index + 1}
+                          </span>
+                          <span className="font-medium text-gray-800">{item.name}</span>
+                        </div>
+                        <span className="text-lg font-bold text-orange-600">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No data available</p>
+                )}
               </div>
             </div>
 
