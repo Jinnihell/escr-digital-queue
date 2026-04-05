@@ -64,15 +64,15 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
                   {adminNavItems.map((item) => {
                     const isActive = location.pathname === item.path;
                     return (
-                      <button
-                        key={item.id}
-                        onClick={() => navigate(item.path)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition ${
-                          isActive
-                            ? 'bg-white/30 text-white'
-                            : 'text-blue-200 hover:text-white hover:bg-white/10'
-                        }`}
-                      >
+                    <button
+                      key={item.id}
+                      onClick={() => navigate(item.path)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition ${
+                        isActive
+                          ? 'bg-orange-500 text-white'
+                          : 'text-blue-200 hover:bg-gradient-to-r hover:from-orange-400 hover:to-orange-500 hover:text-white'
+                      }`}
+                    >
                         <item.icon className="w-4 h-4" />
                         {item.label}
                       </button>
