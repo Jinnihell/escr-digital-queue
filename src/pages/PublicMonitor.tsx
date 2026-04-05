@@ -117,6 +117,7 @@ export default function PublicMonitor() {
         <div className="grid grid-cols-2 gap-4 flex-grow">
           {windows.map((window) => {
             const windowTicket = servingTickets.find(t => t.windowId === window.id);
+            const windowDisplayName = `Window ${window.number}`;
             return (
               <div 
                 key={window.id} 
@@ -125,7 +126,7 @@ export default function PublicMonitor() {
                 }`}
               >
                 <span className="absolute top-3 bg-blue-800 text-white px-4 py-1 rounded-lg font-bold">
-                  {window.name}
+                  {windowDisplayName}
                 </span>
                 <p className="text-6xl md:text-8xl font-black mt-8">
                   {windowTicket?.ticketNumber || '---'}
