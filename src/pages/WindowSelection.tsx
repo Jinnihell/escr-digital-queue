@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getWindows, lockWindow } from '../services/queueService';
-import { Monitor, ArrowRight, Lock } from 'lucide-react';
+import { ArrowRight, Lock, ArrowLeft, Monitor } from 'lucide-react';
+import logo from '../assets/escr-logo.png';
 import type { Window as WindowType } from '../types';
 
 export default function WindowSelection() {
@@ -84,12 +85,20 @@ export default function WindowSelection() {
         <div className="px-4 py-3 bg-gradient-to-r from-blue-800/90 to-blue-600/90 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <Monitor className="w-5 h-5 text-white" />
-              </div>
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 text-white hover:text-blue-200 transition"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <img 
+                src={logo} 
+                alt="ESCR Logo" 
+                className="w-10 h-10 object-contain bg-white/20 rounded-full p-0.5"
+              />
               <div>
-                <h1 className="text-lg font-bold text-white">Select Window</h1>
-                <p className="text-xs text-blue-200">Choose your assigned window</p>
+                <h1 className="text-lg font-bold text-white">ESCR DQMS</h1>
+                <p className="text-xs text-blue-200">East Systems Colleges of Rizal</p>
               </div>
             </div>
           </div>
@@ -97,24 +106,12 @@ export default function WindowSelection() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto pt-20">
-        {/* Logo */}
-        <div className="text-center mb-6">
-          <img 
-            src="/escr-logo.png" 
-            alt="ESCR Logo" 
-            className="w-32 h-32 object-contain mx-auto bg-white rounded-full p-2 shadow-lg"
-          />
-          <h1 className="text-2xl font-bold text-gray-800 text-center mt-4">
-            East Systems Colleges of Rizal
-          </h1>
-        </div>
-
+      <div className="max-w-2xl mx-auto pt-8">
         <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
-          Select Your Window
+          Select Window
         </h1>
         <p className="text-gray-600 text-center mb-8">
-          Choose the window you are assigned to
+          Choose your assigned window
         </p>
 
         {windows.length === 0 ? (
