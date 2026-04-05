@@ -90,7 +90,10 @@ export default function WindowSelection() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button
+                type="button"
                 onClick={() => navigate(-1)}
+                title="Go back"
+                aria-label="Go back"
                 className="flex items-center gap-2 text-white hover:text-blue-200 transition"
               >
                 <ArrowLeft className="w-5 h-5" />
