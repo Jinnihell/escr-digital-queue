@@ -85,6 +85,16 @@ function AppRoutes() {
           <AdminDashboard tab="settings" />
         </ProtectedRoute>
       } />
+      <Route path="/admin/transactions" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <AdminDashboard tab="transactions" />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/windows" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <AdminDashboard tab="windows" />
+        </ProtectedRoute>
+      } />
       
       {/* Protected Routes - Staff */}
       <Route path="/window-selection" element={

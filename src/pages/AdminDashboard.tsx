@@ -57,6 +57,10 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   const [settingsForm, setSettingsForm] = useState<SystemSettings | null>(null);
 
   useEffect(() => {
+    setActiveTab(tab);
+  }, [tab]);
+
+  useEffect(() => {
     loadData();
 
     const unsubscribe = subscribeToAllTickets((tickets) => {
@@ -330,6 +334,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
         showBackButton 
         onBack={handleBack}
         helpContent={adminHelpContent}
+        showAdminNav={true}
       />
       
       {/* Tab Navigation - positioned below navbar */}

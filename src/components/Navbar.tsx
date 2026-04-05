@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, BarChart3, FileText, Settings, List, LayoutGrid } from 'lucide-react';
 import logo from '../assets/escr-logo.png';
 
 interface NavbarProps {
@@ -8,11 +8,21 @@ interface NavbarProps {
   showBackButton?: boolean;
   onBack?: () => void;
   helpContent?: React.ReactNode;
+  showAdminNav?: boolean;
 }
 
-export default function Navbar({ title, showBackButton, onBack, helpContent }: NavbarProps) {
+export default function Navbar({ title, showBackButton, onBack, helpContent, showAdminNav }: NavbarProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showHelp, setShowHelp] = useState(false);
+
+  const adminNavItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, path: '/admin/dashboard' },
+    { id: 'reports', label: 'Reports', icon: FileText, path: '/admin/reports' },
+    { id: 'transactions', label: 'Transactions', icon: List, path: '/admin/transactions' },
+    { id: 'windows', label: 'Windows', icon: BarChart3, path: '/admin/windows' },
+    { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' },
+  ];
 
   const defaultHelpContent = (
     <div className="space-y-3 text-gray-600">
@@ -50,6 +60,27 @@ export default function Navbar({ title, showBackButton, onBack, helpContent }: N
                 </div>
               </div>
             </div>
+            {showAdminNav && (
+              <div className="hidden md:flex items-center gap-1 ml-4">
+                {adminNavItems.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => navigate(item.path)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition ${
+                        isActive
+                          ? 'bg-white/30 text-white'
+                          : 'text-blue-200 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <button
               onClick={() => setShowHelp(true)}
               className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
