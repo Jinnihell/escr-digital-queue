@@ -30,6 +30,8 @@ export default function WindowSelection() {
   };
 
   const isWindowLocked = (window: WindowType) => {
+    // Admin can access any window without being blocked
+    if (user?.role === 'admin') return false;
     if (!window.staffId) return false;
     // Window is locked if it has a staffId and it's not the current user
     return window.staffId !== user?.id;
@@ -49,8 +51,10 @@ export default function WindowSelection() {
 
     setLocking(true);
     try {
-      // Lock the window for this staff
-      await lockWindow(window.id, user.id);
+      // Only lock window for staff, not for admin
+      if (user.role !== 'admin') {
+        await lockWindow(window.id, user.id);
+      }
 
       // Store selected window in sessionStorage
       sessionStorage.setItem('selectedWindow', JSON.stringify({
@@ -61,7 +65,7 @@ export default function WindowSelection() {
 
       navigate('/staff');
     } catch (err) {
-      console.error('Error locking window:', err);
+      console.error('Error:', err);
     } finally {
       setLocking(false);
     }
