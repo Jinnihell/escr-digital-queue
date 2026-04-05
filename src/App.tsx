@@ -13,6 +13,7 @@ import StaffDashboard from './pages/StaffDashboard';
 import PublicMonitor from './pages/PublicMonitor';
 import History from './pages/History';
 import WindowSelection from './pages/WindowSelection';
+import FeedbackMonitoring from './pages/FeedbackMonitoring';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function AppRoutes() {
@@ -93,6 +94,11 @@ function AppRoutes() {
       <Route path="/admin/windows" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <AdminDashboard tab="windows" />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/feedback" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <FeedbackMonitoring />
         </ProtectedRoute>
       } />
       

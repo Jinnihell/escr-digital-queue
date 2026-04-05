@@ -767,3 +767,40 @@ export const getReportData = async (
     hourlyData
   };
 };
+
+// Feedback functions
+const FEEDBACK_COLLECTION = 'feedback';
+
+export interface Feedback {
+  id: string;
+  userId: string | null;
+  userName: string;
+  ticketNumber: string | null;
+  transactionType: string | null;
+  rating: number;
+  comment: string | null;
+  createdAt: Date;
+}
+
+export const getFeedback = async (): Promise<Feedback[]> => {
+  const q = query(collection(db, FEEDBACK_COLLECTION), orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    createdAt: doc.data().createdAt?.toDate() || new Date()
+  })) as Feedback[];
+};
+
+export const subscribeToFeedback = (callback: (feedback: Feedback[]) => void) => {
+  const q = query(collection(db, FEEDBACK_COLLECTION), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, (snapshot) => {
+    const feedback = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || new Date()
+    })) as Feedback[];
+    callback(feedback);
+  });
+};

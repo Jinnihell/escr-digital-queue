@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, FileText, Settings, LayoutGrid } from 'lucide-react';
+import { ArrowLeft, FileText, Settings, LayoutGrid, MessageSquare } from 'lucide-react';
 import logo from '../assets/escr-logo.png';
 
 interface NavbarProps {
@@ -19,6 +19,7 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
   const adminNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, path: '/admin/dashboard' },
     { id: 'reports', label: 'Reports', icon: FileText, path: '/admin/reports' },
+    { id: 'feedback', label: 'Feedback', icon: MessageSquare, path: '/admin/feedback' },
     { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' },
   ];
 
