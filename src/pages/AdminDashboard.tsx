@@ -13,7 +13,7 @@ import {
   getSettings,
   saveSettings
 } from '../services/queueService';
-import { RefreshCw, BarChart3, Settings, Download, Printer, Clock, Bell, Zap, Save, RotateCcw, DatabaseBackup, Monitor } from 'lucide-react';
+import { RefreshCw, Settings, Download, Printer, Clock, Bell, Zap, Save, RotateCcw, DatabaseBackup, Monitor } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Navbar from '../components/Navbar';
 import type { TransactionType, QueueStats, Window as WindowType, QueueTicket, SystemSettings } from '../types';
@@ -292,14 +292,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     }
   };
 
-  const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'transactions', label: 'Transactions', icon: Monitor },
-    { id: 'windows', label: 'Windows', icon: Monitor }
-  ];
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center">
@@ -337,28 +329,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
         showAdminNav={true}
       />
       
-      {/* Tab Navigation - positioned below navbar */}
-      <div className="bg-white shadow-sm pt-16">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex gap-2 overflow-x-auto">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setActiveTab(t.id as 'dashboard' | 'transactions' | 'windows')}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition whitespace-nowrap ${
-                  activeTab === t.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <t.icon className="w-4 h-4" />
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Message */}
       {message && (
         <div className="max-w-7xl mx-auto px-4 py-2">
