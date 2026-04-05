@@ -481,7 +481,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
         {activeTab === 'reports' && (
           <div className="space-y-6">
             {/* Header with Filter */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center no-print">
               <h2 className="text-2xl font-bold text-blue-800">Reports Overview</h2>
               <button
                 onClick={() => setShowFilter(true)}
@@ -494,7 +494,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
             {/* Filter Modal */}
             {showFilter && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowFilter(false)}>
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 no-print" onClick={() => setShowFilter(false)}>
                 <div className="bg-white rounded-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
                   <h3 className="text-lg font-semibold mb-4">Filter by Date</h3>
                   <div className="space-y-4">
@@ -665,9 +665,12 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
             </div>
 
             {/* Export Buttons */}
-            <div className="bg-white rounded-xl shadow p-6">
+            <div className="bg-white rounded-xl shadow p-6 no-print">
               <div className="flex gap-2">
-                <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                <button 
+                  onClick={() => window.print()}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                >
                   <Download className="w-4 h-4" /> Export PDF
                 </button>
                 <button 
