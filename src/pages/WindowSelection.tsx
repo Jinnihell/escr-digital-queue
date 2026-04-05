@@ -142,7 +142,7 @@ export default function WindowSelection() {
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60'
                         : isSelected
                           ? 'bg-blue-600 text-white shadow-lg transform scale-[1.02]'
-                          : 'bg-white hover:bg-blue-50 text-gray-800 shadow'
+                          : 'bg-white hover:bg-[#000080] hover:text-white text-gray-800 shadow'
                     }`}
                   >
                     <div className="flex items-center gap-4">
@@ -151,16 +151,16 @@ export default function WindowSelection() {
                           ? 'bg-gray-300'
                           : isSelected
                             ? 'bg-white/20'
-                            : 'bg-blue-100'
+                            : 'hover:bg-[#000080] bg-blue-100'
                       }`}>
                         {locked ? (
                           <Lock className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-gray-500'}`} />
                         ) : (
-                          <span className={`text-xl font-bold ${
-                            isSelected
-                              ? 'text-white'
-                              : 'text-blue-600'
-                          }`}>
+                        <span className={`text-xl font-bold ${
+                          isSelected
+                            ? 'text-white'
+                            : 'text-[#000080]'
+                        }`}>
                             {window.number}
                           </span>
                         )}
