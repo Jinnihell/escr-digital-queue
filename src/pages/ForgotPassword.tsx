@@ -20,13 +20,34 @@ export default function ForgotPassword() {
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       await resetPassword(email);
-      setMessage('Password reset link sent! Check your email.');
+      setMessage('Password reset link sent! Please check your email and click the link to reset your password.');
     } catch (err: unknown) {
-      const errMessage = err instanceof Error ? err.message : 'Failed to send reset email';
+      let errMessage = 'Failed to send reset email';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('user-not-found') || err.message.includes('no user record')) {
+          errMessage = 'No account found with this email address';
+        } else if (err.message.includes('invalid-email')) {
+          errMessage = 'Invalid email address format';
+        } else if (err.message.includes('too-many-requests')) {
+          errMessage = 'Too many attempts. Please try again later';
+        } else if (err.message.includes('network')) {
+          errMessage = 'Network error. Please check your connection';
+        } else {
+          errMessage = err.message;
+        }
+      }
+      
       setError(errMessage);
     } finally {
       setIsLoading(false);
@@ -48,13 +69,17 @@ export default function ForgotPassword() {
             <p className="text-gray-500 mt-1">Enter your email to receive a reset link</p>
           </div>
 
-          {/* Message */}
-          {message && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              {message}
-            </div>
-          )}
+            {/* Message */}
+            {message && (
+              <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-semibold">Email Sent Successfully!</span>
+                </div>
+                <p className="text-sm">{message}</p>
+                <p className="text-xs mt-2 text-green-600">If you don't see the email, check your spam folder.</p>
+              </div>
+            )}
 
           {/* Error */}
           {error && (
