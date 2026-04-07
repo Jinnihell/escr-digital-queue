@@ -181,6 +181,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
         <head>
           <title>ESCR Reports - ${new Date().toLocaleDateString()}</title>
           <style>
+            @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
             body { font-family: Arial, sans-serif; padding: 20px; }
             h1 { color: #1e40af; text-align: center; }
             h2 { color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
@@ -242,16 +243,19 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       </html>
     `;
 
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 250);
-    }
+    const blob = new Blob([printContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ESCR-Reports-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   const loadData = async () => {
@@ -754,7 +758,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
                   <Download className="w-4 h-4" /> Export PDF
                 </button>
                 <button 
-                  onClick={() => window.print()}
+                  onClick={handlePrint}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                 >
                   <Printer className="w-4 h-4" /> Print
