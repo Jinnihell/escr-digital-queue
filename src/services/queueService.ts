@@ -11,7 +11,8 @@ import {
   serverTimestamp,
   onSnapshot,
   Timestamp,
-  setDoc
+  setDoc,
+  increment
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { 
@@ -44,18 +45,27 @@ export const generateTicketNumber = async (prefix: string): Promise<string> => {
   const today = new Date();
   const dateStr = `${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
   
-  // Get or create daily counter
+  // Get or create daily counter with atomic increment to prevent duplicates
   const counterRef = doc(db, COUNTERS_COLLECTION, `${prefix}_${dateStr}`);
   
   try {
+    // Use atomic increment to prevent race conditions
     const counterDoc = await getDoc(counterRef);
     let currentCount = 0;
+    
     if (counterDoc.exists()) {
       currentCount = counterDoc.data().count || 0;
+    } else {
+      // Initialize counter with 0
+      await setDoc(counterRef, { count: 0, date: dateStr, prefix });
     }
     
-    const newCount = currentCount + 1;
-    await setDoc(counterRef, { count: newCount }, { merge: true });
+    // Use atomic increment for thread-safe counter
+    await setDoc(counterRef, { count: increment(1) }, { merge: true });
+    
+    // Get the incremented value after update
+    const updatedDoc = await getDoc(counterRef);
+    const newCount = updatedDoc.data()?.count || currentCount + 1;
     
     // Format: X001 (e.g., A001, E001, P001, O001)
     return `${prefix}${newCount.toString().padStart(3, '0')}`;
