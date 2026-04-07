@@ -6,7 +6,7 @@
 |----------|-----|--------|
 | **Firebase** | https://queuebyescr.web.app | ✅ Live |
 | **GitHub** | https://github.com/Jinnihell/escr-digital-queue | ✅ |
-| **Vercel** | (not configured) | - |
+| **Vercel** | https://escr-digital-queue.vercel.app | ✅ |
 
 ## Quick Deploy Commands
 
