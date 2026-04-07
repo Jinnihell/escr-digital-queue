@@ -16,7 +16,7 @@ interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
   signup: (email: string, password: string, username: string, role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -65,10 +65,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User | null> => {
     setError(null);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Fetch user data from Firestore immediately after login
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const userObj: User = {
+          id: result.user.uid,
+          email: result.user.email || '',
+          username: userData.username || '',
+          role: userData.role || 'student',
+          createdAt: userData.createdAt?.toDate() || new Date()
+        };
+        setUser(userObj);
+        sessionStorage.setItem('user', JSON.stringify(userObj));
+        return userObj;
+      }
+      return null;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);

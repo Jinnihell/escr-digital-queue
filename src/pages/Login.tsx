@@ -10,7 +10,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, error, clearError, user } = useAuth();
+  const { login, error, clearError } = useAuth();
 
   const message = searchParams.get('message');
   const reset = searchParams.get('reset');
@@ -21,12 +21,11 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      // Role-based redirect after login
-      const userRole = user?.role;
-      if (userRole === 'admin') {
+      const loggedInUser = await login(email, password);
+      // Role-based redirect after login - use returned user immediately
+      if (loggedInUser?.role === 'admin') {
         navigate('/admin');
-      } else if (userRole === 'staff') {
+      } else if (loggedInUser?.role === 'staff') {
         navigate('/window-selection');
       } else {
         navigate('/');
