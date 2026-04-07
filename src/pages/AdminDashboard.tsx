@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAlert } from '../context/useAlert';
 import { 
   getTransactionTypes, 
   getQueueStats, 
@@ -62,6 +63,8 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     endDate: ''
   });
   const [showFilter, setShowFilter] = useState(false);
+
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     setActiveTab(tab);
@@ -282,14 +285,18 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     setIsSaving(true);
     try {
       await saveSettings(settingsForm);
-      setMessage('Settings saved successfully!');
-      setTimeout(() => setMessage(''), 3000);
+      showAlert('success', 'Settings saved successfully!');
     } catch (err) {
       console.error('Error saving settings:', err);
-      setMessage('Failed to save settings');
+      showAlert('error', 'Failed to save settings');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleCancelSettings = () => {
+    loadData();
+    showAlert('info', 'Settings reverted to saved values');
   };
 
   const handleBackup = async () => {
@@ -957,7 +964,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
             {/* Save Button */}
             <div className="flex justify-end gap-2">
               <button
-                onClick={loadData}
+                onClick={handleCancelSettings}
                 className="px-4 py-2 border rounded-lg hover:bg-gray-50"
               >
                 Cancel
