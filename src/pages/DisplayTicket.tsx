@@ -5,6 +5,7 @@ import { createTicket, getQueueStats, subscribeToActiveTickets, getUserActiveTic
 import { Clock, AlertTriangle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import FeedbackModal from '../components/FeedbackModal';
+import QueueStatusModal from '../components/QueueStatusModal';
 import type { QueueTicket, QueueStats } from '../types';
 
 interface SelectedTransaction {
@@ -25,6 +26,7 @@ export default function DisplayTicket() {
   const [showThankYou, setShowThankYou] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [ticketServed, setTicketServed] = useState(false);
+  const [showQueueModal, setShowQueueModal] = useState(true);
 
   const generateTicket = async () => {
     const stored = sessionStorage.getItem('selectedTransaction');
@@ -287,6 +289,13 @@ export default function DisplayTicket() {
         }}
         ticketNumber={ticket?.ticketNumber}
         transactionType={ticket?.transactionTypeName}
+      />
+
+      <QueueStatusModal
+        isOpen={showQueueModal && !!ticket}
+        onClose={() => setShowQueueModal(false)}
+        ticket={ticket}
+        waitingPosition={waitingPosition}
       />
     </div>
   );
