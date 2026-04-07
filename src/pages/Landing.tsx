@@ -1,16 +1,60 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import FeedbackModal from '../components/FeedbackModal';
+import QueueStatusModal from '../components/QueueStatusModal';
+import { subscribeToActiveTickets } from '../services/queueService';
+import type { QueueTicket } from '../types';
 
 // ESCR Landing Page - Matches MYPHPQUEUE landing.php design
 
 export default function Landing() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showHelp, setShowHelp] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  
+  // Queue status modal state
+  const [showQueueModal, setShowQueueModal] = useState(false);
+  const [currentTicket, setCurrentTicket] = useState<QueueTicket | null>(null);
+  const [waitingPosition, setWaitingPosition] = useState(0);
+
+  // Check for active ticket when feedback is submitted
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message === 'feedback_submitted' || message === 'logged_out') {
+      checkActiveTicket();
+    }
+  }, [searchParams]);
+
+  const checkActiveTicket = async () => {
+    if (!user?.id) {
+      setShowQueueModal(false);
+      return;
+    }
+
+    const unsubscribe = subscribeToActiveTickets((tickets) => {
+      const userTicket = tickets.find(t => t.userId === user.id);
+      if (userTicket) {
+        setCurrentTicket(userTicket);
+        const waitingTickets = tickets.filter(t => 
+          t.transactionTypeId === userTicket.transactionTypeId && 
+          t.status === 'waiting'
+        );
+        const userIndex = waitingTickets.findIndex(t => t.id === userTicket.id);
+        const position = userIndex >= 0 ? userIndex + 1 : waitingTickets.length + 1;
+        setWaitingPosition(position - 1);
+        setShowQueueModal(true);
+      } else {
+        setShowQueueModal(false);
+        setCurrentTicket(null);
+      }
+    });
+
+    return () => unsubscribe();
+  };
 
   // Floating animation for logo
   const handleGetStarted = () => {
@@ -145,6 +189,13 @@ export default function Landing() {
       <FeedbackModal
         isOpen={showFeedback}
         onClose={handleFeedbackClose}
+      />
+
+      <QueueStatusModal
+        isOpen={showQueueModal && !!currentTicket}
+        onClose={() => setShowQueueModal(false)}
+        ticket={currentTicket}
+        waitingPosition={waitingPosition}
       />
     </div>
   );
