@@ -355,6 +355,18 @@ export const getWindowById = async (windowId: string): Promise<Window | null> =>
   return null;
 };
 
+// Subscribe to windows (real-time updates)
+export const subscribeToWindows = (callback: (windows: Window[]) => void) => {
+  const q = query(collection(db, WINDOWS_COLLECTION), orderBy('number', 'asc'));
+  return onSnapshot(q, (snapshot) => {
+    const windows = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Window[];
+    callback(windows);
+  });
+};
+
 // Create transaction type
 export const createTransactionType = async (
   name: string,

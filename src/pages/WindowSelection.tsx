@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getWindows, lockWindow } from '../services/queueService';
+import { getWindows, lockWindow, subscribeToWindows } from '../services/queueService';
 import { ArrowRight, Lock, ArrowLeft, Monitor } from 'lucide-react';
 import logo from '../assets/escr-logo.png';
 import type { Window as WindowType } from '../types';
@@ -13,21 +13,31 @@ export default function WindowSelection() {
   const [selectedWindow, setSelectedWindow] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [locking, setLocking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Load windows and subscribe to real-time updates
   useEffect(() => {
-    loadWindows();
-  }, []);
+    const loadWindows = async () => {
+      try {
+        const data = await getWindows();
+        setWindows(data.filter(w => w.active));
+      } catch (err) {
+        console.error('Error loading windows:', err);
+        setError('Failed to load windows');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const loadWindows = async () => {
-    try {
-      const data = await getWindows();
-      setWindows(data.filter(w => w.active));
-    } catch (err) {
-      console.error('Error loading windows:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    loadWindows();
+
+    // Subscribe to real-time window updates
+    const unsubscribe = subscribeToWindows((updatedWindows) => {
+      setWindows(updatedWindows.filter(w => w.active));
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const isWindowLocked = (window: WindowType) => {
     // Admin can access any window without being blocked
@@ -41,6 +51,7 @@ export default function WindowSelection() {
     const window = windows.find(w => w.id === windowId);
     if (!window || isWindowLocked(window)) return;
     setSelectedWindow(windowId);
+    setError(null);
   };
 
   const handleContinue = async () => {
@@ -50,6 +61,8 @@ export default function WindowSelection() {
     if (!window) return;
 
     setLocking(true);
+    setError(null);
+    
     try {
       // Only lock window for staff, not for admin
       if (user.role !== 'admin') {
@@ -65,7 +78,8 @@ export default function WindowSelection() {
 
       navigate('/staff');
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error locking window:', err);
+      setError('Failed to lock window. Please try again.');
     } finally {
       setLocking(false);
     }
@@ -114,6 +128,12 @@ export default function WindowSelection() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto pt-20">
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
+        
         <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
           Select Window
         </h1>
