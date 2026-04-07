@@ -174,6 +174,86 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     setShowFilter(false);
   };
 
+  const handleExportPDF = () => {
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>ESCR Reports - ${new Date().toLocaleDateString()}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #1e40af; text-align: center; }
+            h2 { color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: left; }
+            th { background-color: #f3f4f6; }
+            .stats { display: flex; gap: 20px; margin: 20px 0; }
+            .stat-box { background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; flex: 1; }
+            .stat-number { font-size: 24px; font-weight: bold; }
+            .footer { margin-top: 30px; text-align: center; color: #6b7280; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>ESCR DQMS - Reports</h1>
+          <p style="text-align:center">Generated on: ${new Date().toLocaleString()}</p>
+          
+          <h2>Summary Statistics</h2>
+          <div class="stats">
+            <div class="stat-box">
+              <div class="stat-number">${getFilteredTickets().length}</div>
+              <div>Total Tickets</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'completed').length}</div>
+              <div>Completed</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'waiting').length}</div>
+              <div>Waiting</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'serving').length}</div>
+              <div>Serving</div>
+            </div>
+          </div>
+          
+          <h2>Tickets by Transaction</h2>
+          <table>
+            <tr><th>Transaction Type</th><th>Count</th></tr>
+            ${getTicketsByTransaction().map(t => `<tr><td>${t.name}</td><td>${t.value}</td></tr>`).join('')}
+          </table>
+          
+          <h2>Tickets by Window</h2>
+          <table>
+            <tr><th>Window</th><th>Count</th></tr>
+            ${getTicketsByWindow().map(w => `<tr><td>${w.name}</td><td>${w.value}</td></tr>`).join('')}
+          </table>
+          
+          <h2>Most Served Windows</h2>
+          <table>
+            <tr><th>Rank</th><th>Window</th><th>Tickets Served</th></tr>
+            ${getMostServedWindows().map((w, i) => `<tr><td>${i + 1}</td><td>${w.name}</td><td>${w.value}</td></tr>`).join('')}
+          </table>
+          
+          <div class="footer">
+            <p>East Systems Colleges of Rizal - Digital Queue Management System</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    }
+  };
+
   const loadData = async () => {
     try {
       const [transactionTypes, queueStats, windowList, systemSettings] = await Promise.all([
@@ -668,14 +748,14 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
             <div className="bg-white rounded-xl shadow p-6 no-print">
               <div className="flex gap-2">
                 <button 
-                  onClick={() => window.print()}
+                  onClick={handleExportPDF}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" /> Export PDF
                 </button>
                 <button 
                   onClick={() => window.print()}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                 >
                   <Printer className="w-4 h-4" /> Print
                 </button>
