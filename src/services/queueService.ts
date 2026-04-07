@@ -345,6 +345,16 @@ export const getWindows = async (): Promise<Window[]> => {
   })) as Window[];
 };
 
+// Get single window by ID
+export const getWindowById = async (windowId: string): Promise<Window | null> => {
+  const docRef = doc(db, WINDOWS_COLLECTION, windowId);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() } as Window;
+  }
+  return null;
+};
+
 // Create transaction type
 export const createTransactionType = async (
   name: string,

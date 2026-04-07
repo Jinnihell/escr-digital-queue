@@ -9,14 +9,15 @@ import {
   cancelTicket,
   subscribeToActiveTickets,
   getQueueStats,
-  unlockWindow
+  unlockWindow,
+  getWindowById
 } from '../services/queueService';
 import type { QueueTicket, QueueStats, TransactionType } from '../types';
 
 // Staff Dashboard - Matches MYPHPQUEUE staff_dashboard.php design
 
 export default function StaffDashboard() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { showAlert } = useAlert();
   const navigate = useNavigate();
   const [selectedTransaction, setSelectedTransaction] = useState<string>('');
@@ -154,14 +155,31 @@ export default function StaffDashboard() {
   };
 
   const handleLogout = async () => {
-    // Unlock the window before logging out
-    if (selectedWindow) {
+    const windowId = selectedWindow?.id;
+    const windowName = selectedWindow?.name;
+    const currentUserId = user?.id;
+    
+    // Verify window is still locked by this user before unlocking
+    if (windowId && currentUserId) {
       try {
-        await unlockWindow(selectedWindow.id);
+        const windowData = await getWindowById(windowId);
+        
+        // Only unlock if this user locked it
+        if (windowData && windowData.staffId === currentUserId) {
+          await unlockWindow(windowId);
+          console.log(`Window ${windowName} unlocked successfully`);
+        } else {
+          console.log(`Window ${windowName} was not locked by current user or already unlocked`);
+        }
       } catch (err) {
         console.error('Error unlocking window:', err);
       }
     }
+    
+    // Clear session storage
+    sessionStorage.removeItem('selectedWindow');
+    
+    // Then logout
     await logout();
     navigate('/login?message=logged_out');
   };
