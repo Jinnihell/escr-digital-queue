@@ -10,7 +10,15 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+// Set auth language to English
+auth.languageCode = 'en';
+
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
+
+// Configure Google provider
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 
 export default app;

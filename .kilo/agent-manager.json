@@ -13,12 +13,23 @@
       "parentBranch": "main",
       "createdAt": "2026-04-04T06:38:55.239Z",
       "remote": "origin"
+    },
+    "wt-1775636944328-1": {
+      "branch": "impartial-waiter",
+      "path": "c:\\Users\\admin\\OneDrive\\Desktop\\queueby jayrome\\.kilo\\worktrees\\impartial-waiter",
+      "parentBranch": "main",
+      "createdAt": "2026-04-08T08:29:04.328Z",
+      "remote": "origin"
     }
   },
   "sessions": {
     "ses_2a8c8a724ffepSQdDJ5Xtr7gmt": {
       "worktreeId": "wt-1775284735239-1",
       "createdAt": "2026-04-04T06:39:03.274Z"
+    },
+    "ses_293ca5666ffefnAd6v7ij2KAHt": {
+      "worktreeId": "wt-1775636944328-1",
+      "createdAt": "2026-04-08T08:29:27.737Z"
     }
   }
 }
