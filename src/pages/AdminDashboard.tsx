@@ -258,7 +258,110 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   };
 
   const handlePrint = () => {
-    window.print();
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>ESCR Reports - ${new Date().toLocaleDateString()}</title>
+          <style>
+            @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #1e40af; text-align: center; }
+            h2 { color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: left; }
+            th { background-color: #f3f4f6; }
+            .stats { display: flex; gap: 20px; margin: 20px 0; }
+            .stat-box { background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; flex: 1; }
+            .stat-number { font-size: 24px; font-weight: bold; }
+            .footer { margin-top: 30px; text-align: center; color: #6b7280; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>ESCR DQMS - Reports</h1>
+          <p style="text-align:center">Generated on: ${new Date().toLocaleString()}</p>
+          
+          <h2>Summary Statistics</h2>
+          <div class="stats">
+            <div class="stat-box">
+              <div class="stat-number">${getFilteredTickets().length}</div>
+              <div>Total Tickets</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'completed').length}</div>
+              <div>Completed</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'waiting').length}</div>
+              <div>Waiting</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'cancelled' || t.status === 'no_show').length}</div>
+              <div>Cancelled</div>
+            </div>
+          </div>
+
+          <h2>Transaction Breakdown</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Transaction Type</th>
+                <th>Total</th>
+                <th>Completed</th>
+                <th>Waiting</th>
+                <th>Cancelled</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${transactions.map(t => {
+                const total = getFilteredTickets().filter(tk => tk.transactionTypeId === t.id).length;
+                const completed = getFilteredTickets().filter(tk => tk.transactionTypeId === t.id && tk.status === 'completed').length;
+                const waiting = getFilteredTickets().filter(tk => tk.transactionTypeId === t.id && tk.status === 'waiting').length;
+                const cancelled = getFilteredTickets().filter(tk => tk.transactionTypeId === t.id && (tk.status === 'cancelled' || tk.status === 'no_show')).length;
+                return `<tr><td>${t.name}</td><td>${total}</td><td>${completed}</td><td>${waiting}</td><td>${cancelled}</td></tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+
+          <h2>Recent Transactions</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Ticket #</th>
+                <th>Transaction</th>
+                <th>Student</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${getFilteredTickets().slice(0, 20).map(t => `
+                <tr>
+                  <td>${t.ticketNumber}</td>
+                  <td>${t.transactionTypeName}</td>
+                  <td>${t.studentName || 'N/A'}</td>
+                  <td>${t.status}</td>
+                  <td>${t.createdAt?.toLocaleDateString() || 'N/A'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <p>ESCR Digital Queue Management System</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
   };
 
   const loadData = async () => {
