@@ -9,7 +9,7 @@ import {
 } from 'firebase/auth';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db, googleProvider } from '../firebase';
+import { auth, db, googleProvider, actionCodeSettings } from '../firebase';
 import type { User, UserRole } from '../types';
 
 interface AuthContextType {
@@ -172,7 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (email: string) => {
     setError(null);
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Password reset failed';
       setError(message);
