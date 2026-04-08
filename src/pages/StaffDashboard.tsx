@@ -97,18 +97,17 @@ export default function StaffDashboard() {
     t.transactionTypeId === selectedTransaction
   );
 
-  const handleCallNext = async () => {
-    if (!selectedTransaction || !selectedWindow || isCalling) return;
+  const handleCallNext = async (transactionId?: string) => {
+    const transactionToUse = transactionId || selectedTransaction;
+    if (!transactionToUse || !selectedWindow || isCalling) return;
     
     setIsCalling(true);
     try {
-      const ticket = await callNextTicket(selectedTransaction, selectedWindow.id, selectedWindow.name);
+      const ticket = await callNextTicket(transactionToUse, selectedWindow.id, selectedWindow.name);
       if (ticket) {
         setCurrentTicket(ticket);
-        setTimeout(() => {
-          playNotificationSound();
-          speakTicket(ticket.ticketNumber, selectedWindow.number.toString());
-        }, 100);
+        playNotificationSound();
+        speakTicket(ticket.ticketNumber, selectedWindow.number.toString());
         showAlert('success', `Ticket ${ticket.ticketNumber} called`);
       } else {
         showAlert('warning', 'No tickets waiting in queue');
@@ -320,7 +319,7 @@ export default function StaffDashboard() {
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3">
                   <button
-                    onClick={handleCallNext}
+                    onClick={() => handleCallNext()}
                     disabled={!selectedTransaction || !selectedWindow || isCalling}
                     className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-700 hover:to-blue-500 text-white font-bold py-4 px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                   >
@@ -345,13 +344,10 @@ export default function StaffDashboard() {
                           .map(t => (
                             <button
                               key={t.id}
-                              onClick={async () => {
+                              onClick={() => {
                                 setSelectedTransaction(t.id);
                                 setShowAllTransactions(false);
-                                // Small delay to ensure state is set before calling
-                                setTimeout(async () => {
-                                  await handleCallNext();
-                                }, 100);
+                                handleCallNext(t.id);
                               }}
                               className="w-full text-left p-2 rounded-lg bg-gray-100 hover:bg-blue-100 text-gray-800 font-medium"
                             >
