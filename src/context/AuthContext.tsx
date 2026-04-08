@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { 
   signInWithEmailAndPassword, 
+  signInWithPopup,
   signOut, 
   onAuthStateChanged,
   createUserWithEmailAndPassword,
@@ -8,7 +9,7 @@ import {
 } from 'firebase/auth';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { auth, db, googleProvider } from '../firebase';
 import type { User, UserRole } from '../types';
 
 interface AuthContextType {
@@ -17,6 +18,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<User | null>;
+  loginWithGoogle: () => Promise<User | null>;
   signup: (email: string, password: string, username: string, role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -93,6 +95,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async (): Promise<User | null> => {
+    setError(null);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      
+      // Check if user document exists, if not create one
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      if (!userDoc.exists()) {
+        // Create new user document for Google sign-in
+        await setDoc(doc(db, 'users', result.user.uid), {
+          username: result.user.displayName || result.user.email?.split('@')[0] || 'User',
+          email: result.user.email || '',
+          role: 'student', // Default role for Google sign-in
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          photoURL: result.user.photoURL || null
+        });
+      }
+      
+      // Fetch user data
+      const updatedUserDoc = await getDoc(doc(db, 'users', result.user.uid));
+      if (updatedUserDoc.exists()) {
+        const userData = updatedUserDoc.data();
+        const userObj: User = {
+          id: result.user.uid,
+          email: result.user.email || '',
+          username: userData.username || '',
+          role: userData.role || 'student',
+          createdAt: userData.createdAt?.toDate() || new Date()
+        };
+        setUser(userObj);
+        sessionStorage.setItem('user', JSON.stringify(userObj));
+        return userObj;
+      }
+      return null;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Google login failed';
+      setError(message);
+      throw err;
+    }
+  };
+
   const signup = async (email: string, password: string, username: string, role: UserRole) => {
     setError(null);
     try {
@@ -145,6 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading, 
       error, 
       login, 
+      loginWithGoogle,
       signup, 
       logout, 
       resetPassword,
