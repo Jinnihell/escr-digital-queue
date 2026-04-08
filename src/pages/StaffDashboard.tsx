@@ -105,8 +105,10 @@ export default function StaffDashboard() {
       const ticket = await callNextTicket(selectedTransaction, selectedWindow.id, selectedWindow.name);
       if (ticket) {
         setCurrentTicket(ticket);
-        playNotificationSound();
-        speakTicket(ticket.ticketNumber, selectedWindow.number.toString());
+        setTimeout(() => {
+          playNotificationSound();
+          speakTicket(ticket.ticketNumber, selectedWindow.number.toString());
+        }, 100);
         showAlert('success', `Ticket ${ticket.ticketNumber} called`);
       } else {
         showAlert('warning', 'No tickets waiting in queue');
@@ -320,7 +322,7 @@ export default function StaffDashboard() {
                   <button
                     onClick={handleCallNext}
                     disabled={!selectedTransaction || !selectedWindow || isCalling}
-                    className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-700 hover:to-blue-500 text-white font-bold py-4 px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+                    className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-700 hover:to-blue-500 text-white font-bold py-4 px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                   >
                     {isCalling ? '⏳ Calling...' : '📞 Call Next Ticket'}
                   </button>
@@ -363,21 +365,21 @@ export default function StaffDashboard() {
                   <div className="flex gap-3">
                     <button
                       onClick={playNotificationSound}
-                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                     >
                       🔔 Ring
                     </button>
                     <button
                       onClick={handleComplete}
                       disabled={!currentTicket || isCompleting}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                     >
                       {isCompleting ? '⏳' : '✓ Complete'}
                     </button>
                     <button
                       onClick={handleNoShow}
                       disabled={!currentTicket || isNoShowing}
-                      className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                     >
                       {isNoShowing ? '⏳' : '✗ No Show'}
                     </button>
