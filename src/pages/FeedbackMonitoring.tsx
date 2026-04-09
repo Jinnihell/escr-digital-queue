@@ -54,7 +54,7 @@ export default function FeedbackMonitoring() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
-      <Navbar title="Feedback Monitoring" showBackButton onBack={handleBack} />
+      <Navbar title="Feedback Monitoring" showBackButton onBack={handleBack} showHelpButton={false} />
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white rounded-xl shadow-lg p-6">

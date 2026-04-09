@@ -9,9 +9,10 @@ interface NavbarProps {
   onBack?: () => void;
   helpContent?: React.ReactNode;
   showAdminNav?: boolean;
+  showHelpButton?: boolean;
 }
 
-export default function Navbar({ title, showBackButton, onBack, helpContent, showAdminNav }: NavbarProps) {
+export default function Navbar({ title, showBackButton, onBack, helpContent, showAdminNav, showHelpButton = true }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showHelp, setShowHelp] = useState(false);
@@ -81,12 +82,14 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
                   })}
                 </div>
               )}
-              <button
-                onClick={() => setShowHelp(true)}
-                className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
-              >
-                ?
-              </button>
+              {showHelpButton && (
+                <button
+                  onClick={() => setShowHelp(true)}
+                  className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
+                >
+                  ?
+                </button>
+              )}
             </div>
           </div>
         </div>
