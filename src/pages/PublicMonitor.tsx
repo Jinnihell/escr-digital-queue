@@ -102,120 +102,133 @@ export default function PublicMonitor() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex">
-      {/* LEFT SIDE: QUEUE CONTENT (55%) - matches PHP design */}
-      <div className="w-[55%] p-4 flex flex-col">
-        {/* Header */}
-        <div className="bg-white/5 rounded-xl p-3 flex items-center gap-4 mb-4">
-          <img src="/escr-logo.png" alt="ESCR Logo" className="w-20 h-20 object-contain bg-white rounded-full p-1" />
-          <div>
-            <h2 className="text-xl font-bold">ESCR QUEUE SYSTEM</h2>
-            <p className="text-orange-400 font-bold">{currentTime}</p>
-          </div>
-        </div>
-
-        {/* Window Cards Grid */}
-        <div className="grid grid-cols-2 gap-4 flex-grow">
-          {windows.map((window) => {
-            const windowTicket = servingTickets.find(t => t.windowId === window.id);
-            const windowDisplayName = `Window ${window.number}`;
-            return (
-              <div 
-                key={window.id} 
-                className={`bg-white rounded-2xl p-4 text-gray-800 flex flex-col items-center justify-center relative border-b-8 ${
-                  windowTicket ? 'border-orange-500' : 'border-gray-300'
-                }`}
-              >
-                <span className="absolute top-3 bg-blue-800 text-white px-4 py-1 rounded-lg font-bold">
-                  {windowDisplayName}
-                </span>
-                <p className="text-6xl md:text-8xl font-black mt-8">
-                  {windowTicket?.ticketNumber || '---'}
-                </p>
-                <p className="text-orange-500 font-bold text-lg">
-                  {windowTicket?.transactionTypeName || ''}
-                </p>
-              </div>
-            );
-          })}
+    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+      {/* Header - Mobile friendly */}
+      <div className="bg-white/5 rounded-xl p-3 flex items-center gap-3 mb-3">
+        <img src="/escr-logo.png" alt="ESCR Logo" className="w-12 h-12 sm:w-16 sm:h-16 object-contain bg-white rounded-full p-1" />
+        <div>
+          <h2 className="text-base sm:text-xl font-bold">ESCR QUEUE</h2>
+          <p className="text-orange-400 font-bold text-sm sm:text-lg">{currentTime}</p>
         </div>
       </div>
 
-      {/* MIDDLE SIDE: WAITING QUEUES (20%) - matches PHP design */}
-      <div className="w-[20%] bg-white border-l-4 border-blue-800 flex flex-col">
-        <div className="text-center p-3 border-b-2 border-orange-500">
-          <h3 className="text-2xl font-bold text-purple-900">Next in Line</h3>
-          <p className="text-sm text-gray-600">Upcoming queue numbers</p>
-        </div>
-        <div className="flex-grow overflow-y-auto p-3">
-          {waitingTickets.length > 0 ? (
-            waitingTickets.slice(0, 10).map((ticket) => (
-              <div 
-                key={ticket.id}
-                className="bg-blue-800 text-white p-3 rounded-lg text-center mb-2"
-              >
-                <span className="text-orange-400 font-bold text-2xl">{ticket.ticketNumber}</span>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-400 text-center p-4">No waiting</p>
-          )}
-        </div>
-      </div>
-
-      {/* RIGHT SIDE: VIDEO SIDEBAR (25%) - matches PHP design */}
-      <div className="w-[25%] bg-black border-l-4 border-orange-500 flex flex-col">
-        {/* Video/Logo placeholder */}
-        <div className="aspect-video bg-gradient-to-br from-blue-800 to-blue-600 flex flex-col items-center justify-center relative overflow-hidden">
-          <img src="/escr-logo.png" alt="ESCR Logo" className="w-32 h-32 object-contain mb-4 animate-bounce bg-white rounded-full p-2" />
-          <p className="text-xl font-bold">ESCR DQMS</p>
-          <p className="text-sm text-gray-300">East Systems Colleges of Rizal</p>
-          <p className="text-xs text-gray-500 mt-4">Digital Queue Management System</p>
-          <div className="flex gap-4 mt-6">
-            <div className="text-center">
-              <span className="block text-2xl text-orange-400">⚖️</span>
-              <p className="text-xs">Fair Queue</p>
-            </div>
-            <div className="text-center">
-              <span className="block text-2xl text-orange-400">⏱️</span>
-              <p className="text-xs">Fast Service</p>
-            </div>
-            <div className="text-center">
-              <span className="block text-2xl text-orange-400">⭐</span>
-              <p className="text-xs">Quality</p>
-            </div>
-          </div>
-        </div>
+      {/* Main Content - Stacked on mobile, side-by-side on desktop */}
+      <div className="flex flex-col md:flex-row flex-grow gap-2 sm:gap-4 pb-12">
         
-        {/* Announcements - matches PHP design */}
-        <div className="flex-grow bg-blue-800 p-4 border-t-4 border-orange-500 overflow-y-auto">
-          <h3 className="text-orange-400 font-bold mb-3 flex items-center gap-2">
-            <span>📢</span> ESCR News
-          </h3>
-          <div className="space-y-2 text-sm">
-            <p>• Enrollment for Mid-Year 2026 is now open.</p>
-            <p>• Please prepare your Student ID and Assessment form.</p>
-            <p>• Free WiFi is available in the student lounge.</p>
-            <p>• Operating hours: 8:00 AM - 5:00 PM</p>
+        {/* Window Cards - Full width on mobile */}
+        <div className="flex-1 flex flex-col">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 flex-grow">
+            {windows.map((window) => {
+              const windowTicket = servingTickets.find(t => t.windowId === window.id);
+              const windowDisplayName = `Window ${window.number}`;
+              return (
+                <div 
+                  key={window.id} 
+                  className={`bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 text-gray-800 flex flex-col items-center justify-center relative border-b-4 sm:border-b-8 ${
+                    windowTicket ? 'border-orange-500' : 'border-gray-300'
+                  }`}
+                >
+                  <span className="absolute top-1 sm:top-3 bg-blue-800 text-white px-2 sm:px-4 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-bold">
+                    {windowDisplayName}
+                  </span>
+                  <p className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-black mt-6 sm:mt-8">
+                    {windowTicket?.ticketNumber || '---'}
+                  </p>
+                  <p className="text-orange-500 font-bold text-xs sm:text-lg">
+                    {windowTicket?.transactionTypeName || ''}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Waiting Queue - Hidden on small mobile, visible on md+ */}
+        <div className="hidden md:flex w-full md:w-[20%] bg-white border-l-4 border-blue-800 flex-col">
+          <div className="text-center p-2 sm:p-3 border-b-2 border-orange-500">
+            <h3 className="text-lg sm:text-2xl font-bold text-purple-900">Next in Line</h3>
+            <p className="text-xs sm:text-sm text-gray-600">Upcoming</p>
+          </div>
+          <div className="flex-grow overflow-y-auto p-2 sm:p-3">
+            {waitingTickets.length > 0 ? (
+              waitingTickets.slice(0, 10).map((ticket) => (
+                <div 
+                  key={ticket.id}
+                  className="bg-blue-800 text-white p-2 sm:p-3 rounded-lg text-center mb-1 sm:mb-2"
+                >
+                  <span className="text-orange-400 font-bold text-lg sm:text-2xl">{ticket.ticketNumber}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400 text-center p-2 sm:p-4 text-sm">No waiting</p>
+            )}
+          </div>
+        </div>
+
+        {/* Right Sidebar - Hidden on mobile */}
+        <div className="hidden lg:flex w-[25%] bg-black border-l-4 border-orange-500 flex-col">
+          <div className="aspect-video bg-gradient-to-br from-blue-800 to-blue-600 flex flex-col items-center justify-center relative overflow-hidden p-4">
+            <img src="/escr-logo.png" alt="ESCR Logo" className="w-20 h-20 sm:w-24 sm:h-24 object-contain mb-2 sm:mb-4 animate-bounce bg-white rounded-full p-1 sm:p-2" />
+            <p className="text-lg sm:text-xl font-bold">ESCR DQMS</p>
+            <p className="text-xs sm:text-sm text-gray-300">East Systems Colleges</p>
+            <div className="flex gap-2 sm:gap-4 mt-2 sm:mt-4">
+              <div className="text-center">
+                <span className="block text-xl sm:text-2xl">⚖️</span>
+                <p className="text-xs">Fair</p>
+              </div>
+              <div className="text-center">
+                <span className="block text-xl sm:text-2xl">⏱️</span>
+                <p className="text-xs">Fast</p>
+              </div>
+              <div className="text-center">
+                <span className="block text-xl sm:text-2xl">⭐</span>
+                <p className="text-xs">Quality</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex-grow bg-blue-800 p-3 sm:p-4 border-t-4 border-orange-500 overflow-y-auto">
+            <h3 className="text-orange-400 font-bold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
+              <span>📢</span> ESCR News
+            </h3>
+            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
+              <p>• Enrollment for Mid-Year 2026 is open.</p>
+              <p>• Prepare your Student ID.</p>
+              <p>• Free WiFi in student lounge.</p>
+              <p>• Hours: 8AM - 5PM</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Footer Ticker - matches PHP design */}
-      <div className="fixed bottom-0 left-0 right-0 h-10 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
-        <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite]">
-          Welcome to East Systems Colleges of Rizal! Kindly check your queue number on the display monitor and proceed to your assigned window. Thank you!
+      {/* Mobile Only: Simple Queue List */}
+      <div className="md:hidden bg-white text-gray-800 p-3 border-t-4 border-blue-800">
+        <h3 className="font-bold text-purple-900 text-center mb-2">Waiting Queue</h3>
+        <div className="flex flex-wrap justify-center gap-2">
+          {waitingTickets.slice(0, 6).map((ticket) => (
+            <span key={ticket.id} className="bg-blue-800 text-white px-3 py-1 rounded text-sm font-bold">
+              {ticket.ticketNumber}
+            </span>
+          ))}
+          {waitingTickets.length === 0 && <p className="text-gray-400 text-sm">No waiting</p>}
         </div>
       </div>
 
-      {/* Sound Toggle */}
+      {/* Footer Ticker */}
+      <div className="fixed bottom-0 left-0 right-0 h-8 sm:h-10 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
+        <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite] px-2 text-xs sm:text-sm">
+          Welcome to East Systems Colleges of Rizal! Check queue number on display and proceed to assigned window. Thank you!
+        </div>
+      </div>
+
+      {/* Sound Toggle - Smaller on mobile */}
       <button
         onClick={() => setSoundEnabled(!soundEnabled)}
-        className={`fixed top-4 right-4 p-3 rounded-full shadow-lg transition z-50 ${
+        className={`fixed top-2 right-2 sm:top-4 sm:right-4 p-2 sm:p-3 rounded-full shadow-lg transition z-50 ${
           soundEnabled ? 'bg-green-500' : 'bg-gray-500'
         }`}
       >
-        {soundEnabled ? '🔔' : '🔕'}
+        <span className="text-lg sm:text-xl">{soundEnabled ? '🔔' : '🔕'}</span>
       </button>
 
       <style>{`
