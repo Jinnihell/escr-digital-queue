@@ -7,7 +7,7 @@ import type { QueueTicket, Window } from '../types';
 export default function PublicMonitor() {
   const [tickets, setTickets] = useState<QueueTicket[]>([]);
   const [windows, setWindows] = useState<Window[]>([]);
-  const [isLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
   const lastAnnouncedRef = useRef<string>('');
@@ -69,6 +69,8 @@ export default function PublicMonitor() {
   useEffect(() => {
     const unsubscribeTickets = subscribeToActiveTickets((updatedTickets) => {
       setTickets(updatedTickets);
+      // Mark as loaded after first update
+      setDataLoaded(true);
     });
 
     return () => unsubscribeTickets();
@@ -78,6 +80,8 @@ export default function PublicMonitor() {
   useEffect(() => {
     const unsubscribeWindows = subscribeToWindows((updatedWindows) => {
       setWindows(updatedWindows.filter(w => w.active));
+      // Mark as loaded after first update
+      setDataLoaded(true);
     });
 
     return () => unsubscribeWindows();
@@ -86,10 +90,13 @@ export default function PublicMonitor() {
   const waitingTickets = tickets.filter(t => t.status === 'waiting');
   const servingTickets = tickets.filter(t => t.status === 'serving');
 
-  if (isLoading) {
+  if (!dataLoaded || windows.length === 0) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-20 w-20 border-4 border-orange-500 border-t-transparent"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-20 w-20 border-4 border-orange-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-orange-400 font-bold">Loading queue system...</p>
+        </div>
       </div>
     );
   }
