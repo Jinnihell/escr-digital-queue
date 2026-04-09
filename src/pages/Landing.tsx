@@ -147,8 +147,8 @@ export default function Landing() {
             <div className="space-y-3 text-gray-600">
               <p>1. Click the <b>Get Started</b> button.</p>
               <p>2. Login with your account.</p>
-              <p>3. Select your transaction (Registrar or Cashier).</p>
-              <p>4. Get your printed ticket.</p>
+              <p>3. Select your transaction (Assessments, Enrollments, Payments and Other Concerns).</p>
+              <p>4. Get your queue number ticket.</p>
             </div>
             <button 
               onClick={() => setShowHelp(false)}
