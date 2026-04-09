@@ -159,10 +159,9 @@ export default function History() {
         onBack={handleBack}
         helpContent={
           <div className="space-y-3 text-gray-600">
-            <p>View your <b>queue history</b> here.</p>
-            <p>Use <b>filters</b> to narrow down your search by date.</p>
-            <p>The table shows your past tickets with their <b>status</b>.</p>
-            <p>Click <b>Print</b> to print a copy of your history.</p>
+            <p>View your queue history here.</p>
+            <p>Use filters to narrow down your search by date.</p>
+            <p>The table shows your past tickets with their status.</p>
           </div>
         }
       />
