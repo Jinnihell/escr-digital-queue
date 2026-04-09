@@ -198,12 +198,12 @@ export default function TransactionSelection() {
         title="ESCR DQMS - Select Transaction"
         helpContent={
           <div className="space-y-3 text-gray-600">
-            <p>1. <b>Select your transaction</b> type (Registrar, Cashier, etc.)</p>
-            <p>2. If you're a <b>Senior Citizen or PWD</b>, check the priority box.</p>
-            <p>3. Click <b>Continue</b> to proceed.</p>
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
-              <p className="text-yellow-800 text-sm">
-                <b>Priority:</b> Priority queue is available for seniors and persons with disability.
+            <p>1. Select your transaction type (Assessments, Enrollments, etc.)</p>
+            <p>2. Click Continue to proceed.</p>
+            <p>3. Fill up the student details and get your queue ticket.</p>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <p className="text-blue-800 text-sm">
+                <b>Note:</b> You can rate and add a feedback for your own satisfaction experience.
               </p>
             </div>
           </div>
