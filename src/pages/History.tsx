@@ -73,11 +73,9 @@ export default function History() {
     return () => unsubscribe();
   }, [user]);
 
+  // Combined filter trigger
   const handleFilter = () => {
-    // Just trigger re-render, useEffect will handle it
     setIsLoading(true);
-    // Trigger a refresh
-    window.location.reload();
   };
 
   const handleReset = () => {
@@ -86,7 +84,35 @@ export default function History() {
     setWindowFilter('');
     setSearchTerm('');
     setIsLoading(true);
-    window.location.reload();
+  };
+
+  // Memoize filtered tickets to avoid unnecessary re-renders
+  const getFilteredTickets = () => {
+    let filtered = tickets;
+    
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0);
+      filtered = filtered.filter(t => t.createdAt && new Date(t.createdAt) >= start);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59);
+      filtered = filtered.filter(t => t.createdAt && new Date(t.createdAt) <= end);
+    }
+    if (windowFilter) {
+      filtered = filtered.filter(t => t.windowId === windowFilter);
+    }
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(t => 
+        t.ticketNumber?.toLowerCase().includes(searchLower) ||
+        t.studentName?.toLowerCase().includes(searchLower) ||
+        t.transactionTypeName?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    return filtered;
   };
 
   const getStatusIcon = (status: string) => {
@@ -255,7 +281,7 @@ export default function History() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tickets.map((ticket) => (
+                  {getFilteredTickets().map((ticket) => (
                     <tr key={ticket.id} className="border-t hover:bg-gray-50">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
