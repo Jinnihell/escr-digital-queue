@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getWindows, subscribeToAllTickets } from '../services/queueService';
-import { History as HistoryIcon, Clock, CheckCircle, XCircle, AlertTriangle, Filter } from 'lucide-react';
+import { History as HistoryIcon, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import type { QueueTicket, Window } from '../types';
 
@@ -73,20 +73,14 @@ export default function History() {
     return () => unsubscribe();
   }, [user]);
 
-  // Combined filter trigger
-  const handleFilter = () => {
-    setIsLoading(true);
-  };
-
   const handleReset = () => {
     setStartDate('');
     setEndDate('');
     setWindowFilter('');
     setSearchTerm('');
-    setIsLoading(true);
   };
 
-  // Memoize filtered tickets to avoid unnecessary re-renders
+  // Filtered tickets - real-time filtering without button
   const getFilteredTickets = () => {
     let filtered = tickets;
     
@@ -228,12 +222,6 @@ export default function History() {
               </select>
             </div>
             <button 
-              onClick={handleFilter}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-1"
-            >
-              <Filter className="w-4 h-4" /> Filter
-            </button>
-            <button 
               onClick={handleReset}
               className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm"
             >
@@ -248,9 +236,6 @@ export default function History() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Student name or ticket number..."
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-64"
-                onKeyUp={(e) => {
-                  if (e.key === 'Enter') handleFilter();
-                }}
               />
             </div>
           </div>
