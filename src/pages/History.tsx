@@ -220,8 +220,8 @@ export default function History() {
                 type="text" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Name or Ticket..."
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                placeholder="Student name or ticket number..."
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-64"
                 onKeyUp={(e) => {
                   if (e.key === 'Enter') handleFilter();
                 }}
