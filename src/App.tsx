@@ -62,7 +62,7 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       <Route path="/history" element={
-        <ProtectedRoute allowedRoles={['admin', 'staff']}>
+        <ProtectedRoute allowedRoles={['student', 'admin', 'staff']}>
           <History />
         </ProtectedRoute>
       } />
