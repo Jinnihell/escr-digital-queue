@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { subscribeToActiveTickets, getWindows } from '../services/queueService';
+import { useState, useEffect, useRef } from 'react';
+import { subscribeToActiveTickets, subscribeToWindows } from '../services/queueService';
 import type { QueueTicket, Window } from '../types';
 
 // Public Monitor - Matches MYPHPQUEUE public_monitor.php dark theme design
@@ -7,9 +7,10 @@ import type { QueueTicket, Window } from '../types';
 export default function PublicMonitor() {
   const [tickets, setTickets] = useState<QueueTicket[]>([]);
   const [windows, setWindows] = useState<Window[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
+  const lastAnnouncedRef = useRef<string>('');
 
   // Update clock
   useEffect(() => {
@@ -21,13 +22,18 @@ export default function PublicMonitor() {
     return () => clearInterval(interval);
   }, []);
 
-  // Announce serving tickets per window every minute
+  // Announce serving tickets when they change - real-time
   useEffect(() => {
-    const announceServingTickets = () => {
-      if (!soundEnabled || windows.length === 0) return;
-      
-      // Get serving tickets from state
-      const serving = tickets.filter(t => t.status === 'serving');
+    if (!soundEnabled || windows.length === 0) return;
+    
+    const serving = tickets.filter(t => t.status === 'serving');
+    
+    // Get current serving tickets as a string for comparison
+    const currentServingStr = serving.map(t => `${t.ticketNumber}-${t.windowId}`).join(',');
+    
+    // Only announce if there's a change
+    if (currentServingStr !== lastAnnouncedRef.current && serving.length > 0) {
+      lastAnnouncedRef.current = currentServingStr;
       
       // Get the first serving ticket for each window
       const windowsWithTickets = windows.map(w => {
@@ -51,42 +57,30 @@ export default function PublicMonitor() {
         utterance.lang = 'en-US';
         speechSynthesis.speak(utterance);
       }
-    };
-
-    // Initial announcement after 3 seconds
-    const initialTimer = setTimeout(announceServingTickets, 3000);
+    }
     
-    // Then every 60 seconds
-    const intervalId = setInterval(announceServingTickets, 60000);
-    
-    return () => {
-      clearTimeout(initialTimer);
-      clearInterval(intervalId);
-    };
+    // If no serving tickets, reset the ref so it can announce again when new ticket is called
+    if (serving.length === 0) {
+      lastAnnouncedRef.current = '';
+    }
   }, [tickets, windows, soundEnabled]);
 
   // Subscribe to real-time ticket updates
   useEffect(() => {
-    const unsubscribe = subscribeToActiveTickets((updatedTickets) => {
+    const unsubscribeTickets = subscribeToActiveTickets((updatedTickets) => {
       setTickets(updatedTickets);
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeTickets();
   }, []);
 
-  // Load initial windows data
+  // Subscribe to real-time window updates
   useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const windowList = await getWindows();
-        setWindows(windowList);
-      } catch (err) {
-        console.error('Error loading data:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadInitialData();
+    const unsubscribeWindows = subscribeToWindows((updatedWindows) => {
+      setWindows(updatedWindows.filter(w => w.active));
+    });
+
+    return () => unsubscribeWindows();
   }, []);
 
   const waitingTickets = tickets.filter(t => t.status === 'waiting');
