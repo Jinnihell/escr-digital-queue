@@ -14,7 +14,7 @@ import {
   getSettings,
   saveSettings
 } from '../services/queueService';
-import { RefreshCw, Settings, Download, Printer, Bell, Zap, Save, RotateCcw, DatabaseBackup, Filter } from 'lucide-react';
+import { RefreshCw, Settings, Download, Printer, Bell, Save, RotateCcw, DatabaseBackup, Filter } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import Navbar from '../components/Navbar';
 import type { TransactionType, QueueStats, Window as WindowType, QueueTicket, SystemSettings } from '../types';
@@ -977,60 +977,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
                   />
                   <span className="text-sm text-gray-700">Show All Active Windows</span>
                 </label>
-              </div>
-            </div>
-
-            {/* Queue Settings */}
-            <div className="bg-white rounded-xl shadow p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Zap className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-semibold text-gray-800">Queue Settings</h2>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={settingsForm.autoReset}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, autoReset: e.target.checked })}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm text-gray-700">Auto Reset Daily</span>
-                  </label>
-                </div>
-                {settingsForm.autoReset && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Auto Reset Time</label>
-                    <input
-                      type="time"
-                      value={settingsForm.autoResetTime}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, autoResetTime: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg"
-                    />
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Wait Time (seconds)</label>
-                  <input
-                    type="number"
-                    value={settingsForm.maxWaitTime}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, maxWaitTime: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    min={300}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Enable Priority</label>
-                  <label className="flex items-center gap-3 mt-2">
-                    <input
-                      type="checkbox"
-                      checked={settingsForm.enablePriority}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, enablePriority: e.target.checked })}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm text-gray-700">Allow Priority Queue</span>
-                  </label>
-                </div>
               </div>
             </div>
 
