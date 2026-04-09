@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAlert } from '../context/useAlert';
 import { 
-  getTransactionTypes,
+  subscribeToTransactionTypes,
   callNextTicket,
   completeTicket,
   cancelTicket,
@@ -42,7 +42,7 @@ export default function StaffDashboard() {
     
     const windowData = JSON.parse(storedWindow);
     setSelectedWindow(windowData);
-    loadData(windowData.number);
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -62,34 +62,40 @@ export default function StaffDashboard() {
     return () => unsubscribe();
   }, [selectedWindow]);
 
-  const loadData = async (windowNumber: number) => {
+  const loadData = async () => {
     try {
-      const [transactionTypes, queueStats] = await Promise.all([
-        getTransactionTypes(),
-        getQueueStats()
-      ]);
-      
-      // Filter transactions that this window can serve
-      const myTransactions = transactionTypes.filter(
-        t => t.active && (t.windowNumber === windowNumber || !t.windowNumber)
-      );
-      
-      // Store all transactions for "Call Others" feature
-      const allActiveTransactions = transactionTypes.filter(t => t.active);
-      setAllTransactions(allActiveTransactions);
-      
+      // Load stats only (transactions will be loaded via real-time subscription)
+      const queueStats = await getQueueStats();
       setStats(queueStats);
-      
-      // Select first matching transaction by default
-      if (myTransactions.length > 0) {
-        setSelectedTransaction(myTransactions[0].id);
-      }
+      setIsLoading(false);
     } catch (err) {
       console.error('Error loading data:', err);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Real-time subscription for transaction types
+  useEffect(() => {
+    const unsubscribe = subscribeToTransactionTypes((transactions) => {
+      const activeTransactions = transactions.filter(t => t.active);
+      
+      // Filter transactions that this window can serve
+      const myTransactions = activeTransactions.filter(
+        t => t.windowNumber === selectedWindow?.number || !t.windowNumber
+      );
+      
+      // Store all transactions for "Call Others" feature
+      setAllTransactions(activeTransactions);
+      
+      // Select first matching transaction by default if none selected
+      if (myTransactions.length > 0 && !selectedTransaction) {
+        setSelectedTransaction(myTransactions[0].id);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [selectedWindow]);
 
   // Get waiting tickets for selected transaction
   const waitingTickets = allTickets.filter(t => 
@@ -128,7 +134,7 @@ export default function StaffDashboard() {
     try {
       await completeTicket(currentTicket.id);
       setCurrentTicket(null);
-      loadData(selectedWindow?.number || 1);
+      loadData();
       showAlert('success', 'Ticket completed successfully');
     } catch (err) {
       console.error('Error completing ticket:', err);
@@ -145,7 +151,7 @@ export default function StaffDashboard() {
     try {
       await cancelTicket(currentTicket.id);
       setCurrentTicket(null);
-      loadData(selectedWindow?.number || 1);
+      loadData();
       showAlert('info', 'Ticket marked as no show');
     } catch (err) {
       console.error('Error marking no show:', err);

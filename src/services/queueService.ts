@@ -367,6 +367,18 @@ export const subscribeToWindows = (callback: (windows: Window[]) => void) => {
   });
 };
 
+// Subscribe to transaction types (real-time updates)
+export const subscribeToTransactionTypes = (callback: (transactions: TransactionType[]) => void) => {
+  const q = query(collection(db, TRANSACTIONS_COLLECTION), orderBy('name', 'asc'));
+  return onSnapshot(q, (snapshot) => {
+    const transactions = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as TransactionType[];
+    callback(transactions);
+  });
+};
+
 // Create transaction type
 export const createTransactionType = async (
   name: string,
