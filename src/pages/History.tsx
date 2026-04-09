@@ -247,7 +247,9 @@ export default function History() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="text-left py-4 px-6 text-gray-600 font-medium">Ticket</th>
+                    <th className="text-left py-4 px-6 text-gray-600 font-medium">Student Name</th>
                     <th className="text-left py-4 px-6 text-gray-600 font-medium">Service</th>
+                    <th className="text-left py-4 px-6 text-gray-600 font-medium">Window</th>
                     <th className="text-left py-4 px-6 text-gray-600 font-medium">Date</th>
                     <th className="text-left py-4 px-6 text-gray-600 font-medium">Status</th>
                   </tr>
@@ -264,7 +266,13 @@ export default function History() {
                         </div>
                       </td>
                       <td className="py-4 px-6 text-gray-600">
+                        {ticket.studentName || 'N/A'}
+                      </td>
+                      <td className="py-4 px-6 text-gray-600">
                         {ticket.transactionTypeName}
+                      </td>
+                      <td className="py-4 px-6 text-gray-600">
+                        {ticket.windowName || 'N/A'}
                       </td>
                       <td className="py-4 px-6 text-gray-600">
                         {formatDate(ticket.createdAt)}
