@@ -164,41 +164,6 @@ export default function PublicMonitor() {
             )}
           </div>
         </div>
-
-        {/* Right Sidebar - Hidden on mobile */}
-        <div className="hidden lg:flex w-[25%] bg-black border-l-4 border-orange-500 flex-col">
-          <div className="aspect-video bg-gradient-to-br from-blue-800 to-blue-600 flex flex-col items-center justify-center relative overflow-hidden p-4">
-            <img src="/escr-logo.png" alt="ESCR Logo" className="w-24 h-24 sm:w-27 sm:h-27 object-contain mb-2 sm:mb-4 animate-bounce rounded-full" />
-            <p className="text-lg sm:text-xl font-bold">ESCR DQMS</p>
-            <p className="text-xs sm:text-sm text-gray-300">East Systems Colleges</p>
-            <div className="flex gap-2 sm:gap-4 mt-2 sm:mt-4">
-              <div className="text-center">
-                <span className="block text-xl sm:text-2xl">⚖️</span>
-                <p className="text-xs">Fair</p>
-              </div>
-              <div className="text-center">
-                <span className="block text-xl sm:text-2xl">⏱️</span>
-                <p className="text-xs">Fast</p>
-              </div>
-              <div className="text-center">
-                <span className="block text-xl sm:text-2xl">⭐</span>
-                <p className="text-xs">Quality</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex-grow bg-blue-800 p-3 sm:p-4 border-t-4 border-orange-500 overflow-y-auto">
-            <h3 className="text-orange-400 font-bold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
-              <span>📢</span> ESCR News
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
-              <p>• Enrollment for Mid-Year 2026 is open.</p>
-              <p>• Prepare your Student ID.</p>
-              <p>• Free WiFi in student lounge.</p>
-              <p>• Hours: 8AM - 5PM</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Mobile Only: Simple Queue List */}
