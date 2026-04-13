@@ -103,17 +103,17 @@ export default function PublicMonitor() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
-      {/* Header - Mobile friendly */}
-      <div className="bg-white/5 rounded-xl p-3 flex items-center gap-3 mb-3">
-        <img src="/escr-logo.png" alt="ESCR Logo" className="w-12 h-12 sm:w-16 sm:h-16 object-contain bg-white rounded-full p-1" />
+      {/* Header - Bigger fonts */}
+      <div className="bg-white/5 rounded-xl p-4 flex items-center gap-4 mb-3">
+        <img src="/escr-logo.png" alt="ESCR Logo" className="w-16 h-16 sm:w-20 sm:h-20 object-contain bg-white rounded-full p-1" />
         <div>
-          <h2 className="text-base sm:text-xl font-bold">ESCR QUEUE</h2>
-          <p className="text-orange-400 font-bold text-sm sm:text-lg">{currentTime}</p>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">ESCR QUEUE SYSTEM</h2>
+          <p className="text-orange-400 font-bold text-lg sm:text-xl">{currentTime}</p>
         </div>
       </div>
 
       {/* Main Content - Stacked on mobile, side-by-side on desktop */}
-      <div className="flex flex-col md:flex-row flex-grow gap-2 sm:gap-4 pb-12">
+      <div className="flex flex-col md:flex-row flex-grow gap-2 sm:gap-4 pb-16 md:pb-14">
         
         {/* Window Cards - Full width on mobile */}
         <div className="flex-1 flex flex-col">
@@ -214,10 +214,10 @@ export default function PublicMonitor() {
         </div>
       </div>
 
-      {/* Footer Ticker */}
-      <div className="fixed bottom-0 left-0 right-0 h-8 sm:h-10 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
-        <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite] px-2 text-xs sm:text-sm">
-          Welcome to East Systems Colleges of Rizal! Check queue number on display and proceed to assigned window. Thank you!
+      {/* Footer Ticker - Bigger fonts */}
+      <div className="fixed bottom-0 left-0 right-0 h-12 sm:h-14 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
+        <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite] px-4 text-base sm:text-lg md:text-xl">
+          Welcome to East Systems Colleges of Rizal! Check your queue number on the display monitor and proceed to your assigned window. Thank you!
         </div>
       </div>
 
