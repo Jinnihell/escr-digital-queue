@@ -12,6 +12,7 @@ import AdminSelection from './pages/AdminSelection';
 import AdminDashboard from './pages/AdminDashboard';
 import StaffDashboard from './pages/StaffDashboard';
 import PublicMonitor from './pages/PublicMonitor';
+import QueueDisplay from './pages/QueueDisplay';
 import History from './pages/History';
 import WindowSelection from './pages/WindowSelection';
 import FeedbackMonitoring from './pages/FeedbackMonitoring';
@@ -39,6 +40,7 @@ function AppRoutes() {
       <Route path="/signup" element={user ? <Navigate to="/" replace /> : <Signup />} />
       <Route path="/forgot-password" element={user ? <Navigate to="/" replace /> : <ForgotPassword />} />
       <Route path="/monitor" element={<PublicMonitor />} />
+      <Route path="/display" element={<QueueDisplay />} />
       
       {/* Protected Routes - Students */}
       <Route path="/" element={
