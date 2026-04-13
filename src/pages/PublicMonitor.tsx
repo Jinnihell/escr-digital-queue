@@ -105,7 +105,7 @@ export default function PublicMonitor() {
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
       {/* Header - Bigger fonts */}
       <div className="bg-white/5 rounded-xl p-4 flex items-center gap-4 mb-3">
-        <img src="/escr-logo.png" alt="ESCR Logo" className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-full" />
+        <img src="/escr-logo.png" alt="ESCR Logo" className="w-24 h-24 sm:w-27 sm:h-27 object-contain rounded-full" />
         <div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">ESCR QUEUE SYSTEM</h2>
           <p className="text-orange-400 font-bold text-lg sm:text-xl">{currentTime}</p>
@@ -168,7 +168,7 @@ export default function PublicMonitor() {
         {/* Right Sidebar - Hidden on mobile */}
         <div className="hidden lg:flex w-[25%] bg-black border-l-4 border-orange-500 flex-col">
           <div className="aspect-video bg-gradient-to-br from-blue-800 to-blue-600 flex flex-col items-center justify-center relative overflow-hidden p-4">
-            <img src="/escr-logo.png" alt="ESCR Logo" className="w-20 h-20 sm:w-24 sm:h-24 object-contain mb-2 sm:mb-4 animate-bounce rounded-full" />
+            <img src="/escr-logo.png" alt="ESCR Logo" className="w-24 h-24 sm:w-27 sm:h-27 object-contain mb-2 sm:mb-4 animate-bounce rounded-full" />
             <p className="text-lg sm:text-xl font-bold">ESCR DQMS</p>
             <p className="text-xs sm:text-sm text-gray-300">East Systems Colleges</p>
             <div className="flex gap-2 sm:gap-4 mt-2 sm:mt-4">
