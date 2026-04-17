@@ -12,44 +12,34 @@ import { firebaseConfig } from './firebase/config';
 // Default transaction types from PHP system
 const defaultTransactions = [
   {
-    id: 'enrollment',
-    name: 'Enrollment',
-    description: 'New enrollments, subject enrollment',
-    code: 'ENR',
-    prefix: 'E',
-    active: true,
-    priority: false,
-    windowNumber: 2
-  },
-  {
-    id: 'assessments',
-    name: 'Assessments',
-    description: 'Assessment forms, evaluations',
-    code: 'ASS',
-    prefix: 'A',
+    id: 'registrar',
+    name: 'Registrar',
+    description: 'Enrollment, transcript, credentials',
+    code: 'REG',
+    prefix: 'R',
     active: true,
     priority: true,
     windowNumber: 1
   },
   {
-    id: 'payments',
-    name: 'Payments',
+    id: 'cashier',
+    name: 'Cashier',
     description: 'Tuition fees, other payments',
-    code: 'PAY',
-    prefix: 'P',
+    code: 'CASH',
+    prefix: 'C',
+    active: true,
+    priority: false,
+    windowNumber: 2
+  },
+  {
+    id: 'information',
+    name: 'Information',
+    description: 'General inquiries, document requests',
+    code: 'INFO',
+    prefix: 'IN',
     active: true,
     priority: false,
     windowNumber: 3
-  },
-  {
-    id: 'other',
-    name: 'Other Concerns',
-    description: 'Document requests, general inquiries',
-    code: 'OTH',
-    prefix: 'O',
-    active: true,
-    priority: false,
-    windowNumber: 4
   }
 ];
 
@@ -57,29 +47,22 @@ const defaultTransactions = [
 const defaultWindows = [
   {
     id: 'window1',
-    name: 'Assessments',
+    name: 'Registrar',
     number: 1,
     active: true,
     currentTicketId: null
   },
   {
     id: 'window2',
-    name: 'Enrollment',
+    name: 'Cashier',
     number: 2,
     active: true,
     currentTicketId: null
   },
   {
     id: 'window3',
-    name: 'Payments',
+    name: 'Information',
     number: 3,
-    active: true,
-    currentTicketId: null
-  },
-  {
-    id: 'window4',
-    name: 'Other Concerns',
-    number: 4,
     active: true,
     currentTicketId: null
   }
