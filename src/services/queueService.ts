@@ -247,6 +247,67 @@ export const cancelTicket = async (ticketId: string): Promise<void> => {
   }
 };
 
+// Mark ticket as no-show (when student doesn't appear)
+export const markNoShow = async (ticketId: string): Promise<void> => {
+  const ticketDoc = await getDoc(doc(db, TICKETS_COLLECTION, ticketId));
+  
+  if (!ticketDoc.exists()) return;
+  
+  const ticketData = ticketDoc.data();
+  
+  await updateDoc(doc(db, TICKETS_COLLECTION, ticketId), {
+    status: 'no_show',
+    completedAt: serverTimestamp()
+  });
+  
+  // Clear window if assigned
+  if (ticketData.windowId) {
+    await updateDoc(doc(db, WINDOWS_COLLECTION, ticketData.windowId), {
+      currentTicketId: null
+    });
+  }
+};
+
+// Auto-expire serving tickets that have been waiting too long (5 minutes)
+export const checkAndExpireServingTickets = async (timeoutSeconds: number = 300): Promise<number> => {
+  const q = query(
+    collection(db, TICKETS_COLLECTION),
+    where('status', '==', 'serving')
+  );
+  
+  const snapshot = await getDocs(q);
+  const now = new Date();
+  let expiredCount = 0;
+  
+  for (const docSnap of snapshot.docs) {
+    const ticketData = docSnap.data();
+    const calledAt = ticketData.calledAt?.toDate();
+    
+    if (calledAt) {
+      const elapsedSeconds = (now.getTime() - calledAt.getTime()) / 1000;
+      
+      if (elapsedSeconds >= timeoutSeconds) {
+        // Mark as no_show
+        await updateDoc(doc(db, TICKETS_COLLECTION, docSnap.id), {
+          status: 'no_show',
+          completedAt: serverTimestamp()
+        });
+        
+        // Clear window if assigned
+        if (ticketData.windowId) {
+          await updateDoc(doc(db, WINDOWS_COLLECTION, ticketData.windowId), {
+            currentTicketId: null
+          });
+        }
+        
+        expiredCount++;
+      }
+    }
+  }
+  
+  return expiredCount;
+};
+
 // Get queue statistics
 export const getQueueStats = async (transactionTypeId?: string): Promise<QueueStats> => {
   const ticketsRef = collection(db, TICKETS_COLLECTION);

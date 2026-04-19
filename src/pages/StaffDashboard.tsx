@@ -6,11 +6,11 @@ import {
   subscribeToTransactionTypes,
   callNextTicket,
   completeTicket,
-  cancelTicket,
   subscribeToActiveTickets,
   getQueueStats,
   unlockWindow,
-  getWindowById
+  getWindowById,
+  checkAndExpireServingTickets
 } from '../services/queueService';
 import type { QueueTicket, QueueStats, TransactionType } from '../types';
 
@@ -28,7 +28,6 @@ export default function StaffDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCalling, setIsCalling] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
-  const [isNoShowing, setIsNoShowing] = useState(false);
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const [allTransactions, setAllTransactions] = useState<TransactionType[]>([]);
 
@@ -61,6 +60,28 @@ export default function StaffDashboard() {
 
     return () => unsubscribe();
   }, [selectedWindow]);
+
+  // Auto-check for expired tickets every 30 seconds (5 minute timeout)
+  useEffect(() => {
+    const checkExpired = async () => {
+      try {
+        const expired = await checkAndExpireServingTickets(300); // 5 minutes
+        if (expired > 0) {
+          showAlert('info', `${expired} ticket(s) marked as no-show (expired after 5 minutes)`);
+        }
+      } catch (err) {
+        console.error('Error checking expired tickets:', err);
+      }
+    };
+
+    // Check immediately on mount
+    checkExpired();
+
+    // Then check every 30 seconds
+    const interval = setInterval(checkExpired, 30000);
+
+    return () => clearInterval(interval);
+  }, [showAlert]);
 
   const loadData = async () => {
     try {
@@ -141,23 +162,6 @@ export default function StaffDashboard() {
       showAlert('error', 'Failed to complete ticket');
     } finally {
       setIsCompleting(false);
-    }
-  };
-
-  const handleNoShow = async () => {
-    if (!currentTicket || isNoShowing) return;
-
-    setIsNoShowing(true);
-    try {
-      await cancelTicket(currentTicket.id);
-      setCurrentTicket(null);
-      loadData();
-      showAlert('info', 'Ticket marked as no show');
-    } catch (err) {
-      console.error('Error marking no show:', err);
-      showAlert('error', 'Failed to mark ticket as no show');
-    } finally {
-      setIsNoShowing(false);
     }
   };
 
@@ -393,13 +397,6 @@ export default function StaffDashboard() {
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                     >
                       {isCompleting ? '⏳' : '✓ Complete'}
-                    </button>
-                    <button
-                      onClick={handleNoShow}
-                      disabled={!currentTicket || isNoShowing}
-                      className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-                    >
-                      {isNoShowing ? '⏳' : '✗ No Show'}
                     </button>
                   </div>
                 </div>
