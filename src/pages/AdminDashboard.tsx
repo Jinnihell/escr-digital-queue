@@ -62,11 +62,26 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     averageServiceTime: 300,
     enablePriority: true,
     enableNotifications: true,
+    operatingHours: {
+      enabled: false,
+      monday: { start: '08:00', end: '17:00' },
+      tuesday: { start: '08:00', end: '17:00' },
+      wednesday: { start: '08:00', end: '17:00' },
+      thursday: { start: '08:00', end: '17:00' },
+      friday: { start: '08:00', end: '17:00' },
+      saturday: { start: '08:00', end: '17:00' },
+      sunday: { start: '08:00', end: '17:00' }
+    },
     alerts: {
       enabled: true,
       announcerVoice: true,
       showAllWindows: true
-    }
+    },
+    displayMode: 'standard',
+    autoReset: false,
+    autoResetTime: '00:00',
+    maxWaitTime: 300,
+    lastBackup: null
   });
 
   // Date filter state
