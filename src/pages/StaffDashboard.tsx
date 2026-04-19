@@ -216,25 +216,36 @@ export default function StaffDashboard() {
 
   // Voice announcement
   const speakTicket = (ticketNumber: string, windowNum: string) => {
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(`Ticket ${ticketNumber}, please proceed to window ${windowNum}`);
-      utterance.rate = 0.85;
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      
-      const getVoice = () => {
-        const voices = speechSynthesis.getVoices();
-        return voices.find(v => v.lang.startsWith('en')) || voices[0] || null;
-      };
-      
-      const englishVoice = getVoice();
+    if (!('speechSynthesis' in window)) {
+      console.log('Speech synthesis not supported');
+      return;
+    }
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(`Ticket ${ticketNumber}, please proceed to window ${windowNum}`);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    utterance.lang = 'en-US';
+    
+    // Try to get an English voice
+    const trySpeak = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const englishVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
       if (englishVoice) {
         utterance.voice = englishVoice;
       }
-      
-      speechSynthesis.speak(utterance);
+      window.speechSynthesis.speak(utterance);
+    };
+    
+    // If voices are already loaded, speak now
+    if (window.speechSynthesis.getVoices().length > 0) {
+      trySpeak();
+    } else {
+      // Wait for voices to load
+      window.speechSynthesis.onvoiceschanged = trySpeak;
     }
   };
 

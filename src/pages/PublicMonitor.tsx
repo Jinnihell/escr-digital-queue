@@ -48,20 +48,36 @@ export default function PublicMonitor() {
   }, []);
 
   useEffect(() => {
-    if (!soundEnabled) return;
+    if (!soundEnabled || servingTickets.length === 0 || windows.length === 0) return;
     
-    for (const ticket of servingTickets) {
-      const queueWindow = windows.find(w => w.id === ticket.windowId);
-      const key = `${ticket.id}-${ticket.status}`;
+    // Get the most recent serving ticket
+    const latestTicket = servingTickets[0];
+    const queueWindow = windows.find(w => w.id === latestTicket.windowId);
+    const key = `${latestTicket.id}-${latestTicket.status}`;
+    
+    if (queueWindow && lastAnnouncedRef.current !== key) {
+      lastAnnouncedRef.current = key;
       
-      if (queueWindow && lastAnnouncedRef.current !== key && 'speechSynthesis' in window) {
-        lastAnnouncedRef.current = key;
-        const utterance = new SpeechSynthesisUtterance(`Ticket ${ticket.ticketNumber}, please proceed to ${queueWindow.name}`);
-        utterance.rate = 0.9;
-        utterance.lang = 'en-US';
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(utterance);
-        break;
+      // Cancel any ongoing speech first
+      window.speechSynthesis?.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(`Ticket ${latestTicket.ticketNumber}, please proceed to ${queueWindow.name}`);
+      utterance.rate = 0.9;
+      utterance.volume = 1;
+      utterance.lang = 'en-US';
+      
+      // Try to get English voice
+      const speak = () => {
+        const voices = window.speechSynthesis?.getVoices() || [];
+        const englishVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+        if (englishVoice) utterance.voice = englishVoice;
+        window.speechSynthesis?.speak(utterance);
+      };
+      
+      if (window.speechSynthesis?.getVoices()?.length > 0) {
+        speak();
+      } else {
+        window.speechSynthesis.onvoiceschanged = speak;
       }
     }
   }, [servingTickets, windows, soundEnabled]);
