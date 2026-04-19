@@ -76,21 +76,21 @@ export default function PublicMonitor() {
       </div>
 
       {/* Main Content */}
-      <div className="flex">
-        {/* Left Sidebar - News Board */}
-        <div className="w-64 bg-[#0f2744] text-white p-6 flex-shrink-0 hidden lg:block">
-          <h3 className="text-lg font-bold text-orange-400 mb-4 flex items-center gap-2">
+      <div className="flex flex-1 pb-12">
+        {/* Left Sidebar - News Board - Full height with light orange */}
+        <div className="w-64 bg-orange-500 text-blue-900 p-6 flex-shrink-0 hidden lg:block">
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span>📋</span> ESCR News Board!!
           </h3>
           <div className="space-y-3 text-sm">
-            <p className="font-bold text-white border-b border-orange-400 pb-1">PERIODICAL EXAMINATIONS</p>
-            <p><span className="text-orange-400 font-semibold">PRELIM</span> <span className="text-blue-300">- February 09-14, 2026</span></p>
-            <p><span className="text-orange-400 font-semibold">MIDTERM</span> <span className="text-blue-300">- March 09-14, 2026</span></p>
-            <p><span className="text-orange-400 font-semibold">SEMI-FINALS</span> <span className="text-blue-300">- April 06-11, 2026</span></p>
-            <p><span className="text-orange-400 font-semibold">FINALS</span> <span className="text-blue-300">- May 04-11, 2026</span></p>
-            <p><span className="text-blue-300 font-semibold">Compliance Week</span> <span className="text-blue-300">- May 11-16, 2026</span></p>
-            <p><span className="text-blue-300 font-semibold">End of 2nd Semester</span> <span className="text-blue-300">- May 16, 2026</span></p>
-            <p><span className="text-green-400 font-semibold">Release of Grades</span> <span className="text-blue-300">- June 15, 2026</span></p>
+            <p className="font-bold text-blue-900 border-b border-white/30 pb-1">PERIODICAL EXAMINATIONS</p>
+            <p><span className="text-white font-semibold">PRELIM</span> <span className="text-blue-900">- February 09-14, 2026</span></p>
+            <p><span className="text-white font-semibold">MIDTERM</span> <span className="text-blue-900">- March 09-14, 2026</span></p>
+            <p><span className="text-white font-semibold">SEMI-FINALS</span> <span className="text-blue-900">- April 06-11, 2026</span></p>
+            <p><span className="text-white font-semibold">FINALS</span> <span className="text-blue-900">- May 04-11, 2026</span></p>
+            <p><span className="text-blue-900 font-semibold">Compliance Week</span> <span className="text-blue-900">- May 11-16, 2026</span></p>
+            <p><span className="text-blue-900 font-semibold">End of 2nd Semester</span> <span className="text-blue-900">- May 16, 2026</span></p>
+            <p><span className="text-green-900 font-semibold">Release of Grades</span> <span className="text-blue-900">- June 15, 2026</span></p>
           </div>
         </div>
 
