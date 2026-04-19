@@ -78,7 +78,7 @@ export default function PublicMonitor() {
       {/* Main Content */}
       <div className="flex flex-1">
         {/* Left Sidebar - News Board - Full height with light orange */}
-        <div className="w-80 bg-orange-100 text-gray-900 p-6 flex-shrink-0 hidden lg:block h-[calc(100vh-48px)]">
+        <div className="w-60 bg-orange-100 text-gray-900 p-6 flex-shrink-0 hidden lg:block h-[calc(100vh-48px)]">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-400 pb-2">
             <span>📋</span> ESCR News Board!!
           </h3>
@@ -105,15 +105,15 @@ export default function PublicMonitor() {
               return (
                 <div 
                   key={window.id} 
-                  className="bg-white rounded-2xl p-6 text-gray-800 shadow-xl"
+                  className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-white shadow-xl"
                 >
-                  <div className="bg-blue-100 text-blue-900 px-4 py-2 rounded-lg text-center font-bold text-lg mb-4">
+                  <div className="bg-orange-500 text-white px-4 py-2 rounded-lg text-center font-bold text-lg mb-4">
                     {window.name}
                   </div>
                   <p className="text-6xl md:text-7xl font-black text-center mb-2">
                     {windowTicket?.ticketNumber || '---'}
                   </p>
-                  <p className="text-red-600 italic text-center text-xl font-semibold">
+                  <p className="text-orange-400 italic text-center text-xl font-semibold">
                     {windowTicket?.transactionTypeName || ''}
                   </p>
                 </div>
@@ -122,18 +122,18 @@ export default function PublicMonitor() {
           </div>
 
           {/* Next Serving Queues */}
-          <div className="bg-white rounded-2xl p-4 text-gray-800">
-            <h3 className="text-xl font-bold text-center mb-4 text-purple-900">Next Serving Queues</h3>
+          <div className="bg-white/20 rounded-2xl p-4 text-white">
+            <h3 className="text-xl font-bold text-center mb-4 text-white">Next Serving Queues</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {transactions.map((transaction) => (
-                <div key={transaction.id} className="border-r border-gray-200 last:border-r-0 pr-4 last:pr-0">
-                  <h4 className="text-center font-bold text-blue-900 mb-2">{transaction.name}</h4>
+                <div key={transaction.id} className="border-r border-white/30 last:border-r-0 pr-4 last:pr-0">
+                  <h4 className="text-center font-bold text-orange-400 mb-2">{transaction.name}</h4>
                   <div className="flex flex-wrap justify-center gap-2">
                     {getWaitingForTransaction(transaction.id).length > 0 ? (
                       getWaitingForTransaction(transaction.id).map((ticket) => (
                         <span 
                           key={ticket.id} 
-                          className="bg-blue-800 text-white px-3 py-1 rounded font-bold"
+                          className="bg-orange-500 text-white px-3 py-1 rounded font-bold"
                         >
                           {ticket.ticketNumber}
                         </span>
