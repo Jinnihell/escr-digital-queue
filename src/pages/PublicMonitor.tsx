@@ -105,7 +105,7 @@ export default function PublicMonitor() {
               return (
                 <div 
                   key={window.id} 
-                  className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-white shadow-xl"
+                  className="bg-white rounded-2xl p-6 text-gray-800 shadow-xl"
                 >
                   <div className="bg-orange-500 text-white px-4 py-2 rounded-lg text-center font-bold text-lg mb-4">
                     {window.name}
@@ -113,7 +113,7 @@ export default function PublicMonitor() {
                   <p className="text-6xl md:text-7xl font-black text-center mb-2">
                     {windowTicket?.ticketNumber || '---'}
                   </p>
-                  <p className="text-orange-400 italic text-center text-xl font-semibold">
+                  <p className="text-orange-500 italic text-center text-xl font-semibold">
                     {windowTicket?.transactionTypeName || ''}
                   </p>
                 </div>
