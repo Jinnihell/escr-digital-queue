@@ -123,7 +123,7 @@ export default function PublicMonitor() {
 
           {/* Next Serving Queues */}
           <div className="bg-white/20 rounded-2xl p-4 text-white">
-            <h3 className="text-xl font-bold text-center mb-4 text-white">Next Serving Queues</h3>
+            <h3 className="text-xl font-bold text-left mb-4 text-white">Next Serving Queues</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {transactions.map((transaction) => (
                 <div key={transaction.id} className="border-r border-white/30 last:border-r-0 pr-4 last:pr-0">
