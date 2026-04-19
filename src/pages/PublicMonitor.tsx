@@ -125,25 +125,30 @@ export default function PublicMonitor() {
           <div className="bg-white/20 rounded-2xl p-4 text-white">
             <h3 className="text-xl font-bold text-left mb-4 text-white">Next Serving Queues</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {transactions.map((transaction) => (
-                <div key={transaction.id} className="border-r border-white/30 last:border-r-0 pr-4 last:pr-0">
-                  <h4 className="text-center font-bold text-orange-400 mb-2">{transaction.name}</h4>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {getWaitingForTransaction(transaction.id).length > 0 ? (
-                      getWaitingForTransaction(transaction.id).map((ticket) => (
-                        <span 
-                          key={ticket.id} 
-                          className="bg-orange-500 text-white px-3 py-1 rounded font-bold"
-                        >
-                          {ticket.ticketNumber}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-400">No waiting</span>
-                    )}
+              {windows.map((window) => {
+                const windowTransactions = transactions.filter(t => t.windowNumber === window.number);
+                const transaction = windowTransactions[0];
+                if (!transaction) return null;
+                return (
+                  <div key={transaction.id} className="border-r border-white/30 last:border-r-0 pr-4 last:pr-0">
+                    <h4 className="text-center font-bold text-orange-400 mb-2">{transaction.name}</h4>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {getWaitingForTransaction(transaction.id).length > 0 ? (
+                        getWaitingForTransaction(transaction.id).map((ticket) => (
+                          <span 
+                            key={ticket.id} 
+                            className="bg-orange-500 text-white px-3 py-1 rounded font-bold"
+                          >
+                            {ticket.ticketNumber}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400">No waiting</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
