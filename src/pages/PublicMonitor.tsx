@@ -78,7 +78,7 @@ export default function PublicMonitor() {
       {/* Main Content */}
       <div className="flex flex-1 pb-12">
         {/* Left Sidebar - News Board - Full height with light orange */}
-        <div className="w-64 bg-orange-500 text-blue-900 p-6 flex-shrink-0 hidden lg:block">
+        <div className="w-64 bg-orange-100 text-blue-900 p-6 flex-shrink-0 hidden lg:block">
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span>📋</span> ESCR News Board!!
           </h3>
