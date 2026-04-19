@@ -120,13 +120,15 @@ export default function PublicMonitor() {
             <span>📋</span> Announcements
           </h3>
           <div className="space-y-3 text-sm">
-            <p className="font-bold text-gray-900 border-b border-gray-400 pb-1">OFFICE HOURS</p>
-            <p><span className="text-gray-700">Monday - Friday: 8:00 AM - 5:00 PM</span></p>
-            <p><span className="text-gray-700">Saturday: 8:00 AM - 12:00 PM</span></p>
-            <p className="font-bold text-gray-900 border-b border-gray-400 pb-1 mt-4">NOTICES</p>
-            <p><span className="text-orange-600 font-semibold">Queue Number</span> <span className="text-gray-700">is required for all transactions</span></p>
-            <p><span className="text-gray-700">Please check the monitor for your turn</span></p>
-            <p><span className="text-gray-700">Proceed to window when called</span></p>
+            <p className="font-bold text-gray-900 border-b border-gray-400 pb-1">PERIODICAL EXAMINATIONS</p>
+            <p><span className="text-gray-700">PRELIM - February 9-14, 2026</span></p>
+            <p><span className="text-gray-700">MIDTERM - March 9-14, 2026</span></p>
+            <p><span className="text-gray-700">SEMI-FINALS - April 6-11, 2026</span></p>
+            <p><span className="text-gray-700">FINALS - May 4-9, 2026</span></p>
+            <p className="font-bold text-gray-900 border-b border-gray-400 pb-1 mt-4">SCHEDULE</p>
+            <p><span className="text-orange-600 font-semibold">Compliance week</span> <span className="text-gray-700">- May 11-16, 2026</span></p>
+            <p><span className="text-orange-600 font-semibold">End of 2nd Semester</span> <span className="text-gray-700">- May 16, 2026</span></p>
+            <p><span className="text-green-700 font-semibold">Release of Grades</span> <span className="text-gray-700">- June 15, 2026</span></p>
           </div>
         </div>
 
