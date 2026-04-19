@@ -150,8 +150,8 @@ export default function PublicMonitor() {
       </div>
 
       {/* Footer Ticker */}
-      <div className="fixed bottom-0 left-0 right-0 h-12 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
-        <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite] px-4 text-base">
+      <div className="fixed bottom-0 left-0 right-0 h-14 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
+        <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite] px-4 text-lg md:text-xl">
           Welcome to ESCR! Always check your Queue Number on the monitor and proceed to your assigned window. Send your own feedback.
         </div>
       </div>
