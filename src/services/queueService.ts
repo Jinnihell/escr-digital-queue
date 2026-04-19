@@ -12,7 +12,9 @@ import {
   onSnapshot,
   Timestamp,
   setDoc,
-  increment
+  increment,
+  type QueryDocumentSnapshot,
+  type DocumentData
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { 
@@ -249,28 +251,43 @@ export const cancelTicket = async (ticketId: string): Promise<void> => {
 
 // Get queue statistics
 export const getQueueStats = async (transactionTypeId?: string): Promise<QueueStats> => {
-  const snapshot = await getDocs(collection(db, TICKETS_COLLECTION));
-  let tickets = snapshot.docs.map(doc => doc.data());
+  const ticketsRef = collection(db, TICKETS_COLLECTION);
   
-  // Filter by transaction type if provided
-  if (transactionTypeId) {
-    tickets = tickets.filter(t => t.transactionTypeId === transactionTypeId);
-  }
+  const waitingQuery = transactionTypeId
+    ? query(ticketsRef, where('transactionTypeId', '==', transactionTypeId), where('status', '==', 'waiting'))
+    : query(ticketsRef, where('status', '==', 'waiting'));
+    
+  const servingQuery = transactionTypeId
+    ? query(ticketsRef, where('transactionTypeId', '==', transactionTypeId), where('status', '==', 'serving'))
+    : query(ticketsRef, where('status', '==', 'serving'));
+    
+  const completedQ = transactionTypeId
+    ? query(ticketsRef, where('transactionTypeId', '==', transactionTypeId), where('status', '==', 'completed'))
+    : query(ticketsRef, where('status', '==', 'completed'));
   
-  const waitingTickets = tickets.filter(t => t.status === 'waiting').length;
-  const servingTickets = tickets.filter(t => t.status === 'serving').length;
-  const completedTickets = tickets.filter(t => t.status === 'completed').length;
+  const [waitingSnap, servingSnap, completedSnap] = await Promise.all([
+    getDocs(waitingQuery),
+    getDocs(servingQuery),
+    getDocs(completedQ)
+  ]);
   
-  const completedWithTimes = tickets.filter(t => t.status === 'completed' && t.waitTime && t.serveTime);
+  const waitingTickets = waitingSnap.size;
+  const servingTickets = servingSnap.size;
+  const completedTickets = completedSnap.size;
+  const totalTickets = waitingTickets + servingTickets + completedTickets;
+  
+  const completedDocs = completedSnap.docs.filter((d: QueryDocumentSnapshot<DocumentData>) => d.data().waitTime && d.data().serveTime);
+  const completedWithTimes = completedDocs.map((d: QueryDocumentSnapshot<DocumentData>) => d.data());
+  
   const averageWaitTime = completedWithTimes.length > 0
-    ? completedWithTimes.reduce((sum, t) => sum + (t.waitTime || 0), 0) / completedWithTimes.length
+    ? completedWithTimes.reduce((sum: number, t: DocumentData) => sum + (Number(t.waitTime) || 0), 0) / completedWithTimes.length
     : 0;
   const averageServeTime = completedWithTimes.length > 0
-    ? completedWithTimes.reduce((sum, t) => sum + (t.serveTime || 0), 0) / completedWithTimes.length
+    ? completedWithTimes.reduce((sum: number, t: DocumentData) => sum + (Number(t.serveTime) || 0), 0) / completedWithTimes.length
     : 0;
   
   return {
-    totalTickets: tickets.length,
+    totalTickets,
     waitingTickets,
     servingTickets,
     completedTickets,
@@ -473,7 +490,48 @@ export const getSettings = async (): Promise<SystemSettings> => {
   const docSnap = await getDoc(docRef);
   
   if (docSnap.exists()) {
-    return docSnap.data() as SystemSettings;
+    const data = docSnap.data();
+    return {
+      systemName: data.systemName || 'ESCR Digital Queueing System',
+      resetTime: data.resetTime || '00:00',
+      maxDailyTickets: data.maxDailyTickets || 100,
+      enablePriority: data.enablePriority ?? true,
+      enableNotifications: data.enableNotifications ?? true,
+      averageServiceTime: data.averageServiceTime || 300,
+      operatingHours: data.operatingHours ? {
+        enabled: data.operatingHours.enabled ?? false,
+        monday: data.operatingHours.monday || { start: '08:00', end: '17:00' },
+        tuesday: data.operatingHours.tuesday || { start: '08:00', end: '17:00' },
+        wednesday: data.operatingHours.wednesday || { start: '08:00', end: '17:00' },
+        thursday: data.operatingHours.thursday || { start: '08:00', end: '17:00' },
+        friday: data.operatingHours.friday || { start: '08:00', end: '17:00' },
+        saturday: data.operatingHours.saturday || { start: '08:00', end: '12:00' },
+        sunday: data.operatingHours.sunday || { start: '00:00', end: '00:00' }
+      } : {
+        enabled: false,
+        monday: { start: '08:00', end: '17:00' },
+        tuesday: { start: '08:00', end: '17:00' },
+        wednesday: { start: '08:00', end: '17:00' },
+        thursday: { start: '08:00', end: '17:00' },
+        friday: { start: '08:00', end: '17:00' },
+        saturday: { start: '08:00', end: '12:00' },
+        sunday: { start: '00:00', end: '00:00' }
+      },
+      alerts: data.alerts ? {
+        enabled: data.alerts.enabled ?? true,
+        announcerVoice: data.alerts.announcerVoice ?? true,
+        showAllWindows: data.alerts.showAllWindows ?? true
+      } : {
+        enabled: true,
+        announcerVoice: true,
+        showAllWindows: true
+      },
+      displayMode: data.displayMode || 'standard',
+      autoReset: data.autoReset ?? false,
+      autoResetTime: data.autoResetTime || '00:00',
+      maxWaitTime: data.maxWaitTime || 3600,
+      lastBackup: data.lastBackup || null
+    };
   }
   
   // Return default settings
@@ -485,7 +543,7 @@ export const getSettings = async (): Promise<SystemSettings> => {
     enableNotifications: true,
     averageServiceTime: 300,
     operatingHours: {
-      enabled: true,
+      enabled: false,
       monday: { start: '08:00', end: '17:00' },
       tuesday: { start: '08:00', end: '17:00' },
       wednesday: { start: '08:00', end: '17:00' },

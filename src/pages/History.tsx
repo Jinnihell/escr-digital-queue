@@ -30,59 +30,21 @@ export default function History() {
 
   useEffect(() => {
     loadWindows();
+  }, []);
 
-    // Subscribe to all tickets for real-time updates including completed
+  useEffect(() => {
+    // Subscribe to completed tickets only
     const unsubscribe = subscribeToAllTickets((allTickets) => {
-      let filteredTickets = allTickets;
-        
-      if (startDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0);
-        filteredTickets = filteredTickets.filter(t => t.createdAt && t.createdAt >= start);
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59);
-        filteredTickets = filteredTickets.filter(t => t.createdAt && t.createdAt <= end);
-      }
-      if (windowFilter) {
-        filteredTickets = filteredTickets.filter(t => t.windowId === windowFilter);
-      }
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        filteredTickets = filteredTickets.filter(t => 
-          t.ticketNumber?.toLowerCase().includes(searchLower) ||
-          t.studentName?.toLowerCase().includes(searchLower) ||
-          t.transactionTypeName?.toLowerCase().includes(searchLower)
-        );
-      }
-        
-      // Filter by role
-      if (user?.role === 'student') {
-        filteredTickets = filteredTickets.filter(t => 
-          t.userId === user.id || 
-          (t.studentName && t.studentName.toLowerCase().includes(user.username?.toLowerCase() || ''))
-        );
-      }
-        
-      // Show first 50
-      setTickets(filteredTickets.slice(0, 50));
+      setTickets(allTickets);
       setIsLoading(false);
     });
 
     return () => unsubscribe();
   }, [user]);
 
-  const handleReset = () => {
-    setStartDate('');
-    setEndDate('');
-    setWindowFilter('');
-    setSearchTerm('');
-  };
-
-  // Filtered tickets - real-time filtering without button
+  // Filtered tickets - memoized filtering
   const getFilteredTickets = () => {
-    let filtered = tickets;
+    let filtered = [...tickets];
     
     if (startDate) {
       const start = new Date(startDate);
@@ -106,7 +68,21 @@ export default function History() {
       );
     }
     
-    return filtered;
+    if (user?.role === 'student') {
+      filtered = filtered.filter(t => 
+        t.userId === user.id || 
+        (t.studentName && t.studentName.toLowerCase().includes(user.username?.toLowerCase() || ''))
+      );
+    }
+    
+    return filtered.slice(0, 50);
+  };
+
+  const handleReset = () => {
+    setStartDate('');
+    setEndDate('');
+    setWindowFilter('');
+    setSearchTerm('');
   };
 
   const getStatusIcon = (status: string) => {

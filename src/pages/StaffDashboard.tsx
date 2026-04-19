@@ -366,7 +366,12 @@ export default function StaffDashboard() {
                   
                   <div className="flex gap-3">
                     <button
-                      onClick={playNotificationSound}
+                      onClick={() => {
+                        playNotificationSound();
+                        if (currentTicket) {
+                          speakTicket(currentTicket.ticketNumber, selectedWindow?.number.toString() || '');
+                        }
+                      }}
                       className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                     >
                       🔔 Ring

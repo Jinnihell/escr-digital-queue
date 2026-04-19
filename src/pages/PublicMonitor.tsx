@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { subscribeToActiveTickets, subscribeToWindows, subscribeToTransactionTypes } from '../services/queueService';
 import type { QueueTicket, Window, TransactionType } from '../types';
 
@@ -9,6 +9,11 @@ export default function PublicMonitor() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
+
+  const servingTickets = useMemo(() => tickets.filter(t => t.status === 'serving'), [tickets]);
+  const waitingTickets = useMemo(() => tickets.filter(t => t.status === 'waiting'), [tickets]);
+
+  const lastAnnouncedRef = useRef<string>('');
 
   useEffect(() => {
     const updateTime = () => {
@@ -42,8 +47,24 @@ export default function PublicMonitor() {
     return () => unsubscribeTransactions();
   }, []);
 
-  const servingTickets = tickets.filter(t => t.status === 'serving');
-  const waitingTickets = tickets.filter(t => t.status === 'waiting');
+  useEffect(() => {
+    if (!soundEnabled) return;
+    
+    for (const ticket of servingTickets) {
+      const queueWindow = windows.find(w => w.id === ticket.windowId);
+      const key = `${ticket.id}-${ticket.status}`;
+      
+      if (queueWindow && lastAnnouncedRef.current !== key && 'speechSynthesis' in window) {
+        lastAnnouncedRef.current = key;
+        const utterance = new SpeechSynthesisUtterance(`Ticket ${ticket.ticketNumber}, please proceed to ${queueWindow.name}`);
+        utterance.rate = 0.9;
+        utterance.lang = 'en-US';
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+        break;
+      }
+    }
+  }, [servingTickets, windows, soundEnabled]);
 
   const getWaitingForTransaction = (transactionId: string) => {
     return waitingTickets
@@ -77,20 +98,19 @@ export default function PublicMonitor() {
 
       {/* Main Content */}
       <div className="flex flex-1">
-        {/* Left Sidebar - News Board - Full height with light orange */}
+        {/* Left Sidebar - Announcements - Full height with light orange */}
         <div className="w-60 bg-orange-100 text-gray-900 p-6 flex-shrink-0 hidden lg:block h-[calc(100vh-48px)]">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-400 pb-2 uppercase">
-            <span>📋</span> ESCR Board!!
+            <span>📋</span> Announcements
           </h3>
           <div className="space-y-3 text-sm">
-            <p className="font-bold text-gray-900 border-b border-gray-400 pb-1">PERIODICAL EXAMINATIONS</p>
-            <p><span className="text-orange-600 font-semibold">PRELIM</span> <span className="text-gray-700">- February 09-14, 2026</span></p>
-            <p><span className="text-orange-600 font-semibold">MIDTERM</span> <span className="text-gray-700">- March 09-14, 2026</span></p>
-            <p><span className="text-orange-600 font-semibold">SEMI-FINALS</span> <span className="text-gray-700">- April 06-11, 2026</span></p>
-            <p><span className="text-orange-600 font-semibold">FINALS</span> <span className="text-gray-700">- May 04-11, 2026</span></p>
-            <p><span className="text-gray-700 font-semibold">Compliance Week</span> <span className="text-gray-700">- May 11-16, 2026</span></p>
-            <p><span className="text-gray-700 font-semibold">End of 2nd Semester</span> <span className="text-gray-700">- May 16, 2026</span></p>
-            <p><span className="text-green-700 font-semibold">Release of Grades</span> <span className="text-gray-700">- June 15, 2026</span></p>
+            <p className="font-bold text-gray-900 border-b border-gray-400 pb-1">OFFICE HOURS</p>
+            <p><span className="text-gray-700">Monday - Friday: 8:00 AM - 5:00 PM</span></p>
+            <p><span className="text-gray-700">Saturday: 8:00 AM - 12:00 PM</span></p>
+            <p className="font-bold text-gray-900 border-b border-gray-400 pb-1 mt-4">NOTICES</p>
+            <p><span className="text-orange-600 font-semibold">Queue Number</span> <span className="text-gray-700">is required for all transactions</span></p>
+            <p><span className="text-gray-700">Please check the monitor for your turn</span></p>
+            <p><span className="text-gray-700">Proceed to window when called</span></p>
           </div>
         </div>
 
@@ -157,7 +177,7 @@ export default function PublicMonitor() {
       {/* Footer Ticker */}
       <div className="fixed bottom-0 left-0 right-0 h-14 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
         <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite] px-4 text-lg md:text-xl">
-          Welcome to ESCR! Always check your Queue Number on the monitor and proceed to your assigned window. Send your own feedback.
+          Welcome to ESCR! Please check the monitor for your queue number and proceed to your assigned window when called.
         </div>
       </div>
 

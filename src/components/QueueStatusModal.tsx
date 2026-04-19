@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { X, Clock, Users, Building2, Bell, CheckCircle, ArrowRight } from 'lucide-react';
 import type { QueueTicket } from '../types';
 
@@ -10,15 +9,7 @@ interface QueueStatusModalProps {
 }
 
 export default function QueueStatusModal({ isOpen, onClose, ticket, waitingPosition }: QueueStatusModalProps) {
-  const [previousStatus, setPreviousStatus] = useState(ticket?.status);
-  const [showCallAnimation, setShowCallAnimation] = useState(false);
-  
-  useEffect(() => {
-    if (ticket?.status === 'serving' && previousStatus !== 'serving') {
-      setShowCallAnimation(true);
-    }
-    setPreviousStatus(ticket?.status);
-  }, [ticket?.status, previousStatus]);
+  const showCallAnimation = ticket?.status === 'serving';
 
   if (!isOpen || !ticket) return null;
 

@@ -9,63 +9,20 @@ import {
 } from 'firebase/firestore';
 import { firebaseConfig } from './firebase/config';
 
-// Default transaction types from PHP system
+// Default transaction types - matches queueService.ts initializeDefaultTransactions
 const defaultTransactions = [
-  {
-    id: 'registrar',
-    name: 'Registrar',
-    description: 'Enrollment, transcript, credentials',
-    code: 'REG',
-    prefix: 'R',
-    active: true,
-    priority: true,
-    windowNumber: 1
-  },
-  {
-    id: 'cashier',
-    name: 'Cashier',
-    description: 'Tuition fees, other payments',
-    code: 'CASH',
-    prefix: 'C',
-    active: true,
-    priority: false,
-    windowNumber: 2
-  },
-  {
-    id: 'information',
-    name: 'Information',
-    description: 'General inquiries, document requests',
-    code: 'INFO',
-    prefix: 'IN',
-    active: true,
-    priority: false,
-    windowNumber: 3
-  }
+  { id: 'assessments', name: 'Assessments', description: 'Assessment of fees and charges', code: 'ASSESS', prefix: 'A', active: true, priority: false, windowNumber: 1 },
+  { id: 'enrollment', name: 'Enrollment', description: 'New enrollment and registration', code: 'ENROLL', prefix: 'E', active: true, priority: false, windowNumber: 2 },
+  { id: 'payments', name: 'Payments', description: 'Payment of tuition and other fees', code: 'PAY', prefix: 'P', active: true, priority: false, windowNumber: 3 },
+  { id: 'other', name: 'Other Concerns', description: 'Other inquiries and concerns', code: 'OTHER', prefix: 'O', active: true, priority: false, windowNumber: 4 }
 ];
 
-// Default windows
+// Default windows - matches queueService.ts initializeDefaultWindows
 const defaultWindows = [
-  {
-    id: 'window1',
-    name: 'Registrar',
-    number: 1,
-    active: true,
-    currentTicketId: null
-  },
-  {
-    id: 'window2',
-    name: 'Cashier',
-    number: 2,
-    active: true,
-    currentTicketId: null
-  },
-  {
-    id: 'window3',
-    name: 'Information',
-    number: 3,
-    active: true,
-    currentTicketId: null
-  }
+  { id: 'window1', name: 'Assessments', number: 1, active: true, currentTicketId: null, staffId: null, lockedAt: null },
+  { id: 'window2', name: 'Enrollment', number: 2, active: true, currentTicketId: null, staffId: null, lockedAt: null },
+  { id: 'window3', name: 'Payments', number: 3, active: true, currentTicketId: null, staffId: null, lockedAt: null },
+  { id: 'window4', name: 'Other Concerns', number: 4, active: true, currentTicketId: null, staffId: null, lockedAt: null }
 ];
 
 // Default system settings
@@ -86,40 +43,23 @@ async function seedDatabase() {
   
   console.log('Seeding transactions...');
   
-  // Add transactions
-  for (const transaction of defaultTransactions) {
-    await setDoc(doc(db, 'transactions', transaction.id), transaction);
-    console.log(`Added transaction: ${transaction.name}`);
+  for (const t of defaultTransactions) {
+    await setDoc(doc(db, 'transactions', t.id), t);
+    console.log(`Added transaction: ${t.name}`);
   }
   
   console.log('Seeding windows...');
   
-  // Add windows
-  for (const window of defaultWindows) {
-    await setDoc(doc(db, 'windows', window.id), window);
-    console.log(`Added window: ${window.name}`);
+  for (const w of defaultWindows) {
+    await setDoc(doc(db, 'windows', w.id), w);
+    console.log(`Added window: ${w.name}`);
   }
   
   console.log('Seeding settings...');
-  
-  // Add settings
   await setDoc(doc(db, 'settings', 'system'), defaultSettings);
   console.log('Added system settings');
   
   console.log('✅ Database seeded successfully!');
-  console.log('');
-  console.log('Default Transactions:');
-  console.log('  - Enrollment (E001)');
-  console.log('  - Assessments (A001)');
-  console.log('  - Payments (P001)');
-  console.log('  - Other Concerns (O001)');
-  console.log('');
-  console.log('Default Windows:');
-  console.log('  - Window 1: Assessments');
-  console.log('  - Window 2: Enrollment');
-  console.log('  - Window 3: Payments');
-  console.log('  - Window 4: Other Concerns');
 }
 
-// Run the seed function
 seedDatabase().catch(console.error);

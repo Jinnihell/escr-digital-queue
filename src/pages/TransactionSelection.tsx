@@ -26,29 +26,28 @@ export default function TransactionSelection() {
 
   useEffect(() => {
     loadTransactions();
+  }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
     
-    // Check if user already has active tickets from Firestore
     const checkExistingTickets = async () => {
-      if (user?.id) {
-        try {
-          const activeTickets = await getUserActiveTickets(user.id);
-          if (activeTickets.length > 0) {
-            // Use the most recent active ticket
-            const ticket = activeTickets[0];
-            setMyTicket(ticket);
-            setShowTracker(true);
-            sessionStorage.setItem('currentTicket', JSON.stringify(ticket));
-          }
-        } catch (e) {
-          console.error('Error checking existing tickets:', e);
+      try {
+        const activeTickets = await getUserActiveTickets(user.id);
+        if (activeTickets.length > 0) {
+          const ticket = activeTickets[0];
+          setMyTicket(ticket);
+          setShowTracker(true);
+          sessionStorage.setItem('currentTicket', JSON.stringify(ticket));
         }
+      } catch (e) {
+        console.error('Error checking existing tickets:', e);
       }
     };
     checkExistingTickets();
     
-    // Check session storage as fallback
     const storedTicket = sessionStorage.getItem('currentTicket');
-    if (storedTicket && !myTicket) {
+    if (storedTicket) {
       try {
         const ticket = JSON.parse(storedTicket);
         setMyTicket(ticket);
@@ -57,19 +56,16 @@ export default function TransactionSelection() {
         console.error('Error parsing stored ticket:', e);
       }
     }
-  }, [myTicket, user]);
+  }, [user]);
 
-  // Subscribe to active tickets for real-time updates
   useEffect(() => {
     if (!myTicket) return;
     
     const unsubscribe = subscribeToActiveTickets((tickets) => {
-      // Find user's ticket
       const userTicket = tickets.find(t => t.ticketNumber === myTicket.ticketNumber);
       if (userTicket) {
         setTrackerStatus(userTicket.status === 'serving' ? 'Being Served' : 'Waiting');
         
-        // Calculate position
         const waitingTickets = tickets.filter(t => 
           t.status === 'waiting' && 
           t.transactionTypeId === myTicket.transactionTypeId
@@ -78,7 +74,6 @@ export default function TransactionSelection() {
         setCurrentPosition(position || 1);
       }
       
-      // Get serving ticket for the same transaction type
       const serving = tickets.find(t => 
         t.status === 'serving' && 
         t.transactionTypeId === myTicket.transactionTypeId

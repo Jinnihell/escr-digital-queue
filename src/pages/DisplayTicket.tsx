@@ -88,34 +88,47 @@ export default function DisplayTicket() {
 
   useEffect(() => {
     const unsubscribe = subscribeToActiveTickets((tickets) => {
-      if (ticket) {
-        const currentTicket = tickets.find(t => t.id === ticket.id);
+      if (!ticket) return;
+      
+      const currentTicket = tickets.find(t => t.id === ticket.id);
+      
+      if (currentTicket) {
+        const wasServing = ticket.status === 'serving';
         
-        if (currentTicket) {
-          if (currentTicket.status === 'serving') {
-            setWaitingPosition(0);
-          }
-          
-          if (currentTicket.status === 'completed' && !ticketServed) {
-            setTicketServed(true);
-            setTimeout(() => setShowFeedback(true), 500);
-          }
+        if (currentTicket.status === 'serving' && !wasServing) {
+          setWaitingPosition(0);
+          speakNotification(`Ticket ${ticket.ticketNumber}, please proceed to window ${currentTicket.windowName}`);
         }
         
-        const waitingTickets = tickets.filter(t => 
-          t.transactionTypeId === ticket.transactionTypeId && 
-          t.status === 'waiting'
-        );
-        
-        const userTicketIndex = waitingTickets.findIndex(t => t.id === ticket.id);
-        const position = userTicketIndex >= 0 ? userTicketIndex + 1 : waitingTickets.length + 1;
-        
-        setWaitingPosition(position - 1);
+        if (currentTicket.status === 'completed' && !ticketServed) {
+          setTicketServed(true);
+          setTimeout(() => setShowFeedback(true), 500);
+        }
       }
+      
+      const waitingTickets = tickets.filter(t => 
+        t.transactionTypeId === ticket.transactionTypeId && 
+        t.status === 'waiting'
+      );
+      
+      const userTicketIndex = waitingTickets.findIndex(t => t.id === ticket.id);
+      const position = userTicketIndex >= 0 ? userTicketIndex + 1 : waitingTickets.length + 1;
+      
+      setWaitingPosition(position - 1);
     });
 
     return () => unsubscribe();
   }, [ticket]);
+
+  const speakNotification = (message: string) => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.rate = 0.9;
+      utterance.volume = 1;
+      speechSynthesis.speak(utterance);
+    }
+  };
 
   if (isLoading) {
     return (

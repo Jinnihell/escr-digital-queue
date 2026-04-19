@@ -24,37 +24,28 @@ export default function Landing() {
   // Check for active ticket when feedback is submitted
   useEffect(() => {
     const message = searchParams.get('message');
-    if (message === 'feedback_submitted' || message === 'logged_out') {
-      checkActiveTicket();
+    if ((message === 'feedback_submitted' || message === 'logged_out') && user?.id) {
+      const unsubscribe = subscribeToActiveTickets((tickets) => {
+        const userTicket = tickets.find(t => t.userId === user.id);
+        if (userTicket) {
+          setCurrentTicket(userTicket);
+          const waitingTickets = tickets.filter(t => 
+            t.transactionTypeId === userTicket.transactionTypeId && 
+            t.status === 'waiting'
+          );
+          const userIndex = waitingTickets.findIndex(t => t.id === userTicket.id);
+          const position = userIndex >= 0 ? userIndex + 1 : waitingTickets.length + 1;
+          setWaitingPosition(position - 1);
+          setShowQueueModal(true);
+        } else {
+          setShowQueueModal(false);
+          setCurrentTicket(null);
+        }
+      });
+
+      return () => unsubscribe();
     }
-  }, [searchParams]);
-
-  const checkActiveTicket = async () => {
-    if (!user?.id) {
-      setShowQueueModal(false);
-      return;
-    }
-
-    const unsubscribe = subscribeToActiveTickets((tickets) => {
-      const userTicket = tickets.find(t => t.userId === user.id);
-      if (userTicket) {
-        setCurrentTicket(userTicket);
-        const waitingTickets = tickets.filter(t => 
-          t.transactionTypeId === userTicket.transactionTypeId && 
-          t.status === 'waiting'
-        );
-        const userIndex = waitingTickets.findIndex(t => t.id === userTicket.id);
-        const position = userIndex >= 0 ? userIndex + 1 : waitingTickets.length + 1;
-        setWaitingPosition(position - 1);
-        setShowQueueModal(true);
-      } else {
-        setShowQueueModal(false);
-        setCurrentTicket(null);
-      }
-    });
-
-    return () => unsubscribe();
-  };
+  }, [searchParams, user]);
 
   // Floating animation for logo
   const handleGetStarted = () => {

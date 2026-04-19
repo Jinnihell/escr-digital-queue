@@ -32,6 +32,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [allTickets, setAllTickets] = useState<QueueTicket[]>([]);
 
@@ -97,15 +98,25 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     setActiveTab(tab);
   }, [tab]);
 
+  // Subscribe to all tickets for reports
   useEffect(() => {
-    loadData();
-
     const unsubscribe = subscribeToAllTickets((tickets) => {
-      loadData();
       setAllTickets(tickets);
     });
-
     return () => unsubscribe();
+  }, []);
+
+  // Load initial data without subscription to prevent issues
+  useEffect(() => {
+    const initData = async () => {
+      console.log('Initializing AdminDashboard...');
+      try {
+        await loadData();
+      } catch (err) {
+        console.error('Init error:', err);
+      }
+    };
+    initData();
   }, []);
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
@@ -391,24 +402,105 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     }
   };
 
-  const loadData = async () => {
+const loadData = async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    
     try {
-      const [transactionTypes, queueStats, windowList, systemSettings] = await Promise.all([
-        getTransactionTypes(),
-        getQueueStats(),
-        getWindows(),
-        getSettings()
-      ]);
+      console.log('Loading admin data...');
+      
+      // Load settings first with fallback
+      let systemSettings: SystemSettings | null = null;
+      try {
+        systemSettings = await getSettings();
+        console.log('Settings loaded:', systemSettings);
+      } catch (settingsErr) {
+        console.warn('Settings not loaded, using defaults:', settingsErr);
+        systemSettings = {
+          systemName: 'ESCR Digital Queueing System',
+          resetTime: '00:00',
+          maxDailyTickets: 100,
+          enablePriority: true,
+          enableNotifications: true,
+          averageServiceTime: 300,
+          operatingHours: {
+            enabled: false,
+            monday: { start: '08:00', end: '17:00' },
+            tuesday: { start: '08:00', end: '17:00' },
+            wednesday: { start: '08:00', end: '17:00' },
+            thursday: { start: '08:00', end: '17:00' },
+            friday: { start: '08:00', end: '17:00' },
+            saturday: { start: '08:00', end: '12:00' },
+            sunday: { start: '08:00', end: '00:00' }
+          },
+          alerts: {
+            enabled: true,
+            announcerVoice: true,
+            showAllWindows: true
+          },
+          displayMode: 'standard',
+          autoReset: false,
+          autoResetTime: '00:00',
+          maxWaitTime: 3600,
+          lastBackup: null
+        };
+      }
+      
+      // Load other data with fallbacks
+      let transactionTypes: TransactionType[] = [];
+      let queueStats: QueueStats | null = null;
+      let windowList: WindowType[] = [];
+      
+      try {
+        const results = await Promise.all([
+          getTransactionTypes(),
+          getQueueStats(),
+          getWindows()
+        ]);
+        transactionTypes = results[0];
+        queueStats = results[1];
+        windowList = results[2];
+      } catch (dataErr) {
+        console.warn('Some data failed to load:', dataErr);
+      }
+      
       setTransactions(transactionTypes);
       setStats(queueStats);
       setWindows(windowList);
       setSettingsForm(systemSettings);
+      
+console.log('Admin data loaded successfully');
     } catch (err) {
-      console.error('Error loading data:', err);
+      console.error('Critical error loading data:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setLoadError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Show error state if data failed to load
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+          <div className="text-red-500 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-4">{loadError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleSaveSettings = async () => {
     setIsSaving(true);
@@ -594,6 +686,9 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   const handleBack = () => {
     navigate('/admin');
   };
+
+  // Debug: log current state
+  console.log('AdminDashboard - activeTab:', activeTab, 'isLoading:', isLoading, 'settingsForm:', settingsForm);
 
   const adminHelpContent = (
     <div className="space-y-3 text-gray-600">
