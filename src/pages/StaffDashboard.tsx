@@ -412,7 +412,7 @@ export default function StaffDashboard() {
             {/* Waiting List - matches PHP design */}
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-orange-500 text-white p-3 text-center font-bold">
-                Next in Line
+                Next Serving Queue
               </div>
               <div className="p-3 max-h-[300px] overflow-y-auto">
                 {waitingTickets.length > 0 ? (

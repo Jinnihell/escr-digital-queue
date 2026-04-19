@@ -146,7 +146,7 @@ export default function PublicMonitor() {
         {/* Waiting Queue - Hidden on small mobile, visible on md+ */}
         <div className="hidden md:flex w-full md:w-[20%] bg-white border-l-4 border-blue-800 flex-col">
           <div className="text-center p-2 sm:p-3 border-b-2 border-orange-500">
-            <h3 className="text-lg sm:text-2xl font-bold text-purple-900">Next in Line</h3>
+            <h3 className="text-lg sm:text-2xl font-bold text-purple-900">Next Serving Queue</h3>
             <p className="text-xs sm:text-sm text-gray-600">Upcoming</p>
           </div>
           <div className="flex-grow overflow-y-auto p-2 sm:p-3">
