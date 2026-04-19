@@ -44,7 +44,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     description: '',
     code: '',
     prefix: '',
-    priority: false,
     windowNumber: 1
   });
 
@@ -562,7 +561,6 @@ console.log('Admin data loaded successfully');
       description: '',
       code: '',
       prefix: '',
-      priority: false,
       windowNumber: 1
     });
     setShowTransactionForm(true);
@@ -575,7 +573,6 @@ console.log('Admin data loaded successfully');
       description: t.description,
       code: t.code,
       prefix: t.prefix,
-      priority: t.priority,
       windowNumber: t.windowNumber || 1
     });
     setShowTransactionForm(true);
@@ -598,7 +595,6 @@ console.log('Admin data loaded successfully');
           transactionForm.description,
           transactionForm.code,
           transactionForm.prefix,
-          transactionForm.priority,
           transactionForm.windowNumber
         );
         setMessage('Transaction created successfully!');

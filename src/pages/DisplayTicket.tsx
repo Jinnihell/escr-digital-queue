@@ -12,7 +12,6 @@ interface SelectedTransaction {
   id: string;
   name: string;
   prefix: string;
-  priority: boolean;
 }
 
 export default function DisplayTicket() {
@@ -64,7 +63,7 @@ export default function DisplayTicket() {
           selected.id,
           selected.name,
           selected.prefix,
-          selected.priority,
+          false,
           user?.id || null,
           studentDetails
         );

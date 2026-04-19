@@ -84,7 +84,6 @@ export const getWaitingTickets = async (transactionTypeId: string): Promise<Queu
     collection(db, TICKETS_COLLECTION),
     where('transactionTypeId', '==', transactionTypeId),
     where('status', '==', 'waiting'),
-    orderBy('priority', 'desc'),
     orderBy('createdAt', 'asc')
   );
   
@@ -106,7 +105,6 @@ export const getActiveTickets = async (): Promise<QueueTicket[]> => {
     collection(db, TICKETS_COLLECTION),
     where('status', 'in', ['waiting', 'serving']),
     orderBy('status', 'desc'),
-    orderBy('priority', 'desc'),
     orderBy('createdAt', 'asc')
   );
   
@@ -304,9 +302,8 @@ export const getTransactionTypes = async (): Promise<TransactionType[]> => {
     ...doc.data()
   })) as TransactionType[];
   
-  // Sort by priority (true first), then by name
+  // Sort by name
   return transactions.sort((a, b) => {
-    if (a.priority !== b.priority) return a.priority ? -1 : 1;
     return (a.name || '').localeCompare(b.name || '');
   });
 };
@@ -317,10 +314,10 @@ export const initializeDefaultTransactions = async (): Promise<void> => {
   if (existing.length > 0) return;
 
   const defaultTransactions = [
-    { name: 'Assessments', description: 'Assessment of fees and charges', code: 'ASSESS', prefix: 'A', priority: false, windowNumber: 1 },
-    { name: 'Enrollment', description: 'New enrollment and registration', code: 'ENROLL', prefix: 'E', priority: false, windowNumber: 2 },
-    { name: 'Payments', description: 'Payment of tuition and other fees', code: 'PAY', prefix: 'P', priority: false, windowNumber: 3 },
-    { name: 'Other Concerns', description: 'Other inquiries and concerns', code: 'OTHER', prefix: 'O', priority: false, windowNumber: 4 }
+    { name: 'Assessments', description: 'Assessment of fees and charges', code: 'ASSESS', prefix: 'A', windowNumber: 1 },
+    { name: 'Enrollment', description: 'New enrollment and registration', code: 'ENROLL', prefix: 'E', windowNumber: 2 },
+    { name: 'Payments', description: 'Payment of tuition and other fees', code: 'PAY', prefix: 'P', windowNumber: 3 },
+    { name: 'Other Concerns', description: 'Other inquiries and concerns', code: 'OTHER', prefix: 'O', windowNumber: 4 }
   ];
 
   for (const t of defaultTransactions) {
@@ -402,7 +399,6 @@ export const createTransactionType = async (
   description: string,
   code: string,
   prefix: string,
-  priority: boolean = false,
   windowNumber: number = 1
 ): Promise<TransactionType> => {
   const docRef = await addDoc(collection(db, TRANSACTIONS_COLLECTION), {
@@ -411,7 +407,6 @@ export const createTransactionType = async (
     code,
     prefix: prefix.toUpperCase(),
     active: true,
-    priority,
     windowNumber
   });
   
@@ -422,7 +417,6 @@ export const createTransactionType = async (
     code,
     prefix: prefix.toUpperCase(),
     active: true,
-    priority,
     windowNumber
   };
 };
@@ -581,7 +575,6 @@ export const subscribeToActiveTickets = (
     collection(db, TICKETS_COLLECTION),
     where('status', 'in', ['waiting', 'serving']),
     orderBy('status', 'desc'),
-    orderBy('priority', 'desc'),
     orderBy('createdAt', 'asc')
   );
   

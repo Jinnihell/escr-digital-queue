@@ -11,10 +11,10 @@ import { firebaseConfig } from './firebase/config';
 
 // Default transaction types - matches queueService.ts initializeDefaultTransactions
 const defaultTransactions = [
-  { id: 'assessments', name: 'Assessments', description: 'Assessment of fees and charges', code: 'ASSESS', prefix: 'A', active: true, priority: false, windowNumber: 1 },
-  { id: 'enrollment', name: 'Enrollment', description: 'New enrollment and registration', code: 'ENROLL', prefix: 'E', active: true, priority: false, windowNumber: 2 },
-  { id: 'payments', name: 'Payments', description: 'Payment of tuition and other fees', code: 'PAY', prefix: 'P', active: true, priority: false, windowNumber: 3 },
-  { id: 'other', name: 'Other Concerns', description: 'Other inquiries and concerns', code: 'OTHER', prefix: 'O', active: true, priority: false, windowNumber: 4 }
+  { id: 'assessments', name: 'Assessments', description: 'Assessment of fees and charges', code: 'ASSESS', prefix: 'A', active: true, windowNumber: 1 },
+  { id: 'enrollment', name: 'Enrollment', description: 'New enrollment and registration', code: 'ENROLL', prefix: 'E', active: true, windowNumber: 2 },
+  { id: 'payments', name: 'Payments', description: 'Payment of tuition and other fees', code: 'PAY', prefix: 'P', active: true, windowNumber: 3 },
+  { id: 'other', name: 'Other Concerns', description: 'Other inquiries and concerns', code: 'OTHER', prefix: 'O', active: true, windowNumber: 4 }
 ];
 
 // Default windows - matches queueService.ts initializeDefaultWindows

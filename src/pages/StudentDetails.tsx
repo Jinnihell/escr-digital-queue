@@ -8,7 +8,6 @@ interface SelectedTransaction {
   id: string;
   name: string;
   prefix: string;
-  priority: boolean;
 }
 
 // Course options from PHP system

@@ -54,7 +54,6 @@ export interface TransactionType {
   code: string;
   prefix: string; // e.g., 'A' for Assessments, 'E' for Enrollment
   active: boolean;
-  priority: boolean;
   windowNumber: number; // which window handles this transaction
 }
 
@@ -86,7 +85,6 @@ export interface QueueTicket {
   yearLevel?: string;
   // Status
   status: TicketStatus;
-  priority: boolean;
   createdAt: Date;
   calledAt: Date | null;
   startedAt: Date | null;
