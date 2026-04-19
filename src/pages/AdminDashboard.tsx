@@ -54,8 +54,20 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     number: 1
   });
 
-  // Settings state
-  const [settingsForm, setSettingsForm] = useState<SystemSettings | null>(null);
+  // Settings state with default values for instant display
+  const [settingsForm, setSettingsForm] = useState<SystemSettings>({
+    systemName: 'ESCR Digital Queue System',
+    resetTime: '00:00',
+    maxDailyTickets: 100,
+    averageServiceTime: 300,
+    enablePriority: true,
+    enableNotifications: true,
+    alerts: {
+      enabled: true,
+      announcerVoice: true,
+      showAllWindows: true
+    }
+  });
 
   // Date filter state
   const [dateFilter, setDateFilter] = useState({
@@ -384,7 +396,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   };
 
   const handleSaveSettings = async () => {
-    if (!settingsForm) return;
     setIsSaving(true);
     try {
       await saveSettings(settingsForm);
@@ -878,7 +889,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
           </div>
         )}
 
-        {activeTab === 'settings' && settingsForm && (
+        {activeTab === 'settings' && (
           <div className="space-y-6">
             {message && (
               <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
