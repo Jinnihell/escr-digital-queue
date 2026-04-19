@@ -425,14 +425,9 @@ export default function StaffDashboard() {
                     {waitingTickets.slice(0, 5).map((ticket) => (
                       <div 
                         key={ticket.id} 
-                        className={`bg-gradient-to-r from-blue-800 to-blue-600 text-white p-3 rounded-lg text-center ${
-                          ticket.priority ? 'border-2 border-orange-500' : ''
-                        }`}
+                        className="bg-gradient-to-r from-blue-800 to-blue-600 text-white p-3 rounded-lg text-center"
                       >
                         <span className="font-bold text-xl">{ticket.ticketNumber}</span>
-                        {ticket.priority && (
-                          <span className="ml-2 bg-orange-500 text-xs px-2 py-1 rounded">PRIORITY</span>
-                        )}
                       </div>
                     ))}
                   </div>

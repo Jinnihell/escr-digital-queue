@@ -12,7 +12,6 @@ export default function TransactionSelection() {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [isPriority, setIsPriority] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -120,8 +119,7 @@ export default function TransactionSelection() {
     sessionStorage.setItem('selectedTransaction', JSON.stringify({
       id: selected.id,
       name: selected.name,
-      prefix: selected.prefix || selected.name.charAt(0).toUpperCase(),
-      priority: isPriority && selected.priority
+      prefix: selected.prefix || selected.name.charAt(0).toUpperCase()
     }));
     
     navigate('/student-details');
@@ -264,23 +262,6 @@ export default function TransactionSelection() {
                 ))
               )}
             </div>
-
-            {/* Priority Toggle - matches PHP design */}
-            {selectedId && transactions.find(t => t.id === selectedId)?.priority && (
-              <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-4 mb-6">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isPriority}
-                    onChange={(e) => setIsPriority(e.target.checked)}
-                    className="w-5 h-5 rounded text-yellow-600 focus:ring-yellow-500"
-                  />
-                  <span className="text-yellow-800 font-medium">
-                    Mark as Priority (Senior Citizen / PWD)
-                  </span>
-                </label>
-              </div>
-            )}
 
             {/* Continue Button - matches PHP design */}
             <div className="flex justify-center">

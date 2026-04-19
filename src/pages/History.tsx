@@ -247,9 +247,6 @@ export default function History() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-lg">{ticket.ticketNumber}</span>
-                          {ticket.priority && (
-                            <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">PRIORITY</span>
-                          )}
                         </div>
                       </td>
                       <td className="py-4 px-6 text-gray-600">

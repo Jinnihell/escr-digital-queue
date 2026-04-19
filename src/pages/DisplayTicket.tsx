@@ -191,11 +191,6 @@ export default function DisplayTicket() {
           <div className="bg-blue-600 p-6 text-white text-center">
             <p className="text-blue-100 mb-1">Your Ticket</p>
             <h1 className="text-5xl font-bold tracking-wider">{ticket.ticketNumber}</h1>
-            {ticket.priority && (
-              <span className="inline-block mt-2 bg-yellow-500 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold">
-                PRIORITY
-              </span>
-            )}
           </div>
 
           {/* Ticket Details */}

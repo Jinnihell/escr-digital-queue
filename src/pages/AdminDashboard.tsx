@@ -756,7 +756,6 @@ console.log('Admin data loaded successfully');
                       <th className="text-left py-3 px-4 text-gray-600 font-medium">Name</th>
                       <th className="text-left py-3 px-4 text-gray-600 font-medium">Code</th>
                       <th className="text-left py-3 px-4 text-gray-600 font-medium">Status</th>
-                      <th className="text-left py-3 px-4 text-gray-600 font-medium">Priority</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -768,9 +767,6 @@ console.log('Admin data loaded successfully');
                           <span className={`px-2 py-1 rounded-full text-xs ${t.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                             {t.active ? 'Active' : 'Inactive'}
                           </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          {t.priority ? '✓ Yes' : 'No'}
                         </td>
                       </tr>
                     ))}
@@ -1291,15 +1287,6 @@ console.log('Admin data loaded successfully');
                     className="w-full px-3 py-2 border rounded-lg"
                     min={1}
                   />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={transactionForm.priority}
-                    onChange={(e) => setTransactionForm({ ...transactionForm, priority: e.target.checked })}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm text-gray-700">Priority Queue</span>
                 </div>
               </div>
               <div className="flex gap-3 mt-6">

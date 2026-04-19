@@ -101,11 +101,6 @@ export default function StudentDetails() {
             <p>3. Select your <b>course</b> from the dropdown.</p>
             <p>4. Select your <b>year level</b>.</p>
             <p>5. Click <b>Generate Ticket</b> to get your queue number.</p>
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
-              <p className="text-yellow-800 text-sm">
-                <b>Priority:</b> Senior Citizens and PWDs can request priority queue.
-              </p>
-            </div>
           </div>
         }
       />
@@ -196,15 +191,6 @@ export default function StudentDetails() {
               ))}
             </select>
           </div>
-
-          {/* Priority Notice */}
-          {selectedTransaction.priority && (
-            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-              <p className="text-yellow-800 text-sm">
-                <strong>Priority Queue:</strong> Your ticket will be marked as priority (Senior Citizen / PWD)
-              </p>
-            </div>
-          )}
 
           {/* Submit Button */}
           <button
