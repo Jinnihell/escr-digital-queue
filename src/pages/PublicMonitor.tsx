@@ -1,98 +1,59 @@
-import { useState, useEffect, useRef } from 'react';
-import { subscribeToActiveTickets, subscribeToWindows } from '../services/queueService';
-import type { QueueTicket, Window } from '../types';
-
-// Public Monitor - Matches MYPHPQUEUE public_monitor.php dark theme design
+import { useState, useEffect } from 'react';
+import { subscribeToActiveTickets, subscribeToWindows, subscribeToTransactionTypes } from '../services/queueService';
+import type { QueueTicket, Window, TransactionType } from '../types';
 
 export default function PublicMonitor() {
   const [tickets, setTickets] = useState<QueueTicket[]>([]);
   const [windows, setWindows] = useState<Window[]>([]);
+  const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
-  const lastAnnouncedRef = useRef<string>('');
 
-  // Update clock
   useEffect(() => {
     const updateTime = () => {
-      setCurrentTime(new Date().toLocaleTimeString());
+      setCurrentTime(new Date().toLocaleTimeString('en-US', { hour12: true }));
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Announce serving tickets when they change - real-time
-  useEffect(() => {
-    if (!soundEnabled || windows.length === 0) return;
-    
-    const serving = tickets.filter(t => t.status === 'serving');
-    
-    // Get current serving tickets as a string for comparison
-    const currentServingStr = serving.map(t => `${t.ticketNumber}-${t.windowId}`).join(',');
-    
-    // Only announce if there's a change
-    if (currentServingStr !== lastAnnouncedRef.current && serving.length > 0) {
-      lastAnnouncedRef.current = currentServingStr;
-      
-      // Get the first serving ticket for each window
-      const windowsWithTickets = windows.map(w => {
-        const ticket = serving.find(t => t.windowId === w.id);
-        return ticket ? { windowNumber: w.number, windowName: w.name, ticketNumber: ticket.ticketNumber } : null;
-      }).filter(Boolean);
-      
-      if (windowsWithTickets.length === 0) return;
-      
-      // Build announcement for all serving tickets
-      let announcement = '';
-      windowsWithTickets.forEach((w, idx) => {
-        if (idx > 0) announcement += '. ';
-        announcement += `Queue ticket ${w?.ticketNumber}, please proceed to window ${w?.windowNumber}`;
-      });
-      
-      if (announcement && 'speechSynthesis' in window) {
-        speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(announcement);
-        utterance.rate = 0.9;
-        utterance.lang = 'en-US';
-        speechSynthesis.speak(utterance);
-      }
-    }
-    
-    // If no serving tickets, reset the ref so it can announce again when new ticket is called
-    if (serving.length === 0) {
-      lastAnnouncedRef.current = '';
-    }
-  }, [tickets, windows, soundEnabled]);
-
-  // Subscribe to real-time ticket updates
   useEffect(() => {
     const unsubscribeTickets = subscribeToActiveTickets((updatedTickets) => {
       setTickets(updatedTickets);
-      // Mark as loaded after first update
       setDataLoaded(true);
     });
-
     return () => unsubscribeTickets();
   }, []);
 
-  // Subscribe to real-time window updates
   useEffect(() => {
     const unsubscribeWindows = subscribeToWindows((updatedWindows) => {
       setWindows(updatedWindows.filter(w => w.active));
-      // Mark as loaded after first update
       setDataLoaded(true);
     });
-
     return () => unsubscribeWindows();
   }, []);
 
-  const waitingTickets = tickets.filter(t => t.status === 'waiting');
+  useEffect(() => {
+    const unsubscribeTransactions = subscribeToTransactionTypes((updatedTransactions) => {
+      setTransactions(updatedTransactions);
+    });
+    return () => unsubscribeTransactions();
+  }, []);
+
   const servingTickets = tickets.filter(t => t.status === 'serving');
+  const waitingTickets = tickets.filter(t => t.status === 'waiting');
+
+  const getWaitingForTransaction = (transactionId: string) => {
+    return waitingTickets
+      .filter(t => t.transactionTypeId === transactionId)
+      .slice(0, 4);
+  };
 
   if (!dataLoaded || windows.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a1628] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-20 w-20 border-4 border-orange-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-orange-400 font-bold">Loading queue system...</p>
@@ -102,98 +63,110 @@ export default function PublicMonitor() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
-      {/* Header - Bigger fonts */}
-      <div className="bg-white/5 rounded-xl p-4 flex items-center gap-4 mb-3">
-        <img src="/escr-logo.png" alt="ESCR Logo" className="w-24 h-24 sm:w-27 sm:h-27 object-contain rounded-full" />
-        <div>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">ESCR QUEUE SYSTEM</h2>
-          <p className="text-orange-400 font-bold text-lg sm:text-xl">{currentTime}</p>
+    <div className="min-h-screen bg-[#0a1628] text-white">
+      {/* Header */}
+      <div className="bg-[#0f2744] p-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <img src="/escr-logo.png" alt="ESCR Logo" className="w-16 h-16 object-contain" />
+          <div>
+            <h1 className="text-2xl md:text-3xl font-serif font-bold">ESCR QUEUE SYSTEM</h1>
+            <p className="text-orange-400 font-mono text-lg">{currentTime}</p>
+          </div>
         </div>
+        <div className="text-center">
+          <h2 className="text-3xl md:text-5xl font-bold text-white">NOW SERVING!</h2>
+          <p className="text-orange-400 text-lg">Please proceed to your serving window</p>
+        </div>
+        <div className="w-32"></div>
       </div>
 
-      {/* Main Content - Stacked on mobile, side-by-side on desktop */}
-      <div className="flex flex-col md:flex-row flex-grow gap-2 sm:gap-4 pb-16 md:pb-14">
-        
-        {/* Window Cards - Full width on mobile */}
-        <div className="flex-1 flex flex-col">
-          <div className="grid grid-cols-2 gap-2 sm:gap-4 flex-grow">
+      {/* Main Content */}
+      <div className="flex">
+        {/* Left Sidebar - News Board */}
+        <div className="w-64 bg-white text-gray-800 p-4 flex-shrink-0 hidden lg:block">
+          <h3 className="text-lg font-bold text-orange-600 mb-3 flex items-center gap-2">
+            <span>📋</span> ESCR News Board!!
+          </h3>
+          <div className="space-y-3 text-sm">
+            <p className="font-bold text-blue-900">PERIODICAL EXAMINATIONS</p>
+            <p><span className="text-orange-600 font-semibold">PRELIM</span> - February 09-14, 2026</p>
+            <p><span className="text-orange-600 font-semibold">MIDTERM</span> - March 09-14, 2026</p>
+            <p><span className="text-orange-600 font-semibold">SEMI-FINALS</span> - April 06-11, 2026</p>
+            <p><span className="text-orange-600 font-semibold">FINALS</span> - May 04-11, 2026</p>
+            <p><span className="text-blue-600 font-semibold">Compliance Week</span> - May 11-16, 2026</p>
+            <p><span className="text-blue-600 font-semibold">End of 2nd Semester</span> - May 16, 2026</p>
+            <p><span className="text-green-600 font-semibold">Release of Grades</span> - June 15, 2026</p>
+          </div>
+        </div>
+
+        {/* Center - Main Window Cards */}
+        <div className="flex-1 p-4">
+          {/* Now Serving Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {windows.map((window) => {
               const windowTicket = servingTickets.find(t => t.windowId === window.id);
-              const windowDisplayName = `Window ${window.number}`;
               return (
                 <div 
                   key={window.id} 
-                  className={`bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 text-gray-800 flex flex-col items-center justify-center relative border-b-4 sm:border-b-8 ${
-                    windowTicket ? 'border-orange-500' : 'border-gray-300'
-                  }`}
+                  className="bg-white rounded-2xl p-6 text-gray-800 shadow-xl"
                 >
-                  <span className="absolute top-1 sm:top-3 bg-blue-800 text-white px-2 sm:px-4 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-bold">
-                    {windowDisplayName}
-                  </span>
-                  <p className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-black mt-6 sm:mt-8">
+                  <div className="bg-blue-100 text-blue-900 px-4 py-2 rounded-lg text-center font-bold text-lg mb-4">
+                    {window.name}
+                  </div>
+                  <p className="text-6xl md:text-7xl font-black text-center mb-2">
                     {windowTicket?.ticketNumber || '---'}
                   </p>
-                  <p className="text-orange-500 font-bold text-xs sm:text-lg">
+                  <p className="text-red-600 italic text-center text-xl font-semibold">
                     {windowTicket?.transactionTypeName || ''}
                   </p>
                 </div>
               );
             })}
           </div>
-        </div>
 
-        {/* Waiting Queue - Hidden on small mobile, visible on md+ */}
-        <div className="hidden md:flex w-full md:w-[20%] bg-white border-l-4 border-blue-800 flex-col">
-          <div className="text-center p-2 sm:p-3 border-b-2 border-orange-500">
-            <h3 className="text-lg sm:text-2xl font-bold text-purple-900">Next Serving Queue</h3>
-            <p className="text-xs sm:text-sm text-gray-600">Upcoming</p>
-          </div>
-          <div className="flex-grow overflow-y-auto p-2 sm:p-3">
-            {waitingTickets.length > 0 ? (
-              waitingTickets.slice(0, 10).map((ticket) => (
-                <div 
-                  key={ticket.id}
-                  className="bg-blue-800 text-white p-2 sm:p-3 rounded-lg text-center mb-1 sm:mb-2"
-                >
-                  <span className="text-orange-400 font-bold text-lg sm:text-2xl">{ticket.ticketNumber}</span>
+          {/* Next Serving Queues */}
+          <div className="bg-white rounded-2xl p-4 text-gray-800">
+            <h3 className="text-xl font-bold text-center mb-4 text-purple-900">Next Serving Queues</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {transactions.map((transaction) => (
+                <div key={transaction.id} className="border-r border-gray-200 last:border-r-0 pr-4 last:pr-0">
+                  <h4 className="text-center font-bold text-blue-900 mb-2">{transaction.name}</h4>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {getWaitingForTransaction(transaction.id).length > 0 ? (
+                      getWaitingForTransaction(transaction.id).map((ticket) => (
+                        <span 
+                          key={ticket.id} 
+                          className="bg-blue-800 text-white px-3 py-1 rounded font-bold"
+                        >
+                          {ticket.ticketNumber}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-400">No waiting</span>
+                    )}
+                  </div>
                 </div>
-              ))
-            ) : (
-              <p className="text-gray-400 text-center p-2 sm:p-4 text-sm">No waiting</p>
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Only: Simple Queue List */}
-      <div className="md:hidden bg-white text-gray-800 p-3 border-t-4 border-blue-800">
-        <h3 className="font-bold text-purple-900 text-center mb-2">Waiting Queue</h3>
-        <div className="flex flex-wrap justify-center gap-2">
-          {waitingTickets.slice(0, 6).map((ticket) => (
-            <span key={ticket.id} className="bg-blue-800 text-white px-3 py-1 rounded text-sm font-bold">
-              {ticket.ticketNumber}
-            </span>
-          ))}
-          {waitingTickets.length === 0 && <p className="text-gray-400 text-sm">No waiting</p>}
+      {/* Footer Ticker */}
+      <div className="fixed bottom-0 left-0 right-0 h-12 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
+        <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite] px-4 text-base">
+          Welcome to ESCR! Always check your Queue Number on the monitor and proceed to your assigned window. Send your own feedback.
         </div>
       </div>
 
-      {/* Footer Ticker - Bigger fonts */}
-      <div className="fixed bottom-0 left-0 right-0 h-12 sm:h-14 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
-        <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite] px-4 text-base sm:text-lg md:text-xl">
-          Welcome to East Systems Colleges of Rizal! Check your queue number on the display monitor and proceed to your assigned window. Thank you!
-        </div>
-      </div>
-
-      {/* Sound Toggle - Smaller on mobile */}
+      {/* Sound Toggle */}
       <button
         onClick={() => setSoundEnabled(!soundEnabled)}
-        className={`fixed top-2 right-2 sm:top-4 sm:right-4 p-2 sm:p-3 rounded-full shadow-lg transition z-50 ${
+        className={`fixed top-4 right-4 p-3 rounded-full shadow-lg transition z-50 ${
           soundEnabled ? 'bg-green-500' : 'bg-gray-500'
         }`}
       >
-        <span className="text-lg sm:text-xl">{soundEnabled ? '🔔' : '🔕'}</span>
+        <span className="text-xl">{soundEnabled ? '🔔' : '🔕'}</span>
       </button>
 
       <style>{`
