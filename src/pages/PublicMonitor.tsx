@@ -78,26 +78,26 @@ export default function PublicMonitor() {
       {/* Main Content */}
       <div className="flex">
         {/* Left Sidebar - News Board */}
-        <div className="w-64 bg-white text-gray-800 p-4 flex-shrink-0 hidden lg:block">
-          <h3 className="text-lg font-bold text-orange-600 mb-3 flex items-center gap-2">
+        <div className="w-64 bg-[#0f2744] text-white p-6 flex-shrink-0 hidden lg:block">
+          <h3 className="text-lg font-bold text-orange-400 mb-4 flex items-center gap-2">
             <span>📋</span> ESCR News Board!!
           </h3>
           <div className="space-y-3 text-sm">
-            <p className="font-bold text-blue-900">PERIODICAL EXAMINATIONS</p>
-            <p><span className="text-orange-600 font-semibold">PRELIM</span> - February 09-14, 2026</p>
-            <p><span className="text-orange-600 font-semibold">MIDTERM</span> - March 09-14, 2026</p>
-            <p><span className="text-orange-600 font-semibold">SEMI-FINALS</span> - April 06-11, 2026</p>
-            <p><span className="text-orange-600 font-semibold">FINALS</span> - May 04-11, 2026</p>
-            <p><span className="text-blue-600 font-semibold">Compliance Week</span> - May 11-16, 2026</p>
-            <p><span className="text-blue-600 font-semibold">End of 2nd Semester</span> - May 16, 2026</p>
-            <p><span className="text-green-600 font-semibold">Release of Grades</span> - June 15, 2026</p>
+            <p className="font-bold text-white border-b border-orange-400 pb-1">PERIODICAL EXAMINATIONS</p>
+            <p><span className="text-orange-400 font-semibold">PRELIM</span> <span className="text-blue-300">- February 09-14, 2026</span></p>
+            <p><span className="text-orange-400 font-semibold">MIDTERM</span> <span className="text-blue-300">- March 09-14, 2026</span></p>
+            <p><span className="text-orange-400 font-semibold">SEMI-FINALS</span> <span className="text-blue-300">- April 06-11, 2026</span></p>
+            <p><span className="text-orange-400 font-semibold">FINALS</span> <span className="text-blue-300">- May 04-11, 2026</span></p>
+            <p><span className="text-blue-300 font-semibold">Compliance Week</span> <span className="text-blue-300">- May 11-16, 2026</span></p>
+            <p><span className="text-blue-300 font-semibold">End of 2nd Semester</span> <span className="text-blue-300">- May 16, 2026</span></p>
+            <p><span className="text-green-400 font-semibold">Release of Grades</span> <span className="text-blue-300">- June 15, 2026</span></p>
           </div>
         </div>
 
 {/* Center - Main Window Cards */}
         <div className="flex-1 p-4">
-          <h2 className="text-3xl md:text-5xl font-bold text-white text-center mb-2">NOW SERVING!</h2>
-          <p className="text-orange-400 text-lg text-center mb-6">Please proceed to your serving window</p>
+          <h2 className="text-2xl md:text-4xl font-bold text-white text-center mb-2">NOW SERVING!</h2>
+          <p className="text-orange-400 text-lg text-center italic mb-6">Please proceed to your serving window</p>
           {/* Now Serving Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {windows.map((window) => {
