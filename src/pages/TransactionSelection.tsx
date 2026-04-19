@@ -249,8 +249,8 @@ export default function TransactionSelection() {
                     onClick={() => setSelectedId(transaction.id)}
                     className={`p-6 rounded-2xl text-center transition-all duration-300 flex flex-col items-center gap-3 ${
                       selectedId === transaction.id
-                        ? 'bg-linear-to-r from-blue-800 to-blue-600 text-white shadow-xl transform scale-[1.02]'
-                        : 'bg-white hover:bg-blue-50 text-gray-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
+                        ? 'bg-linear-to-r from-red-700 to-red-500 text-white shadow-xl transform scale-[1.02]'
+                        : 'bg-yellow-50 hover:bg-yellow-100 text-gray-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
                     }`}
                   >
                     {/* Icon based on transaction type */}

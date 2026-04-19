@@ -110,7 +110,7 @@ export default function Landing() {
         {/* Get Started Button - matches PHP design */}
         <button
           onClick={handleGetStarted}
-          className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-700 hover:to-blue-500 text-white text-xl font-semibold px-12 py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+          className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white text-xl font-semibold px-12 py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
         >
           Get Started
         </button>
@@ -152,7 +152,7 @@ export default function Landing() {
             </div>
             <button 
               onClick={() => setShowHelp(false)}
-              className="w-full mt-4 bg-gradient-to-r from-blue-800 to-blue-600 text-white py-2 rounded-xl font-semibold"
+              className="w-full mt-4 bg-gradient-to-r from-red-700 to-red-500 text-white py-2 rounded-xl font-semibold"
             >
               I See
             </button>
@@ -178,7 +178,7 @@ export default function Landing() {
             </div>
             <button 
               onClick={() => setShowAbout(false)}
-              className="w-full mt-4 bg-gradient-to-r from-blue-800 to-blue-600 text-white py-2 rounded-xl font-semibold"
+              className="w-full mt-4 bg-gradient-to-r from-red-700 to-red-500 text-white py-2 rounded-xl font-semibold"
             >
               Close
             </button>

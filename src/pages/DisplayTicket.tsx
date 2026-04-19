@@ -243,7 +243,7 @@ export default function DisplayTicket() {
                   sessionStorage.removeItem('currentTicket');
                   setShowThankYou(true);
                 }}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition"
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition"
               >
                 Done
               </button>
@@ -273,7 +273,7 @@ export default function DisplayTicket() {
                 setShowThankYou(false);
                 setShowFeedback(true);
               }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-xl transition"
             >
               Go to Home
             </button>

@@ -327,7 +327,7 @@ export default function StaffDashboard() {
                   <button
                     onClick={() => handleCallNext()}
                     disabled={!selectedTransaction || !selectedWindow || isCalling}
-                    className="bg-gradient-to-r from-blue-800 to-blue-600 hover:from-blue-700 hover:to-blue-500 text-white font-bold py-4 px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold py-4 px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                   >
                     {isCalling ? '⏳ Calling...' : '📞 Call Next Ticket'}
                   </button>
@@ -335,7 +335,7 @@ export default function StaffDashboard() {
                   {/* Call Others Button */}
                   <button
                     onClick={() => setShowAllTransactions(!showAllTransactions)}
-                    className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all"
                   >
                     📋 {showAllTransactions ? 'Hide Others' : 'Call Others'}
                   </button>

@@ -209,7 +209,7 @@ export default function StudentDetails() {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-4 rounded-xl font-semibold text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center gap-2 transition-all duration-200"
+            className="w-full py-4 rounded-xl font-semibold text-lg bg-red-600 hover:bg-red-700 text-white shadow-lg flex items-center justify-center gap-2 transition-all duration-200"
           >
             Generate Ticket
             <ArrowRight className="w-5 h-5" />
