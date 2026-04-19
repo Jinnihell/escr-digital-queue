@@ -96,7 +96,8 @@ export default function PublicMonitor() {
 
 {/* Center - Main Window Cards */}
         <div className="flex-1 p-4">
-          <h2 className="text-3xl md:text-5xl font-bold text-white text-center mb-6">NOW SERVING!</h2>
+          <h2 className="text-3xl md:text-5xl font-bold text-white text-center mb-2">NOW SERVING!</h2>
+          <p className="text-orange-400 text-lg text-center mb-6">Please proceed to your serving window</p>
           {/* Now Serving Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {windows.map((window) => {
