@@ -65,7 +65,7 @@ export default function PublicMonitor() {
   return (
     <div className="min-h-screen bg-[#0a1628] text-white">
       {/* Header */}
-      <div className="bg-[#0f2744] p-4 flex items-center justify-between">
+      <div className="bg-[#0f2744] p-4">
         <div className="flex items-center gap-4">
           <img src="/escr-logo.png" alt="ESCR Logo" className="w-16 h-16 object-contain" />
           <div>
@@ -73,11 +73,6 @@ export default function PublicMonitor() {
             <p className="text-orange-400 font-mono text-lg">{currentTime}</p>
           </div>
         </div>
-        <div className="text-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-white">NOW SERVING!</h2>
-          <p className="text-orange-400 text-lg">Please proceed to your serving window</p>
-        </div>
-        <div className="w-32"></div>
       </div>
 
       {/* Main Content */}
@@ -99,8 +94,9 @@ export default function PublicMonitor() {
           </div>
         </div>
 
-        {/* Center - Main Window Cards */}
+{/* Center - Main Window Cards */}
         <div className="flex-1 p-4">
+          <h2 className="text-3xl md:text-5xl font-bold text-white text-center mb-6">NOW SERVING!</h2>
           {/* Now Serving Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {windows.map((window) => {
