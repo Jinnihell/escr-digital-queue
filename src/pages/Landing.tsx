@@ -56,6 +56,10 @@ export default function Landing() {
     }
   };
 
+  const handleAppointment = () => {
+    navigate('/appointment');
+  };
+
   const handleLogout = async () => {
     setShowFeedback(true);
   };
@@ -104,6 +108,14 @@ export default function Landing() {
           className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white text-xl font-semibold px-12 py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
         >
           Get Started
+        </button>
+
+        {/* Book Appointment Button */}
+        <button
+          onClick={handleAppointment}
+          className="mt-4 bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-600 hover:to-blue-400 text-white text-xl font-semibold px-12 py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2"
+        >
+          Book Appointment
         </button>
 
         {/* About Button - matches PHP design */}
