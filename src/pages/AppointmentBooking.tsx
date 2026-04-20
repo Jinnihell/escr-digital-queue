@@ -5,13 +5,12 @@ import { useAlert } from '../context/AlertContext';
 import Navbar from '../components/Navbar';
 import { 
   getAvailableDates, 
-  getAvailableTimeSlots, 
   getTransactionTypes, 
   createAppointment,
   subscribeToAppointments
 } from '../services/queueService';
-import type { TransactionType, AppointmentSlot, Appointment } from '../types';
-import { Calendar, Clock, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import type { TransactionType, Appointment } from '../types';
+import { Calendar, ChevronLeft, ChevronRight, Check, Clock } from 'lucide-react';
 
 export default function AppointmentBooking() {
   const { user } = useAuth();
@@ -21,9 +20,7 @@ export default function AppointmentBooking() {
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
-  const [timeSlots, setTimeSlots] = useState<AppointmentSlot[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(null);
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedTime, setSelectedTime] = useState<string>('');
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionType | null>(null);
   const [currentAppointments, setCurrentAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,26 +66,12 @@ export default function AppointmentBooking() {
 
   useEffect(() => {
     if (selectedDate) {
-      loadTimeSlots(selectedDate);
+      setSelectedTime('');
     }
   }, [selectedDate]);
 
-  const loadTimeSlots = async (date: string) => {
-    setLoadingSlots(true);
-    setSelectedSlot(null);
-    try {
-      const slots = await getAvailableTimeSlots(date);
-      setTimeSlots(slots || []);
-    } catch (err) {
-      console.error('Error loading slots:', err);
-      setTimeSlots([]);
-    } finally {
-      setLoadingSlots(false);
-    }
-  };
-
   const handleBooking = async () => {
-    if (!selectedTransaction || !selectedSlot || !studentName.trim()) {
+    if (!selectedTransaction || !selectedDate || !selectedTime || !studentName.trim()) {
       showAlert('error', 'Please fill in all required fields');
       return;
     }
@@ -99,8 +82,8 @@ export default function AppointmentBooking() {
         studentName,
         selectedTransaction.id,
         selectedTransaction.name,
-        selectedSlot.date,
-        selectedSlot.time,
+        selectedDate,
+        selectedTime,
         user?.id || null,
         {
           studentId: studentId || undefined,
@@ -150,6 +133,14 @@ export default function AppointmentBooking() {
     return availableDates.includes(dateStr);
   };
 
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -181,12 +172,7 @@ export default function AppointmentBooking() {
           <h1 className="text-2xl font-bold text-gray-800">Book an Appointment</h1>
         </div>
 
-        {/* Debug info */}
-        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-4 text-sm">
-          <p><strong>Debug:</strong> Available dates: {availableDates.length}</p>
-          <p>Selected date: {selectedDate || 'none'}</p>
-          <p>Time slots: {timeSlots.length}</p>
-        </div>
+        
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
@@ -243,42 +229,27 @@ export default function AppointmentBooking() {
             <div className="bg-white rounded-2xl shadow-xl p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                Select Time Slot
+                Select Time
               </h2>
               
               {!selectedDate ? (
-                <p className="text-gray-500 p-4 text-center">Please select a date from the calendar above</p>
-              ) : loadingSlots ? (
-                <div className="flex justify-center p-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-                </div>
+                <p className="text-gray-500 p-4 text-center">Please select a date from the calendar first</p>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {timeSlots.length === 0 ? (
-                    <div className="col-span-full p-4 text-center text-red-500 bg-red-50 rounded-lg">
-                      No available slots for this date. Please try another date.
-                    </div>
-                  ) : (
-                    timeSlots.map(slot => (
-                      <button
-                        key={slot.id}
-                        onClick={() => setSelectedSlot(slot)}
-                        disabled={slot.bookedSlots >= slot.maxSlots}
-                        className={`p-3 rounded-lg text-center font-medium transition-colors border-2 ${
-                          slot.bookedSlots >= slot.maxSlots
-                            ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : selectedSlot?.id === slot.id
-                              ? 'border-blue-500 bg-blue-500 text-white'
-                              : 'border-green-300 bg-green-50 hover:bg-green-100 text-green-700'
-                        }`}
-                      >
-                        <div className="text-lg">{slot.time}</div>
-                        <div className="text-xs">
-                          {slot.maxSlots - slot.bookedSlots} slot(s)
-                        </div>
-                      </button>
-                    ))
-                  )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Choose your preferred time (8:00 AM - 5:00 PM)
+                  </label>
+                  <input
+                    type="time"
+                    value={selectedTime}
+                    onChange={(e) => setSelectedTime(e.target.value)}
+                    min="08:00"
+                    max="17:00"
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">
+                    Select a time between 8:00 AM and 5:00 PM
+                  </p>
                 </div>
               )}
             </div>
@@ -444,7 +415,7 @@ export default function AppointmentBooking() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Time:</span>
-                  <span className="font-medium">{selectedSlot?.time || '-'}</span>
+                  <span className="font-medium">{selectedTime ? formatTime(selectedTime) : '-'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Transaction:</span>
@@ -454,7 +425,7 @@ export default function AppointmentBooking() {
 
               <button
                 onClick={handleBooking}
-                disabled={!selectedDate || !selectedSlot || !selectedTransaction || !studentName.trim() || booking}
+                disabled={!selectedDate || !selectedTime || !selectedTransaction || !studentName.trim() || booking}
                 className="w-full mt-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {booking ? (
