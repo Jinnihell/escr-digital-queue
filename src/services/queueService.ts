@@ -1006,7 +1006,10 @@ export const getAvailableDates = async (): Promise<string[]> => {
     date.setDate(date.getDate() + i);
     
     const dayOfWeek = date.getDay();
-    const dateStr = date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     
     if (settings.excludeWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
       continue;
@@ -1062,12 +1065,6 @@ export const getAvailableTimeSlots = async (date: string): Promise<AppointmentSl
   }
   
   const filteredSlots = slots.filter(s => s.active && s.bookedSlots < s.maxSlots);
-  
-  // Check if daily limit (50) has been reached
-  const totalBooked = slots.reduce((sum, s) => sum + (s.bookedSlots || 0), 0);
-  if (totalBooked >= settings.maxDailyAppointments) {
-    return [];
-  }
   
   return filteredSlots;
 };
