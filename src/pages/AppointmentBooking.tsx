@@ -23,6 +23,7 @@ export default function AppointmentBooking() {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [timeSlots, setTimeSlots] = useState<AppointmentSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(null);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionType | null>(null);
   const [currentAppointments, setCurrentAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,11 +72,16 @@ export default function AppointmentBooking() {
   }, [selectedDate]);
 
   const loadTimeSlots = async (date: string) => {
+    setLoadingSlots(true);
+    setSelectedSlot(null);
     try {
       const slots = await getAvailableTimeSlots(date);
-      setTimeSlots(slots);
+      setTimeSlots(slots || []);
     } catch (err) {
       console.error('Error loading slots:', err);
+      setTimeSlots([]);
+    } finally {
+      setLoadingSlots(false);
     }
   };
 
@@ -206,12 +212,12 @@ export default function AppointmentBooking() {
                       <button
                         onClick={() => isDateAvailable(date) && setSelectedDate(formatDate(date))}
                         disabled={!isDateAvailable(date)}
-                        className={`w-full aspect-square flex items-center justify-center rounded-lg transition-colors ${
+                        className={`w-full aspect-square flex items-center justify-center rounded-lg transition-colors font-medium ${
                           !isDateAvailable(date) 
-                            ? 'text-gray-300 cursor-not-allowed' 
-                            : isDateAvailable(date) && formatDate(date) === selectedDate
+                            ? 'text-gray-200 cursor-not-allowed' 
+                            : formatDate(date) === selectedDate
                               ? 'bg-blue-500 text-white'
-                              : 'hover:bg-blue-100 text-gray-700'
+                              : 'bg-green-100 hover:bg-green-200 text-green-700'
                         }`}
                       >
                         {date.getDate()}
@@ -229,30 +235,38 @@ export default function AppointmentBooking() {
               </h2>
               
               {!selectedDate ? (
-                <p className="text-gray-500">Please select a date first</p>
-              ) : timeSlots.length === 0 ? (
-                <p className="text-gray-500">No available slots for this date</p>
+                <p className="text-gray-500 p-4 text-center">Please select a date from the calendar above</p>
+              ) : loadingSlots ? (
+                <div className="flex justify-center p-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+                </div>
               ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
-                  {timeSlots.map(slot => (
-                    <button
-                      key={slot.id}
-                      onClick={() => setSelectedSlot(slot)}
-                      disabled={slot.bookedSlots >= slot.maxSlots}
-                      className={`p-3 rounded-lg text-sm font-medium transition-colors ${
-                        slot.bookedSlots >= slot.maxSlots
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : selectedSlot?.id === slot.id
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-green-50 hover:bg-green-100 text-green-700'
-                      }`}
-                    >
-                      {slot.time}
-                      <span className="block text-xs opacity-75">
-                        {slot.maxSlots - slot.bookedSlots} left
-                      </span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {timeSlots.length === 0 ? (
+                    <div className="col-span-full p-4 text-center text-red-500 bg-red-50 rounded-lg">
+                      No available slots for this date. Please try another date.
+                    </div>
+                  ) : (
+                    timeSlots.map(slot => (
+                      <button
+                        key={slot.id}
+                        onClick={() => setSelectedSlot(slot)}
+                        disabled={slot.bookedSlots >= slot.maxSlots}
+                        className={`p-3 rounded-lg text-center font-medium transition-colors border-2 ${
+                          slot.bookedSlots >= slot.maxSlots
+                            ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : selectedSlot?.id === slot.id
+                              ? 'border-blue-500 bg-blue-500 text-white'
+                              : 'border-green-300 bg-green-50 hover:bg-green-100 text-green-700'
+                        }`}
+                      >
+                        <div className="text-lg">{slot.time}</div>
+                        <div className="text-xs">
+                          {slot.maxSlots - slot.bookedSlots} slot(s)
+                        </div>
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
             </div>
