@@ -982,7 +982,7 @@ export const getDefaultAppointmentSettings = (): AppointmentSettings => ({
 });
 
 export const getAppointmentSettings = async (): Promise<AppointmentSettings> => {
-  const docRef = doc(db, SETTINGS_COLLECTION, 'appointments');
+  const docRef = doc(db, 'aposettings', 'config');
   const docSnap = await getDoc(docRef);
   
   if (docSnap.exists()) {
@@ -993,7 +993,7 @@ export const getAppointmentSettings = async (): Promise<AppointmentSettings> => 
 };
 
 export const saveAppointmentSettings = async (settings: AppointmentSettings): Promise<void> => {
-  await setDoc(doc(db, SETTINGS_COLLECTION, 'appointments'), settings);
+  await setDoc(doc(db, 'aposettings', 'config'), settings);
 };
 
 export const getAvailableDates = async (): Promise<string[]> => {
