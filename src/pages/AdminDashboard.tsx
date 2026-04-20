@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAlert } from '../context/useAlert';
+import { useAlert } from '../context/AlertContext';
 import { 
   getTransactionTypes, 
   getQueueStats, 
@@ -12,20 +12,25 @@ import {
   updateWindow,
   subscribeToAllTickets,
   getSettings,
-  saveSettings
+  saveSettings,
+  subscribeToAppointments,
+  confirmAppointment,
+  completeAppointment,
+  cancelAppointment,
+  getAppointmentSettings
 } from '../services/queueService';
 import { RefreshCw, Settings, Download, Printer, Bell, Save, RotateCcw, DatabaseBackup, Filter } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import Navbar from '../components/Navbar';
-import type { TransactionType, QueueStats, Window as WindowType, QueueTicket, SystemSettings } from '../types';
+import type { TransactionType, QueueStats, Window as WindowType, QueueTicket, SystemSettings, Appointment } from '../types';
 
 interface AdminDashboardProps {
-  tab?: 'dashboard' | 'reports' | 'settings' | 'transactions' | 'windows';
+  tab?: 'dashboard' | 'reports' | 'settings' | 'transactions' | 'windows' | 'appointments';
 }
 
 export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProps) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'settings' | 'transactions' | 'windows'>(tab);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'settings' | 'transactions' | 'windows' | 'appointments'>(tab);
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [windows, setWindows] = useState<WindowType[]>([]);
   const [stats, setStats] = useState<QueueStats | null>(null);
@@ -35,6 +40,8 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [allTickets, setAllTickets] = useState<QueueTicket[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointmentFilter, setAppointmentFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all');
 
   // Transaction form state
   const [showTransactionForm, setShowTransactionForm] = useState(false);
@@ -103,6 +110,19 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       setAllTickets(tickets);
     });
     return () => unsubscribe();
+  }, []);
+
+  // Subscribe to appointments
+  useEffect(() => {
+    const unsubscribe = subscribeToAppointments((apts) => {
+      setAppointments(apts);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Load appointment settings
+  useEffect(() => {
+    getAppointmentSettings();
   }, []);
 
   // Load initial data without subscription to prevent issues
@@ -1226,6 +1246,101 @@ console.log('Admin data loaded successfully');
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'appointments' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-semibold text-gray-800">Appointments</h2>
+                <select
+                  value={appointmentFilter}
+                  onChange={(e) => setAppointmentFilter(e.target.value as 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled')}
+                  className="px-3 py-2 border rounded-lg"
+                >
+                  <option value="all">All</option>
+                  <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              
+              {appointments.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No appointments</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Date</th>
+                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Time</th>
+                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Student</th>
+                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Transaction</th>
+                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Status</th>
+                        <th className="text-left py-3 px-4 text-gray-600 font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {appointments
+                        .filter(a => appointmentFilter === 'all' || a.status === appointmentFilter)
+                        .map(apt => (
+                        <tr key={apt.id} className="hover:bg-gray-50">
+                          <td className="py-3 px-4">{new Date(apt.appointmentDate).toLocaleDateString()}</td>
+                          <td className="py-3 px-4">{apt.appointmentTime}</td>
+                          <td className="py-3 px-4">
+                            <div>
+                              <p className="font-medium">{apt.studentName}</p>
+                              {apt.studentId && <p className="text-sm text-gray-500">{apt.studentId}</p>}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">{apt.transactionTypeName}</td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              apt.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              apt.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                              apt.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {apt.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex gap-2">
+                              {apt.status === 'pending' && (
+                                <button
+                                  onClick={() => confirmAppointment(apt.id)}
+                                  className="text-blue-600 hover:underline text-sm"
+                                >
+                                  Confirm
+                                </button>
+                              )}
+                              {apt.status === 'confirmed' && (
+                                <button
+                                  onClick={() => completeAppointment(apt.id)}
+                                  className="text-green-600 hover:underline text-sm"
+                                >
+                                  Complete
+                                </button>
+                              )}
+                              {apt.status !== 'completed' && apt.status !== 'cancelled' && (
+                                <button
+                                  onClick={() => cancelAppointment(apt.id)}
+                                  className="text-red-600 hover:underline text-sm"
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

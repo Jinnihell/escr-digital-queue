@@ -15,6 +15,7 @@ import PublicMonitor from './pages/PublicMonitor';
 import History from './pages/History';
 import WindowSelection from './pages/WindowSelection';
 import FeedbackMonitoring from './pages/FeedbackMonitoring';
+import AppointmentBooking from './pages/AppointmentBooking';
 import ProtectedRoute from './components/ProtectedRoute';
 import Alert from './components/Alert';
 
@@ -61,6 +62,11 @@ function AppRoutes() {
           <DisplayTicket />
         </ProtectedRoute>
       } />
+      <Route path="/appointment" element={
+        <ProtectedRoute allowedRoles={['student']}>
+          <AppointmentBooking />
+        </ProtectedRoute>
+      } />
       <Route path="/history" element={
         <ProtectedRoute allowedRoles={['student', 'admin', 'staff']}>
           <History />
@@ -81,6 +87,11 @@ function AppRoutes() {
       <Route path="/admin/reports" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <AdminDashboard tab="reports" />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/appointments" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <AdminDashboard tab="appointments" />
         </ProtectedRoute>
       } />
       <Route path="/admin/settings" element={

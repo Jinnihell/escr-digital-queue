@@ -24,7 +24,10 @@ import type {
   SystemSettings, 
   TicketStatus,
   QueueStats,
-  StudentDetails
+  StudentDetails,
+  Appointment,
+  AppointmentSlot,
+  AppointmentSettings
 } from '../types';
 
 // Collections
@@ -33,6 +36,8 @@ const TRANSACTIONS_COLLECTION = 'transactions';
 const WINDOWS_COLLECTION = 'windows';
 const SETTINGS_COLLECTION = 'settings';
 const COUNTERS_COLLECTION = 'counters';
+const APPOINTMENTS_COLLECTION = 'appointments';
+const APPOINTMENT_SLOTS_COLLECTION = 'appointmentSlots';
 
 // Helper to convert Firestore timestamp to Date
 const toDate = (timestamp: Timestamp | Date | null | undefined): Date | null => {
@@ -959,4 +964,262 @@ export const subscribeToFeedback = (callback: (feedback: Feedback[]) => void) =>
     })) as Feedback[];
     callback(feedback);
   });
+};
+
+// ============================================
+// APPOINTMENT BOOKING FUNCTIONS
+// ============================================
+
+export const getDefaultAppointmentSettings = (): AppointmentSettings => ({
+  enabled: true,
+  daysInAdvance: 30,
+  startTime: '08:00',
+  endTime: '17:00',
+  slotDuration: 30,
+  maxSlotsPerSlot: 3,
+  maxDailyAppointments: 50,
+  excludeWeekends: true
+});
+
+export const getAppointmentSettings = async (): Promise<AppointmentSettings> => {
+  const docRef = doc(db, SETTINGS_COLLECTION, 'appointments');
+  const docSnap = await getDoc(docRef);
+  
+  if (docSnap.exists()) {
+    return docSnap.data() as AppointmentSettings;
+  }
+  
+  return getDefaultAppointmentSettings();
+};
+
+export const saveAppointmentSettings = async (settings: AppointmentSettings): Promise<void> => {
+  await setDoc(doc(db, SETTINGS_COLLECTION, 'appointments'), settings);
+};
+
+export const getAvailableDates = async (): Promise<string[]> => {
+  const settings = await getAppointmentSettings();
+  const dates: string[] = [];
+  const today = new Date();
+  
+  for (let i = 0; i < settings.daysInAdvance; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() + i);
+    
+    const dayOfWeek = date.getDay();
+    const dateStr = date.toISOString().split('T')[0];
+    
+    if (settings.excludeWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
+      continue;
+    }
+    
+    dates.push(dateStr);
+  }
+  
+  return dates;
+};
+
+export const getAvailableTimeSlots = async (date: string): Promise<AppointmentSlot[]> => {
+  const settings = await getAppointmentSettings();
+  const slots: AppointmentSlot[] = [];
+  
+  const [startHour, startMin] = settings.startTime.split(':').map(Number);
+  const [endHour, endMin] = settings.endTime.split(':').map(Number);
+  
+  let currentHour = startHour;
+  let currentMin = startMin;
+  
+  while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
+    const timeStr = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
+    
+    const slotQ = query(
+      collection(db, APPOINTMENT_SLOTS_COLLECTION),
+      where('date', '==', date),
+      where('time', '==', timeStr)
+    );
+    const slotSnap = await getDocs(slotQ);
+    
+    if (slotSnap.empty) {
+      const newSlot = {
+        date,
+        time: timeStr,
+        maxSlots: settings.maxSlotsPerSlot,
+        bookedSlots: 0,
+        active: true
+      };
+      
+      const docRef = await addDoc(collection(db, APPOINTMENT_SLOTS_COLLECTION), newSlot);
+      slots.push({ id: docRef.id, ...newSlot });
+    } else {
+      const slotData = slotSnap.docs[0].data();
+      slots.push({ id: slotSnap.docs[0].id, ...slotData } as AppointmentSlot);
+    }
+    
+    currentMin += settings.slotDuration;
+    if (currentMin >= 60) {
+      currentHour += Math.floor(currentMin / 60);
+      currentMin = currentMin % 60;
+    }
+  }
+  
+  const filteredSlots = slots.filter(s => s.active && s.bookedSlots < s.maxSlots);
+  
+  // Check if daily limit (50) has been reached
+  const totalBooked = slots.reduce((sum, s) => sum + (s.bookedSlots || 0), 0);
+  if (totalBooked >= settings.maxDailyAppointments) {
+    return [];
+  }
+  
+  return filteredSlots;
+};
+
+export const createAppointment = async (
+  studentName: string,
+  transactionTypeId: string,
+  transactionTypeName: string,
+  appointmentDate: string,
+  appointmentTime: string,
+  userId: string | null = null,
+  studentDetails?: {
+    studentId?: string;
+    course?: string;
+    yearLevel?: string;
+    email?: string;
+    phone?: string;
+  },
+  notes?: string
+): Promise<Appointment> => {
+  const slotQ = query(
+    collection(db, APPOINTMENT_SLOTS_COLLECTION),
+    where('date', '==', appointmentDate),
+    where('time', '==', appointmentTime)
+  );
+  const slotSnap = await getDocs(slotQ);
+  
+  if (slotSnap.empty) {
+    throw new Error('Time slot not available');
+  }
+  
+  const slotData = slotSnap.docs[0].data();
+  if (slotData.bookedSlots >= slotData.maxSlots) {
+    throw new Error('Time slot is fully booked');
+  }
+  
+  const appointmentData = {
+    userId,
+    studentName,
+    studentId: studentDetails?.studentId || null,
+    course: studentDetails?.course || null,
+    yearLevel: studentDetails?.yearLevel || null,
+    email: studentDetails?.email || null,
+    phone: studentDetails?.phone || null,
+    transactionTypeId,
+    transactionTypeName,
+    appointmentDate,
+    appointmentTime,
+    status: 'pending' as const,
+    notes: notes || null,
+    createdAt: serverTimestamp(),
+    confirmedAt: null,
+    completedAt: null
+  };
+  
+  const docRef = await addDoc(collection(db, APPOINTMENTS_COLLECTION), appointmentData);
+  
+  await updateDoc(doc(db, APPOINTMENT_SLOTS_COLLECTION, slotSnap.docs[0].id), {
+    bookedSlots: increment(1)
+  });
+  
+  return { id: docRef.id, ...appointmentData, createdAt: new Date() } as Appointment;
+};
+
+export const getUserAppointments = async (userId: string): Promise<Appointment[]> => {
+  const q = query(
+    collection(db, APPOINTMENTS_COLLECTION),
+    where('userId', '==', userId),
+    orderBy('appointmentDate', 'desc'),
+    orderBy('appointmentTime', 'desc')
+  );
+  
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    createdAt: doc.data().createdAt?.toDate() || new Date(),
+    confirmedAt: doc.data().confirmedAt?.toDate() || null,
+    completedAt: doc.data().completedAt?.toDate() || null
+  })) as Appointment[];
+};
+
+export const getAllAppointments = async (): Promise<Appointment[]> => {
+  const q = query(
+    collection(db, APPOINTMENTS_COLLECTION),
+    orderBy('appointmentDate', 'desc'),
+    orderBy('appointmentTime', 'desc')
+  );
+  
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    createdAt: doc.data().createdAt?.toDate() || new Date(),
+    confirmedAt: doc.data().confirmedAt?.toDate() || null,
+    completedAt: doc.data().completedAt?.toDate() || null
+  })) as Appointment[];
+};
+
+export const subscribeToAppointments = (callback: (appointments: Appointment[]) => void) => {
+  const q = query(
+    collection(db, APPOINTMENTS_COLLECTION),
+    orderBy('appointmentDate', 'desc'),
+    orderBy('appointmentTime', 'desc')
+  );
+  
+  return onSnapshot(q, (snapshot) => {
+    const appointments = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      confirmedAt: doc.data().confirmedAt?.toDate() || null,
+      completedAt: doc.data().completedAt?.toDate() || null
+    })) as Appointment[];
+    callback(appointments);
+  });
+};
+
+export const confirmAppointment = async (appointmentId: string): Promise<void> => {
+  await updateDoc(doc(db, APPOINTMENTS_COLLECTION, appointmentId), {
+    status: 'confirmed',
+    confirmedAt: serverTimestamp()
+  });
+};
+
+export const completeAppointment = async (appointmentId: string): Promise<void> => {
+  await updateDoc(doc(db, APPOINTMENTS_COLLECTION, appointmentId), {
+    status: 'completed',
+    completedAt: serverTimestamp()
+  });
+};
+
+export const cancelAppointment = async (appointmentId: string): Promise<void> => {
+  const appointmentDoc = await getDoc(doc(db, APPOINTMENTS_COLLECTION, appointmentId));
+  if (!appointmentDoc.exists()) return;
+  
+  const appointmentData = appointmentDoc.data();
+  
+  await updateDoc(doc(db, APPOINTMENTS_COLLECTION, appointmentId), {
+    status: 'cancelled'
+  });
+  
+  const slotQ = query(
+    collection(db, APPOINTMENT_SLOTS_COLLECTION),
+    where('date', '==', appointmentData.appointmentDate),
+    where('time', '==', appointmentData.appointmentTime)
+  );
+  const slotSnap = await getDocs(slotQ);
+  
+  if (!slotSnap.empty) {
+    await updateDoc(doc(db, APPOINTMENT_SLOTS_COLLECTION, slotSnap.docs[0].id), {
+      bookedSlots: increment(-1)
+    });
+  }
 };

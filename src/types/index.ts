@@ -153,3 +153,46 @@ export interface DailyReport {
     avgServeTime: number;
   }[];
 }
+
+// Appointment types
+export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
+
+export interface AppointmentSlot {
+  id: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:MM
+  maxSlots: number;
+  bookedSlots: number;
+  active: boolean;
+}
+
+export interface Appointment {
+  id: string;
+  userId: string | null;
+  studentName: string;
+  studentId?: string;
+  course?: string;
+  yearLevel?: string;
+  email?: string;
+  phone?: string;
+  transactionTypeId: string;
+  transactionTypeName: string;
+  appointmentDate: string; // YYYY-MM-DD
+  appointmentTime: string; // HH:MM
+  status: AppointmentStatus;
+  notes?: string;
+  createdAt: Date;
+  confirmedAt: Date | null;
+  completedAt: Date | null;
+}
+
+export interface AppointmentSettings {
+  enabled: boolean;
+  daysInAdvance: number; // How many days ahead can users book
+  startTime: string; // Business hours start (e.g., "08:00")
+  endTime: string; // Business hours end (e.g., "17:00")
+  slotDuration: number; // Minutes per appointment (e.g., 30)
+  maxSlotsPerSlot: number; // Max appointments per time slot
+  maxDailyAppointments: number; // Max appointments per day (default 50)
+  excludeWeekends: boolean;
+}

@@ -1,4 +1,4 @@
-import { createContext, useState, type ReactNode } from 'react';
+import { createContext, useState, useContext, type ReactNode } from 'react';
 
 export type AlertType = 'success' | 'error' | 'warning' | 'info';
 
@@ -95,4 +95,12 @@ export function AlertProvider({ children }: { children: ReactNode }) {
       {children}
     </AlertContext.Provider>
   );
+}
+
+export function useAlert() {
+  const context = useContext(AlertContext);
+  if (context === undefined) {
+    throw new Error('useAlert must be used within an AlertProvider');
+  }
+  return context;
 }

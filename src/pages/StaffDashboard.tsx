@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useAlert } from '../context/useAlert';
+import { useAlert } from '../context/AlertContext';
 import { 
   subscribeToTransactionTypes,
   callNextTicket,

@@ -1,4 +1,4 @@
-import { useAlert } from '../context/useAlert';
+import { useAlert } from '../context/AlertContext';
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 
 export default function Alert() {
