@@ -53,6 +53,7 @@ export default function AppointmentBooking() {
         getTransactionTypes(),
         getAvailableDates()
       ]);
+      console.log('Available dates:', dates);
       setTransactions(trans.filter(t => t.active));
       setAvailableDates(dates);
       if (dates.length > 0) {
@@ -60,6 +61,7 @@ export default function AppointmentBooking() {
       }
     } catch (err) {
       console.error('Error loading data:', err);
+      showAlert('error', 'Failed to load available dates');
     } finally {
       setLoading(false);
     }
@@ -177,6 +179,13 @@ export default function AppointmentBooking() {
             <ChevronLeft className="w-5 h-5 text-gray-700" />
           </button>
           <h1 className="text-2xl font-bold text-gray-800">Book an Appointment</h1>
+        </div>
+
+        {/* Debug info */}
+        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-4 text-sm">
+          <p><strong>Debug:</strong> Available dates: {availableDates.length}</p>
+          <p>Selected date: {selectedDate || 'none'}</p>
+          <p>Time slots: {timeSlots.length}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -982,11 +982,18 @@ export const getDefaultAppointmentSettings = (): AppointmentSettings => ({
 });
 
 export const getAppointmentSettings = async (): Promise<AppointmentSettings> => {
-  const docRef = doc(db, 'aposettings', 'config');
-  const docSnap = await getDoc(docRef);
-  
-  if (docSnap.exists()) {
-    return docSnap.data() as AppointmentSettings;
+  try {
+    const docRef = doc(db, 'aposettings', 'config');
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      console.log('Appointment settings loaded from Firestore:', docSnap.data());
+      return docSnap.data() as AppointmentSettings;
+    }
+    
+    console.log('No appointment settings found, using defaults');
+  } catch (err) {
+    console.error('Error loading appointment settings:', err);
   }
   
   return getDefaultAppointmentSettings();
