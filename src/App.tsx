@@ -90,7 +90,7 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       <Route path="/admin/appointments" element={
-        <ProtectedRoute allowedRoles={['admin']}>
+        <ProtectedRoute allowedRoles={['admin', 'staff']}>
           <AdminDashboard tab="appointments" />
         </ProtectedRoute>
       } />
