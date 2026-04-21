@@ -287,6 +287,14 @@ export default function StaffDashboard() {
             </li>
             <li>
               <button 
+                onClick={() => navigate('/admin/appointments')}
+                className="w-full text-left p-3 rounded-lg hover:bg-white/10 flex items-center justify-between"
+              >
+                <span>Appointments</span>
+              </button>
+            </li>
+            <li>
+              <button 
                 onClick={() => navigate('/history')}
                 className="w-full text-left p-3 rounded-lg hover:bg-white/10"
               >

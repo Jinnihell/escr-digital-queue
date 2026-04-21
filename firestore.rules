@@ -68,5 +68,33 @@ service cloud.firestore {
       allow update: if isAuthenticated() && request.auth.uid == userId;
       allow delete: if isAuthenticated();
     }
+    
+    // ============================================
+    // APPOINTMENTS COLLECTION
+    // ============================================
+    match /appointments/{appointmentId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ============================================
+    // APPOINTMENT SLOTS COLLECTION
+    // ============================================
+    match /appointmentSlots/{slotId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+    
+    // ============================================
+    // APOSETTINGS COLLECTION (Appointment Settings)
+    // ============================================
+    match /aposettings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }
