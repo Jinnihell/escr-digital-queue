@@ -17,7 +17,8 @@ import {
   confirmAppointment,
   completeAppointment,
   cancelAppointment,
-  getAppointmentSettings
+  getAppointmentSettings,
+  createTicket
 } from '../services/queueService';
 import { RefreshCw, Settings, Download, Printer, Bell, Save, RotateCcw, DatabaseBackup, Filter } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -42,6 +43,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   const [allTickets, setAllTickets] = useState<QueueTicket[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentFilter, setAppointmentFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all');
+  const [generatingTicket, setGeneratingTicket] = useState<string | null>(null);
 
   // Transaction form state
   const [showTransactionForm, setShowTransactionForm] = useState(false);
@@ -703,6 +705,40 @@ console.log('Admin data loaded successfully');
     navigate('/admin');
   };
 
+  const handleGenerateQueueTicket = async (apt: Appointment) => {
+    if (!apt.transactionTypeId || !apt.transactionTypeName) {
+      showAlert('error', 'Invalid appointment data');
+      return;
+    }
+
+    setGeneratingTicket(apt.id);
+    try {
+      const trans = transactions.find(t => t.id === apt.transactionTypeId);
+      const prefix = trans?.prefix || 'A';
+
+      const ticket = await createTicket(
+        apt.transactionTypeId,
+        apt.transactionTypeName,
+        prefix,
+        false,
+        apt.userId || null,
+        {
+          name: apt.studentName,
+          studentId: apt.studentId || undefined,
+          course: apt.course as any || '',
+          yearLevel: apt.yearLevel as any || ''
+        }
+      );
+
+      showAlert('success', `Queue ticket ${ticket.ticketNumber} generated for ${apt.studentName}`);
+    } catch (err) {
+      console.error('Error generating ticket:', err);
+      showAlert('error', 'Failed to generate queue ticket');
+    } finally {
+      setGeneratingTicket(null);
+    }
+  };
+
   // Debug: log current state
   console.log('AdminDashboard - activeTab:', activeTab, 'isLoading:', isLoading, 'settingsForm:', settingsForm);
 
@@ -1307,7 +1343,16 @@ console.log('Admin data loaded successfully');
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2">
+                              {(apt.status === 'pending' || apt.status === 'confirmed') && (
+                                <button
+                                  onClick={() => handleGenerateQueueTicket(apt)}
+                                  disabled={generatingTicket === apt.id}
+                                  className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs"
+                                >
+                                  {generatingTicket === apt.id ? 'Generating...' : 'Generate Ticket'}
+                                </button>
+                              )}
                               {apt.status === 'pending' && (
                                 <button
                                   onClick={() => confirmAppointment(apt.id)}
