@@ -1092,22 +1092,6 @@ export const createAppointment = async (
   },
   notes?: string
 ): Promise<Appointment> => {
-  const slotQ = query(
-    collection(db, APPOINTMENT_SLOTS_COLLECTION),
-    where('date', '==', appointmentDate),
-    where('time', '==', appointmentTime)
-  );
-  const slotSnap = await getDocs(slotQ);
-  
-  if (slotSnap.empty) {
-    throw new Error('Time slot not available');
-  }
-  
-  const slotData = slotSnap.docs[0].data();
-  if (slotData.bookedSlots >= slotData.maxSlots) {
-    throw new Error('Time slot is fully booked');
-  }
-  
   const appointmentData = {
     userId,
     studentName,
@@ -1128,10 +1112,6 @@ export const createAppointment = async (
   };
   
   const docRef = await addDoc(collection(db, APPOINTMENTS_COLLECTION), appointmentData);
-  
-  await updateDoc(doc(db, APPOINTMENT_SLOTS_COLLECTION, slotSnap.docs[0].id), {
-    bookedSlots: increment(1)
-  });
   
   return { id: docRef.id, ...appointmentData, createdAt: new Date() } as Appointment;
 };
