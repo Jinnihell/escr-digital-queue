@@ -29,7 +29,6 @@ export default function AppointmentBooking() {
   const [studentName, setStudentName] = useState('');
   const [studentId, setStudentId] = useState('');
   const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [course, setCourse] = useState('');
   const [yearLevel, setYearLevel] = useState('');
@@ -71,7 +70,7 @@ export default function AppointmentBooking() {
   }, [selectedDate]);
 
   const handleBooking = async () => {
-    if (!selectedTransaction || !selectedDate || !selectedTime || !studentName.trim()) {
+    if (!selectedTransaction || !selectedDate || !selectedTime || !studentName.trim() || !studentId.trim() || !course || !yearLevel) {
       showAlert('error', 'Please fill in all required fields');
       return;
     }
@@ -90,7 +89,7 @@ export default function AppointmentBooking() {
           course: course || undefined,
           yearLevel: yearLevel || undefined,
           email: email || undefined,
-          phone: phone || undefined
+          phone: ''
         },
         notes || undefined
       );
@@ -237,19 +236,41 @@ export default function AppointmentBooking() {
               ) : (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Choose your preferred time (8:00 AM - 5:00 PM)
+                    Morning (8:00 AM - 12:00 PM)
                   </label>
-                  <input
-                    type="time"
-                    value={selectedTime}
-                    onChange={(e) => setSelectedTime(e.target.value)}
-                    min="08:00"
-                    max="17:00"
-                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg"
-                  />
-                  <p className="text-sm text-gray-500 mt-2">
-                    Select a time between 8:00 AM and 5:00 PM
-                  </p>
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'].map(time => (
+                      <button
+                        key={time}
+                        onClick={() => setSelectedTime(time)}
+                        className={`p-2 rounded-lg text-sm font-medium transition-colors border-2 ${
+                          selectedTime === time
+                            ? 'border-blue-500 bg-blue-500 text-white'
+                            : 'border-green-300 bg-green-50 hover:bg-green-100 text-green-700'
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Afternoon (1:00 PM - 5:00 PM)
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {['13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'].map(time => (
+                      <button
+                        key={time}
+                        onClick={() => setSelectedTime(time)}
+                        className={`p-2 rounded-lg text-sm font-medium transition-colors border-2 ${
+                          selectedTime === time
+                            ? 'border-blue-500 bg-blue-500 text-white'
+                            : 'border-green-300 bg-green-50 hover:bg-green-100 text-green-700'
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -302,14 +323,15 @@ export default function AppointmentBooking() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Student ID
+                    Student ID <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Your student ID (optional)"
+                    placeholder="Your student ID"
+                    required
                   />
                 </div>
                 <div>
@@ -326,26 +348,15 @@ export default function AppointmentBooking() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Your phone number"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Course
+                    Course <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={course}
                     onChange={(e) => setCourse(e.target.value)}
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
                   >
-                    <option value="">Select course (optional)</option>
+                    <option value="">Select course *</option>
                     <option value="Senior High - Grade 11">Senior High - Grade 11</option>
                     <option value="Senior High - Grade 12">Senior High - Grade 12</option>
                     <option value="Senior High - GAS">Senior High - GAS</option>
@@ -365,14 +376,15 @@ export default function AppointmentBooking() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Year Level
+                    Year Level <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={yearLevel}
                     onChange={(e) => setYearLevel(e.target.value)}
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
                   >
-                    <option value="">Select year (optional)</option>
+                    <option value="">Select year *</option>
                     <option value="Senior High - Grade 11">Senior High - Grade 11</option>
                     <option value="Senior High - Grade 12">Senior High - Grade 12</option>
                     <option value="1st Year">1st Year</option>
