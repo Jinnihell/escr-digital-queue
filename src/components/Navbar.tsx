@@ -38,7 +38,7 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
   return (
     <>
       <div className="fixed top-0 left-0 right-0 z-50 no-print">
-        <div className="px-4 py-3 bg-gradient-to-r from-blue-800/90 to-blue-600/90 backdrop-blur-sm">
+        <div className="px-4 py-3 bg-emerald-700 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {showBackButton && (
@@ -67,18 +67,18 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
                   {adminNavItems.map((item) => {
                     const isActive = location.pathname === item.path;
                     return (
-                    <button
+<button
                       key={item.id}
                       onClick={() => navigate(item.path)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition ${
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition border ${
                         isActive
-                          ? 'bg-orange-500 text-white'
-                          : 'text-blue-200 hover:bg-gradient-to-r hover:from-orange-400 hover:to-orange-500 hover:text-white'
+                          ? 'bg-emerald-600 text-white border-emerald-500'
+                          : 'text-white hover:bg-emerald-600 hover:border-emerald-500'
                       }`}
                     >
-                        <item.icon className="w-4 h-4" />
-                        {item.label}
-                      </button>
+                      <item.icon className="w-4 h-4" />
+                      {item.label}
+                    </button>
                     );
                   })}
                 </div>
@@ -99,7 +99,7 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
       {showHelp && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowHelp(false)}>
           <div 
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-t-4 border-blue-800" 
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-t-4 border-emerald-700" 
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
