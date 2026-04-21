@@ -263,8 +263,8 @@ export default function StaffDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300">
-      {/* Sidebar - Forest Green */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-emerald-700 text-white p-5 flex flex-col z-10">
+      {/* Sidebar - Red */}
+      <div className="fixed left-0 top-0 h-full w-64 bg-red-600 text-white p-5 flex flex-col z-10">
         <div className="text-center mb-8">
           <img src="/escr-logo.png" alt="ESCR Logo" className="w-40 h-40 object-contain mx-auto bg-white rounded-full" />
           <h2 className="font-bold text-lg">ESCR DQMS</h2>
