@@ -263,16 +263,16 @@ export default function StaffDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300">
-      {/* Sidebar - matches PHP design */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-blue-800 text-white p-5 flex flex-col z-10">
+      {/* Sidebar - Forest Green */}
+      <div className="fixed left-0 top-0 h-full w-64 bg-emerald-900 text-white p-5 flex flex-col z-10">
         <div className="text-center mb-8">
-          <img src="/escr-logo.png" alt="ESCR Logo" className="w-40 h-40 object-contain mx-auto  bg-white rounded-full" />
+          <img src="/escr-logo.png" alt="ESCR Logo" className="w-40 h-40 object-contain mx-auto bg-white rounded-full" />
           <h2 className="font-bold text-lg">ESCR DQMS</h2>
-          <p className="text-xs text-blue-200">East Systems Colleges of Rizal</p>
+          <p className="text-xs text-emerald-300">East Systems Colleges of Rizal</p>
           <p className="text-sm mt-2">Window No: {selectedWindow?.number}</p>
           <button 
             onClick={() => navigate('/window-selection')}
-            className="text-xs text-blue-200 underline mt-1"
+            className="text-xs text-emerald-300 underline mt-1 hover:text-white"
           >
             Switch Window
           </button>
@@ -281,14 +281,14 @@ export default function StaffDashboard() {
         <nav className="grow">
           <ul className="space-y-2">
             <li>
-              <button className="w-full text-left p-3 rounded-lg bg-white/10">
+              <button className="w-full text-left p-3 rounded-lg bg-white text-emerald-900 font-semibold">
                 Dashboard
               </button>
             </li>
             <li>
               <button 
                 onClick={() => navigate('/admin/appointments')}
-                className="w-full text-left p-3 rounded-lg hover:bg-white/10 flex items-center justify-between"
+                className="w-full text-left p-3 rounded-lg hover:bg-orange-400 flex items-center justify-between"
               >
                 <span>Appointments</span>
               </button>
@@ -296,7 +296,7 @@ export default function StaffDashboard() {
             <li>
               <button 
                 onClick={() => navigate('/history')}
-                className="w-full text-left p-3 rounded-lg hover:bg-white/10"
+                className="w-full text-left p-3 rounded-lg hover:bg-orange-400"
               >
                 History
               </button>
@@ -307,7 +307,7 @@ export default function StaffDashboard() {
         <div className="border-t border-white/20 pt-4">
           <button 
             onClick={handleLogout}
-            className="w-full text-left p-3 rounded-lg hover:bg-white/10 flex items-center gap-2"
+            className="w-full text-left p-3 rounded-lg hover:bg-orange-400 flex items-center gap-2"
           >
             Logout
           </button>
@@ -325,19 +325,19 @@ export default function StaffDashboard() {
                 {/* Logo */}
                 <img src="/escr-logo.png" alt="ESCR Logo" className="w-40 h-40 object-contain mx-auto" />
                 
-                {/* Now Serving Title */}
-                <h3 className="text-3xl font-bold text-orange-600 mt-2">NOW SERVING!</h3>
+                {/* Now Serving Title - Red for high visibility */}
+                <h3 className="text-3xl font-bold text-red-600 mt-2">NOW SERVING!</h3>
                 
-                {/* Queue Number */}
-                <div className="border-4 border-blue-800 rounded-2xl p-6 my-4">
-                  <p className="text-7xl md:text-8xl font-black text-blue-800">
+                {/* Queue Number - White with Green border */}
+                <div className="border-4 border-green-600 rounded-2xl p-6 my-4 bg-white">
+                  <p className="text-7xl md:text-8xl font-black text-green-800">
                     {currentTicket?.ticketNumber || '---'}
                   </p>
                 </div>
                 
                 {/* Student Info */}
                 {currentTicket && (
-                  <div className="bg-gray-50 rounded-xl p-3 text-left border-l-4 border-blue-800 mb-4">
+                  <div className="bg-gray-50 rounded-xl p-3 text-left border-l-4 border-green-600 mb-4">
                     <p className="text-sm text-gray-500">Student Name:</p>
                     <p className="font-semibold">{currentTicket.studentName || 'N/A'}</p>
                     <p className="text-sm text-gray-500 mt-2">Course & Year:</p>
@@ -350,15 +350,15 @@ export default function StaffDashboard() {
                   <button
                     onClick={() => handleCallNext()}
                     disabled={!selectedTransaction || !selectedWindow || isCalling}
-                    className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold py-4 px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                   >
                     {isCalling ? '⏳ Calling...' : '📞 Call Next Ticket'}
                   </button>
                   
-                  {/* Call Others Button */}
+                  {/* Call Others Button - Yellow */}
                   <button
                     onClick={() => setShowAllTransactions(!showAllTransactions)}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all"
                   >
                     📋 {showAllTransactions ? 'Hide Others' : 'Call Others'}
                   </button>
@@ -395,7 +395,7 @@ export default function StaffDashboard() {
                           speakTicket(currentTicket.ticketNumber, selectedWindow?.number.toString() || '');
                         }
                       }}
-                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                     >
                       🔔 Ring
                     </button>
@@ -414,15 +414,15 @@ export default function StaffDashboard() {
 
           {/* Right Panel */}
           <div className="w-full md:w-72">
-            {/* Stats - matches PHP design */}
+            {/* Stats - Waiting (Red) / Completed (Green) */}
             <div className="flex gap-3 mb-6">
-              <div className="flex-1 bg-white rounded-2xl shadow-xl p-4 text-center">
+              <div className="flex-1 bg-white rounded-2xl shadow-xl p-4 text-center border-2 border-red-500">
                 <p className="text-gray-500 text-xs uppercase">Waiting</p>
-                <p className="text-3xl font-bold text-orange-500">
+                <p className="text-3xl font-bold text-red-600">
                   {waitingTickets.length}
                 </p>
               </div>
-              <div className="flex-1 bg-white rounded-2xl shadow-xl p-4 text-center">
+              <div className="flex-1 bg-white rounded-2xl shadow-xl p-4 text-center border-2 border-green-500">
                 <p className="text-gray-500 text-xs uppercase">Completed</p>
                 <p className="text-3xl font-bold text-green-600">
                   {stats?.completedTickets || 0}
@@ -430,7 +430,7 @@ export default function StaffDashboard() {
               </div>
             </div>
 
-            {/* Waiting List - matches PHP design */}
+            {/* Waiting List - Orange header */}
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-orange-500 text-white p-3 text-center font-bold">
                 Next Serving Queue
