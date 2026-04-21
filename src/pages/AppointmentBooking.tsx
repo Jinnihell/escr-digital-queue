@@ -133,6 +133,8 @@ export default function AppointmentBooking() {
   };
 
   const formatTime = (time: string) => {
+    if (time === 'Morning') return 'Morning (8:00 AM - 12:00 PM)';
+    if (time === 'Afternoon') return 'Afternoon (1:00 PM - 5:00 PM)';
     const [hours, minutes] = time.split(':');
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -234,43 +236,29 @@ export default function AppointmentBooking() {
               {!selectedDate ? (
                 <p className="text-gray-500 p-4 text-center">Please select a date from the calendar first</p>
               ) : (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Morning (8:00 AM - 12:00 PM)
-                  </label>
-                  <div className="grid grid-cols-4 gap-2 mb-4">
-                    {['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'].map(time => (
-                      <button
-                        key={time}
-                        onClick={() => setSelectedTime(time)}
-                        className={`p-2 rounded-lg text-sm font-medium transition-colors border-2 ${
-                          selectedTime === time
-                            ? 'border-blue-500 bg-blue-500 text-white'
-                            : 'border-green-300 bg-green-50 hover:bg-green-100 text-green-700'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Afternoon (1:00 PM - 5:00 PM)
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {['13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'].map(time => (
-                      <button
-                        key={time}
-                        onClick={() => setSelectedTime(time)}
-                        className={`p-2 rounded-lg text-sm font-medium transition-colors border-2 ${
-                          selectedTime === time
-                            ? 'border-blue-500 bg-blue-500 text-white'
-                            : 'border-green-300 bg-green-50 hover:bg-green-100 text-green-700'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setSelectedTime('Morning')}
+                    className={`p-6 rounded-xl text-center font-medium transition-colors border-2 ${
+                      selectedTime === 'Morning'
+                        ? 'border-blue-500 bg-blue-500 text-white'
+                        : 'border-green-300 bg-green-50 hover:bg-green-100 text-green-700'
+                    }`}
+                  >
+                    <div className="text-xl">Morning</div>
+                    <div className="text-sm">8:00 AM - 12:00 PM</div>
+                  </button>
+                  <button
+                    onClick={() => setSelectedTime('Afternoon')}
+                    className={`p-6 rounded-xl text-center font-medium transition-colors border-2 ${
+                      selectedTime === 'Afternoon'
+                        ? 'border-blue-500 bg-blue-500 text-white'
+                        : 'border-green-300 bg-green-50 hover:bg-green-100 text-green-700'
+                    }`}
+                  >
+                    <div className="text-xl">Afternoon</div>
+                    <div className="text-sm">1:00 PM - 5:00 PM</div>
+                  </button>
                 </div>
               )}
             </div>
