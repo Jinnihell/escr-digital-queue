@@ -326,7 +326,7 @@ export default function StaffDashboard() {
                 <img src="/escr-logo.png" alt="ESCR Logo" className="w-40 h-40 object-contain mx-auto" />
                 
                 {/* Now Serving Title - Red for high visibility */}
-                <h3 className="text-3xl font-bold text-red-600 mt-2">NOW SERVING!</h3>
+                <h3 className="text-3xl font-bold text-red-600 -mt-4">NOW SERVING!</h3>
                 
                 {/* Queue Number - White with Green border */}
                 <div className="border-4 border-green-600 rounded-2xl p-6 my-4 bg-white">
