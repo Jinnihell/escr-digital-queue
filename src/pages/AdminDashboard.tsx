@@ -778,23 +778,23 @@ console.log('Admin data loaded successfully');
       <div className="max-w-7xl mx-auto px-4 py-6">
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            {/* Stats Cards - Traffic Light Logic */}
+            {/* Stats Cards - Red Theme */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-orange-50/50 rounded-xl shadow p-6 border border-orange-200">
+              <div className="bg-red-50/50 rounded-xl shadow p-6 border border-red-200">
                 <p className="text-gray-500 text-sm">Active Queues</p>
-                <p className="text-3xl font-bold text-orange-600">{stats?.totalTickets || 0}</p>
+                <p className="text-3xl font-bold text-red-600">{stats?.totalTickets || 0}</p>
               </div>
-              <div className="bg-orange-50/50 rounded-xl shadow p-6 border border-orange-200">
+              <div className="bg-red-50/50 rounded-xl shadow p-6 border border-red-200">
                 <p className="text-gray-500 text-sm">Serving Now</p>
-                <p className="text-3xl font-bold text-orange-600">{stats?.servingTickets || 0}</p>
+                <p className="text-3xl font-bold text-red-600">{stats?.servingTickets || 0}</p>
               </div>
-              <div className="bg-orange-50/50 rounded-xl shadow p-6 border border-orange-200">
+              <div className="bg-red-50/50 rounded-xl shadow p-6 border border-red-200">
                 <p className="text-gray-500 text-sm">Waiting</p>
-                <p className="text-3xl font-bold text-orange-600">{stats?.waitingTickets || 0}</p>
+                <p className="text-3xl font-bold text-red-600">{stats?.waitingTickets || 0}</p>
               </div>
-              <div className="bg-orange-50/50 rounded-xl shadow p-6 border border-orange-200">
+              <div className="bg-red-50/50 rounded-xl shadow p-6 border border-red-200">
                 <p className="text-gray-500 text-sm">Completed</p>
-                <p className="text-3xl font-bold text-orange-600">{stats?.completedTickets || 0}</p>
+                <p className="text-3xl font-bold text-red-600">{stats?.completedTickets || 0}</p>
               </div>
             </div>
 
