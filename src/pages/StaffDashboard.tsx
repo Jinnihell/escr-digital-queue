@@ -430,12 +430,12 @@ export default function StaffDashboard() {
               </div>
             </div>
 
-            {/* Waiting List - Orange header */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            {/* Waiting List - Orange header - centered */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden text-center">
               <div className="bg-orange-500 text-white p-3 text-center font-bold">
                 Next Serving Queue
               </div>
-              <div className="p-3 max-h-[300px] overflow-y-auto">
+              <div className="p-3 max-h-[300px] overflow-y-auto text-center">
                 {waitingTickets.length > 0 ? (
                   <div className="space-y-2">
                     {waitingTickets.slice(0, 5).map((ticket) => (
