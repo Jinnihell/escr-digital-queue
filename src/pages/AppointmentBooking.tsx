@@ -70,7 +70,7 @@ export default function AppointmentBooking() {
   }, [selectedDate]);
 
   const handleBooking = async () => {
-    if (!selectedTransaction || !selectedDate || !selectedTime || !studentName.trim() || !studentId.trim() || !course || !yearLevel) {
+    if (!selectedTransaction || !selectedDate || !selectedTime || !studentName.trim() || !course || !yearLevel) {
       showAlert('error', 'Please fill in all required fields');
       return;
     }
@@ -323,15 +323,14 @@ export default function AppointmentBooking() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Student ID <span className="text-red-500">*</span>
+                    Student ID
                   </label>
                   <input
                     type="text"
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Your student ID"
-                    required
+                    placeholder="Your student ID (optional)"
                   />
                 </div>
                 <div>
