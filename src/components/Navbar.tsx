@@ -73,7 +73,7 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition border ${
                         isActive
                           ? 'bg-red-700 text-white border-red-500'
-                          : 'text-white hover:bg-red-700 hover:border-red-500'
+                          : 'text-white hover:bg-yellow-500 hover:border-yellow-400'
                       }`}
                     >
                       <item.icon className="w-4 h-4" />
