@@ -414,17 +414,17 @@ export default function StaffDashboard() {
 
           {/* Right Panel */}
           <div className="w-full md:w-72">
-            {/* Stats - Waiting (Red) / Completed (Green) */}
-            <div className="flex gap-3 mb-6">
-              <div className="flex-1 bg-white rounded-2xl shadow-xl p-4 text-center border-2 border-red-500">
-                <p className="text-gray-500 text-xs uppercase">Waiting</p>
-                <p className="text-3xl font-bold text-red-600">
+            {/* Stats - Waiting (Red) / Completed (Green) - 20% bigger */}
+            <div className="flex gap-4 mb-6">
+              <div className="flex-1 bg-white rounded-2xl shadow-xl p-6 text-center border-2 border-red-500">
+                <p className="text-gray-500 text-sm uppercase">Waiting</p>
+                <p className="text-4xl font-bold text-red-600">
                   {waitingTickets.length}
                 </p>
               </div>
-              <div className="flex-1 bg-white rounded-2xl shadow-xl p-4 text-center border-2 border-green-500">
-                <p className="text-gray-500 text-xs uppercase">Completed</p>
-                <p className="text-3xl font-bold text-green-600">
+              <div className="flex-1 bg-white rounded-2xl shadow-xl p-6 text-center border-2 border-green-500">
+                <p className="text-gray-500 text-sm uppercase">Completed</p>
+                <p className="text-4xl font-bold text-green-600">
                   {stats?.completedTickets || 0}
                 </p>
               </div>
