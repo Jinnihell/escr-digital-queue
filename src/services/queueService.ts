@@ -1092,28 +1092,37 @@ export const createAppointment = async (
   },
   notes?: string
 ): Promise<Appointment> => {
-  const appointmentData = {
-    userId,
-    studentName,
-    studentId: studentDetails?.studentId || null,
-    course: studentDetails?.course || null,
-    yearLevel: studentDetails?.yearLevel || null,
-    email: studentDetails?.email || null,
-    phone: studentDetails?.phone || null,
-    transactionTypeId,
-    transactionTypeName,
-    appointmentDate,
-    appointmentTime,
-    status: 'pending' as const,
-    notes: notes || null,
-    createdAt: serverTimestamp(),
-    confirmedAt: null,
-    completedAt: null
-  };
+  console.log('Creating appointment with:', { studentName, transactionTypeId, transactionTypeName, appointmentDate, appointmentTime });
   
-  const docRef = await addDoc(collection(db, APPOINTMENTS_COLLECTION), appointmentData);
-  
-  return { id: docRef.id, ...appointmentData, createdAt: new Date() } as Appointment;
+  try {
+    const appointmentData = {
+      userId,
+      studentName,
+      studentId: studentDetails?.studentId || null,
+      course: studentDetails?.course || null,
+      yearLevel: studentDetails?.yearLevel || null,
+      email: studentDetails?.email || null,
+      phone: studentDetails?.phone || null,
+      transactionTypeId,
+      transactionTypeName,
+      appointmentDate,
+      appointmentTime,
+      status: 'pending' as const,
+      notes: notes || null,
+      createdAt: serverTimestamp(),
+      confirmedAt: null,
+      completedAt: null
+    };
+    
+    console.log('Saving to Firestore collection:', APPOINTMENTS_COLLECTION);
+    const docRef = await addDoc(collection(db, APPOINTMENTS_COLLECTION), appointmentData);
+    console.log('Appointment saved with ID:', docRef.id);
+    
+    return { id: docRef.id, ...appointmentData, createdAt: new Date() } as Appointment;
+  } catch (err) {
+    console.error('Error creating appointment:', err);
+    throw err;
+  }
 };
 
 export const getUserAppointments = async (userId: string): Promise<Appointment[]> => {

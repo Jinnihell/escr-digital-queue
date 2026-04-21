@@ -45,19 +45,38 @@ export default function AppointmentBooking() {
 
   const loadData = async () => {
     try {
-      const [trans, dates] = await Promise.all([
-        getTransactionTypes(),
-        getAvailableDates()
-      ]);
-      console.log('Available dates:', dates);
+      console.log('Loading data...');
+      const trans = await getTransactionTypes();
+      console.log('Transactions:', trans);
+      
+      let dates: string[] = [];
+      try {
+        dates = await getAvailableDates();
+        console.log('Available dates:', dates);
+      } catch (dateErr) {
+        console.error('Error getting dates:', dateErr);
+        // Use default dates if fetch fails
+        const today = new Date();
+        for (let i = 1; i <= 30; i++) {
+          const d = new Date(today);
+          d.setDate(today.getDate() + i);
+          if (d.getDay() !== 0 && d.getDay() !== 6) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            dates.push(`${y}-${m}-${day}`);
+          }
+        }
+      }
+      
       setTransactions(trans.filter(t => t.active));
       setAvailableDates(dates);
       if (dates.length > 0) {
         setSelectedDate(dates[0]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading data:', err);
-      showAlert('error', 'Failed to load available dates');
+      showAlert('error', err.message || 'Failed to load data');
     } finally {
       setLoading(false);
     }
