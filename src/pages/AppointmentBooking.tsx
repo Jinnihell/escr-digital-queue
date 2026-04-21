@@ -170,8 +170,10 @@ export default function AppointmentBooking() {
           <button onClick={() => navigate('/')} className="p-2 rounded-lg bg-white/80 hover:bg-white transition-colors">
             <ChevronLeft className="w-5 h-5 text-gray-700" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-800">Book an Appointment</h1>
+          <h1 className="text-2xl font-bold text-gray-800">APPOINTMENT DETAILS</h1>
         </div>
+
+        <p className="text-gray-600 mb-4">Please select your preferred date and time for your appointment</p>
 
         
 
