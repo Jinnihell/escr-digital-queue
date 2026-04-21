@@ -70,14 +70,36 @@ export default function AppointmentBooking() {
   }, [selectedDate]);
 
   const handleBooking = async () => {
-    if (!selectedTransaction || !selectedDate || !selectedTime || !studentName.trim() || !course || !yearLevel) {
-      showAlert('error', 'Please fill in all required fields');
+    console.log('Selected:', { selectedTransaction, selectedDate, selectedTime, studentName, course, yearLevel });
+    
+    if (!selectedTransaction) {
+      showAlert('error', 'Please select a transaction type');
+      return;
+    }
+    if (!selectedDate) {
+      showAlert('error', 'Please select a date');
+      return;
+    }
+    if (!selectedTime) {
+      showAlert('error', 'Please select a time (Morning or Afternoon)');
+      return;
+    }
+    if (!studentName.trim()) {
+      showAlert('error', 'Please enter your name');
+      return;
+    }
+    if (!course) {
+      showAlert('error', 'Please select your course');
+      return;
+    }
+    if (!yearLevel) {
+      showAlert('error', 'Please select your year level');
       return;
     }
 
     setBooking(true);
     try {
-      await createAppointment(
+      const result = await createAppointment(
         studentName,
         selectedTransaction.id,
         selectedTransaction.name,
@@ -93,9 +115,11 @@ export default function AppointmentBooking() {
         },
         notes || undefined
       );
+      console.log('Appointment created:', result);
       showAlert('success', 'Appointment booked successfully!');
       navigate('/');
-    } catch {
+    } catch (err) {
+      console.error('Booking error:', err);
       showAlert('error', 'Failed to book appointment. Please try again.');
     } finally {
       setBooking(false);
