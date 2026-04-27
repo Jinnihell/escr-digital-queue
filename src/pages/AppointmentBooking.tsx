@@ -45,14 +45,11 @@ export default function AppointmentBooking() {
 
   const loadData = async () => {
     try {
-      console.log('Loading data...');
       const trans = await getTransactionTypes();
-      console.log('Transactions:', trans);
       
       let dates: string[] = [];
       try {
         dates = await getAvailableDates();
-        console.log('Available dates:', dates);
       } catch (dateErr) {
         console.error('Error getting dates:', dateErr);
         // Use default dates if fetch fails
@@ -89,8 +86,6 @@ export default function AppointmentBooking() {
   }, [selectedDate]);
 
   const handleBooking = async () => {
-    console.log('Selected:', { selectedTransaction, selectedDate, selectedTime, studentName, course, yearLevel });
-    
     if (!selectedTransaction) {
       showAlert('error', 'Please select a transaction type');
       return;
@@ -118,7 +113,7 @@ export default function AppointmentBooking() {
 
     setBooking(true);
     try {
-      const result = await createAppointment(
+      await createAppointment(
         studentName,
         selectedTransaction.id,
         selectedTransaction.name,
@@ -134,7 +129,6 @@ export default function AppointmentBooking() {
         },
         notes || undefined
       );
-      console.log('Appointment created:', result);
       showAlert('success', 'Appointment booked successfully!');
       navigate('/');
     } catch (err) {
@@ -495,30 +489,34 @@ export default function AppointmentBooking() {
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Date</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Time</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Transaction</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
-                  </tr>
-                </thead>
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Date</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Time</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Transaction</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Ticket #</th>
+              </tr>
+            </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {currentAppointments.slice(0, 5).map(apt => (
-                    <tr key={apt.id}>
-                      <td className="px-4 py-3">
-                        {new Date(apt.appointmentDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3">{apt.appointmentTime}</td>
-                      <td className="px-4 py-3">{apt.transactionTypeName}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(apt.status)}`}>
-                          {apt.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                   {currentAppointments.slice(0, 5).map(apt => (
+                     <tr key={apt.id}>
+                       <td className="px-4 py-3">
+                         {new Date(apt.appointmentDate).toLocaleDateString()}
+                       </td>
+                       <td className="px-4 py-3">{apt.appointmentTime}</td>
+                       <td className="px-4 py-3">{apt.transactionTypeName}</td>
+                       <td className="px-4 py-3">
+                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(apt.status)}`}>
+                           {apt.status}
+                         </span>
+                       </td>
+                       <td className="px-4 py-3 text-center font-medium">
+                         {apt.ticketNumber || '-'}
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
               </table>
             </div>
           </div>

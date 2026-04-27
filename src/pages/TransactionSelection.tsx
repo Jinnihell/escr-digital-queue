@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getTransactionTypes, initializeDefaultTransactions, initializeDefaultWindows, subscribeToActiveTickets, getUserActiveTickets } from '../services/queueService';
+import { Wallet, Info, Award } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import type { TransactionType, QueueTicket } from '../types';
+import type { QueueTicket } from '../types';
 
 // Transaction Selection Page - Matches MYPHPQUEUE transaction_selection.php design
 
 export default function TransactionSelection() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,9 +97,7 @@ export default function TransactionSelection() {
         console.warn('Initialization skipped (may already exist):', initErr);
       }
       
-      const data = await getTransactionTypes();
-      // Show transactions that are active or have no active field
-      setTransactions(data.filter(t => t.active !== false));
+      await getTransactionTypes();
     } catch (err) {
       console.error('Error loading transactions:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -112,14 +110,21 @@ export default function TransactionSelection() {
   const handleContinue = () => {
     if (!selectedId) return;
     
-    const selected = transactions.find(t => t.id === selectedId);
+    // Map selected ID to transaction details
+    const transactionMap: Record<string, { id: string; name: string; prefix: string }> = {
+      cashier: { id: 'cashier', name: 'Cashier', prefix: 'C' },
+      information: { id: 'information', name: 'Information', prefix: 'I' },
+      registrar: { id: 'registrar', name: 'Registrar', prefix: 'R' }
+    };
+    
+    const selected = transactionMap[selectedId];
     if (!selected) return;
 
     // Store selection in sessionStorage for the next page
     sessionStorage.setItem('selectedTransaction', JSON.stringify({
       id: selected.id,
       name: selected.name,
-      prefix: selected.prefix || selected.name.charAt(0).toUpperCase()
+      prefix: selected.prefix
     }));
     
     navigate('/student-details');
@@ -136,7 +141,7 @@ export default function TransactionSelection() {
     <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       {/* Queue Status Tracker - matches PHP design */}
       {showTracker && myTicket && (
-        <div className="fixed top-0 left-0 right-0 z-40 bg-linear-to-r from-blue-800 to-blue-600 text-white p-2 shadow-lg">
+        <div className="fixed top-0 left-0 right-0 z-40 bg-emerald-700 text-white p-2 shadow-lg">
           <div className="max-w-4xl mx-auto flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div>
@@ -191,12 +196,18 @@ export default function TransactionSelection() {
         title="ESCR DQMS - Select Transaction"
         helpContent={
           <div className="space-y-3 text-gray-600">
-            <p>1. Select your transaction type (Assessments, Enrollments, etc.)</p>
-            <p>2. Click Continue to proceed.</p>
-            <p>3. Fill up the student details and get your queue ticket.</p>
+            <p>1. Choose your transaction:</p>
+            <ul className="list-disc list-inside ml-2 space-y-1">
+              <li><b>Cashier</b> - for payments</li>
+              <li><b>Information</b> - for inquiries and document requests</li>
+              <li><b>Registrar</b> - for admissions, etc.</li>
+            </ul>
+            <p>2. Click <b>Continue</b> to proceed.</p>
+            <p>3. Enter your student details and get your queue ticket.</p>
+            <p>4. Wait for your number to be called.</p>
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
               <p className="text-blue-800 text-sm">
-                <b>Note:</b> You can rate and add a feedback for your own satisfaction experience.
+                <b>Tip:</b> Keep your ticket number safe. You can check your position on the display monitor.
               </p>
             </div>
           </div>
@@ -205,16 +216,16 @@ export default function TransactionSelection() {
 
       {/* Main Content - matches PHP design */}
       <div className="max-w-4xl mx-auto pt-16">
-        <h1 className="text-3xl font-extrabold text-gray-800 text-center mb-2 mt-8">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-800 text-center mb-2 mt-8">
           WELCOME!
         </h1>
-        <p className="text-gray-600 text-center mb-8 font-semibold">
+        <p className="text-gray-600 text-center mb-6 sm:mb-8 font-semibold text-base sm:text-lg">
           Please select your transaction...
         </p>
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
           </div>
         ) : error ? (
           <div className="text-center py-8 bg-red-50 rounded-xl border border-red-200">
@@ -228,39 +239,43 @@ export default function TransactionSelection() {
           </div>
         ) : (
           <>
-            {/* Transaction Buttons Grid - matches PHP design */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {transactions.length === 0 ? (
-                <div className="col-span-2 text-center py-8 bg-white rounded-xl shadow">
-                  <p className="text-gray-600 mb-2">No transactions available at the moment.</p>
-                  <p className="text-gray-500 text-sm">Please try again later or contact support.</p>
-                </div>
-              ) : (
-                transactions.map((transaction) => (
-                  <button
-                    key={transaction.id}
-                    onClick={() => setSelectedId(transaction.id)}
-                    className={`p-6 rounded-2xl text-center transition-all duration-300 flex flex-col items-center gap-3 ${
-                      selectedId === transaction.id
-                        ? 'bg-linear-to-r from-red-700 to-red-500 text-white shadow-xl transform scale-[1.02]'
-                        : 'bg-yellow-50 hover:bg-yellow-100 text-gray-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
-                    }`}
-                  >
-                    {/* Icon based on transaction type */}
-                    <div className="text-4xl">
-                      {transaction.name.toLowerCase().includes('enrollment') && '👥'}
-                      {transaction.name.toLowerCase().includes('assessment') && '📋'}
-                      {transaction.name.toLowerCase().includes('payment') && '💳'}
-                      {transaction.name.toLowerCase().includes('other') && '🔔'}
-                      {!transaction.name.toLowerCase().includes('enrollment') && 
-                       !transaction.name.toLowerCase().includes('assessment') && 
-                       !transaction.name.toLowerCase().includes('payment') && 
-                       !transaction.name.toLowerCase().includes('other') && '📌'}
-                    </div>
-                    <span className="font-bold text-xl">{transaction.name}</span>
-                  </button>
-                ))
-              )}
+            {/* Transaction Buttons - Horizontal Row, Centered */}
+            <div className="flex flex-wrap justify-center items-center gap-4 mb-8 px-4">
+              <button
+                onClick={() => setSelectedId('cashier')}
+                className={`w-60 h-60 rounded-2xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
+                  selectedId === 'cashier'
+                    ? 'bg-emerald-700 text-white shadow-xl transform scale-[1.05]'
+                    : 'bg-white hover:bg-red-500 hover:text-white text-gray-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
+                }`}
+              >
+                <Wallet className={`w-15 h-15 ${selectedId === 'cashier' ? 'text-white' : 'text-emerald-600'}`} />
+                <span className="font-bold text-xl">Cashier</span>
+              </button>
+              
+              <button
+                onClick={() => setSelectedId('information')}
+                className={`w-60 h-60 rounded-2xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
+                  selectedId === 'information'
+                    ? 'bg-emerald-700 text-white shadow-xl transform scale-[1.05]'
+                    : 'bg-white hover:bg-red-500 hover:text-white text-gray-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
+                }`}
+              >
+                <Info className={`w-15 h-15 ${selectedId === 'information' ? 'text-white' : 'text-emerald-600'}`} />
+                <span className="font-bold text-xl">Information</span>
+              </button>
+              
+              <button
+                onClick={() => setSelectedId('registrar')}
+                className={`w-60 h-60 rounded-2xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
+                  selectedId === 'registrar'
+                    ? 'bg-emerald-700 text-white shadow-xl transform scale-[1.05]'
+                    : 'bg-white hover:bg-red-500 hover:text-white text-gray-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
+                }`}
+              >
+                <Award className={`w-15 h-15 ${selectedId === 'registrar' ? 'text-white' : 'text-emerald-600'}`} />
+                <span className="font-bold text-xl">Registrar</span>
+              </button>
             </div>
 
             {/* Continue Button - matches PHP design */}
@@ -270,7 +285,7 @@ export default function TransactionSelection() {
                 disabled={!selectedId}
                 className={`px-12 py-3 rounded-xl font-bold text-lg transition-all duration-300 ${
                   selectedId
-                    ? 'bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl hover:-translate-y-1'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl hover:-translate-y-1'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >

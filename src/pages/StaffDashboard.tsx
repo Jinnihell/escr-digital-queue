@@ -350,42 +350,42 @@ className="text-xs text-emerald-200 underline mt-1"
       </div>
 
       {/* Main Content */}
-      <div className="ml-64 p-6">
-        <div className="flex flex-wrap gap-6">
+      <div className="ml-0 md:ml-64 p-3 md:p-6">
+        <div className="flex flex-wrap gap-4 md:gap-6">
           {/* Left Panel */}
-          <div className="flex-1 min-w-[300px]">
+          <div className="flex-1 min-w-[280px] md:min-w-[300px]">
             {/* Serving Card - matches PHP design */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6 mb-4 md:mb-6">
               <div className="text-center">
                 {/* Logo */}
-                <img src="/escr-logo.png" alt="ESCR Logo" className="w-40 h-40 object-contain mx-auto" />
+                <img src="/escr-logo.png" alt="ESCR Logo" className="w-24 h-24 md:w-40 md:h-40 object-contain mx-auto" />
                 
                 {/* Now Serving Title */}
-                <h3 className="text-3xl font-bold text-orange-600 mt-2">NOW SERVING!</h3>
+                <h3 className="text-2xl md:text-3xl font-bold text-orange-600 mt-2">NOW SERVING!</h3>
                 
                 {/* Queue Number */}
-                <div className="border-4 border-blue-800 rounded-2xl p-6 my-4">
-                  <p className="text-7xl md:text-8xl font-black text-blue-800">
+                <div className="border-4 border-blue-800 rounded-2xl p-4 md:p-6 my-3 md:my-4">
+                  <p className="text-5xl md:text-7xl lg:text-8xl font-black text-blue-800">
                     {currentTicket?.ticketNumber || '---'}
                   </p>
                 </div>
                 
                 {/* Student Info */}
                 {currentTicket && (
-                  <div className="bg-gray-50 rounded-xl p-3 text-left border-l-4 border-blue-800 mb-4">
+                  <div className="bg-gray-50 rounded-xl p-3 text-left border-l-4 border-blue-800 mb-3 md:mb-4">
                     <p className="text-sm text-gray-500">Student Name:</p>
-                    <p className="font-semibold">{currentTicket.studentName || 'N/A'}</p>
+                    <p className="font-semibold text-sm md:text-base">{currentTicket.studentName || 'N/A'}</p>
                     <p className="text-sm text-gray-500 mt-2">Course & Year:</p>
-                    <p className="font-semibold">{currentTicket.course || 'N/A'} - {currentTicket.yearLevel || 'N/A'}</p>
+                    <p className="font-semibold text-sm md:text-base">{currentTicket.course || 'N/A'} - {currentTicket.yearLevel || 'N/A'}</p>
                   </div>
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2 md:gap-3">
                   <button
                     onClick={() => handleCallNext()}
                     disabled={!selectedTransaction || !selectedWindow || isCalling}
-                    className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold py-4 px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                    className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm md:text-base"
                   >
                     {isCalling ? '⏳ Calling...' : '📞 Call Next Ticket'}
                   </button>
@@ -393,16 +393,16 @@ className="text-xs text-emerald-200 underline mt-1"
                   {/* Call Others Button */}
                   <button
                     onClick={() => setShowAllTransactions(!showAllTransactions)}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 md:py-3 px-6 md:px-8 rounded-xl shadow-lg hover:shadow-xl transition-all text-sm md:text-base"
                   >
                     📋 {showAllTransactions ? 'Hide Others' : 'Call Others'}
                   </button>
                   
                   {/* Other Transactions Dropdown */}
                   {showAllTransactions && (
-                    <div className="bg-white rounded-xl shadow-lg p-4 border-2 border-gray-300">
+                    <div className="bg-white rounded-xl shadow-lg p-3 md:p-4 border-2 border-gray-300">
                       <p className="text-sm font-semibold text-gray-600 mb-2">Select Transaction to Call:</p>
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                      <div className="space-y-2 max-h-32 md:max-h-40 overflow-y-auto">
                         {allTransactions
                           .filter(t => t.id !== selectedTransaction)
                           .map(t => (
@@ -413,7 +413,7 @@ className="text-xs text-emerald-200 underline mt-1"
                                 setShowAllTransactions(false);
                                 handleCallNext(t.id);
                               }}
-                              className="w-full text-left p-2 rounded-lg bg-gray-100 hover:bg-blue-100 text-gray-800 font-medium"
+                              className="w-full text-left p-2 rounded-lg bg-gray-100 hover:bg-blue-100 text-gray-800 font-medium text-sm"
                             >
                               {t.name}
                             </button>
@@ -422,7 +422,7 @@ className="text-xs text-emerald-200 underline mt-1"
                     </div>
                   )}
                   
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 md:gap-3">
                     <button
                       onClick={() => {
                         playNotificationSound();
@@ -430,14 +430,14 @@ className="text-xs text-emerald-200 underline mt-1"
                           speakTicket(currentTicket.ticketNumber, selectedWindow?.number.toString() || '');
                         }
                       }}
-                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 md:py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm md:text-base"
                     >
                       🔔 Ring
                     </button>
                     <button
                       onClick={handleComplete}
                       disabled={!currentTicket || isCompleting}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 md:py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 text-sm md:text-base"
                     >
                       {isCompleting ? '⏳' : '✓ Complete'}
                     </button>

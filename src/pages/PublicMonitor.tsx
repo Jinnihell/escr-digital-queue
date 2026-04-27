@@ -112,46 +112,29 @@ export default function PublicMonitor() {
         </div>
       </div>
 
-      {/* Main Content */}
+{/* Main Content */}
       <div className="flex flex-1">
-        {/* Left Sidebar - Announcements - Full height with light orange */}
-        <div className="w-60 bg-orange-100 text-gray-900 p-6 flex-shrink-0 hidden lg:block h-[calc(100vh-48px)]">
-          <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-400 pb-2 uppercase">
-            <span>📋</span> Announcements
-          </h3>
-          <div className="space-y-3 text-sm">
-            <p className="font-bold text-gray-900 border-b border-gray-400 pb-1">PERIODICAL EXAMINATIONS</p>
-            <p><span className="text-gray-700">PRELIM - February 9-14, 2026</span></p>
-            <p><span className="text-gray-700">MIDTERM - March 9-14, 2026</span></p>
-            <p><span className="text-gray-700">SEMI-FINALS - April 6-11, 2026</span></p>
-            <p><span className="text-gray-700">FINALS - May 4-9, 2026</span></p>
-            <p className="font-bold text-gray-900 border-b border-gray-400 pb-1 mt-4">SCHEDULE</p>
-            <p><span className="text-orange-600 font-semibold">Compliance week</span> <span className="text-gray-700">- May 11-16, 2026</span></p>
-            <p><span className="text-orange-600 font-semibold">End of 2nd Semester</span> <span className="text-gray-700">- May 16, 2026</span></p>
-            <p><span className="text-green-700 font-semibold">Release of Grades</span> <span className="text-gray-700">- June 15, 2026</span></p>
-          </div>
-        </div>
-
-{/* Center - Main Window Cards */}
+        {/* Center - Main Window Cards */}
         <div className="flex-1 p-4">
-          <h2 className="text-2xl md:text-4xl font-bold text-white text-center mb-2">NOW SERVING!</h2>
-          <p className="text-orange-400 text-lg text-center italic mb-6">Please proceed to your serving window</p>
+          <h2 className="text-3xl md:text-5xl font-black text-white text-center mb-2 animate-pulse">NOW SERVING!</h2>
+          <p className="text-orange-400 text-xl text-center italic mb-6 font-semibold">Please proceed to your assigned window</p>
           {/* Now Serving Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {windows.map((window) => {
               const windowTicket = servingTickets.find(t => t.windowId === window.id);
+              const hasTicket = !!windowTicket?.ticketNumber;
               return (
                 <div 
                   key={window.id} 
-                  className="bg-white rounded-2xl p-6 text-gray-800 shadow-xl"
+                  className={`bg-white rounded-3xl p-8 text-gray-800 shadow-2xl border-4 ${hasTicket ? 'border-orange-500 shadow-orange-500/50' : 'border-gray-300'}`}
                 >
-                  <div className="bg-orange-500 text-white px-4 py-2 rounded-lg text-center font-bold text-lg mb-4">
+                  <div className={`${hasTicket ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 'bg-gray-400'} text-white px-6 py-3 rounded-xl text-center font-bold text-xl mb-6`}>
                     {window.name}
                   </div>
-                  <p className="text-6xl md:text-7xl font-black text-center mb-2">
+                  <p className={`text-7xl md:text-8xl font-black text-center mb-4 ${hasTicket ? 'text-orange-600' : 'text-gray-400'}`}>
                     {windowTicket?.ticketNumber || '---'}
                   </p>
-                  <p className="text-orange-500 italic text-center text-xl font-semibold">
+                  <p className="text-orange-500 italic text-center text-2xl font-bold">
                     {windowTicket?.transactionTypeName || ''}
                   </p>
                 </div>
@@ -169,7 +152,6 @@ export default function PublicMonitor() {
                 if (!transaction) return null;
                 return (
                   <div key={transaction.id} className="border-r border-white/30 last:border-r-0 pr-4 last:pr-0">
-                    <h4 className="text-center font-bold text-orange-400 mb-2">{transaction.name}</h4>
                     <div className="flex flex-wrap justify-center gap-2">
                       {getWaitingForTransaction(transaction.id).length > 0 ? (
                         getWaitingForTransaction(transaction.id).map((ticket) => (
@@ -194,8 +176,8 @@ export default function PublicMonitor() {
 
       {/* Footer Ticker */}
       <div className="fixed bottom-0 left-0 right-0 h-14 bg-orange-500 text-blue-900 font-bold flex items-center overflow-hidden">
-        <div className="whitespace-nowrap animate-[marquee_20s_linear_infinite] px-4 text-lg md:text-xl">
-          Welcome to ESCR! Please check the monitor for your queue number and proceed to your assigned window when called.
+        <div className="whitespace-nowrap animate-[marquee_30s_linear_infinite] px-4 text-lg md:text-xl">
+          📢 ANNOUNCEMENTS: PERIODICAL EXAMINATIONS - PRELIM (February 9-14, 2026), MIDTERM (March 9-14, 2026), SEMI-FINALS (April 6-11, 2026), FINALS (May 4-9, 2026) | SCHEDULE - Compliance week (May 11-16, 2026), End of 2nd Semester (May 16, 2026), Release of Grades (June 15, 2026) | Welcome to ESCR! Please check the monitor for your queue number and proceed to your assigned window when called.
         </div>
       </div>
 

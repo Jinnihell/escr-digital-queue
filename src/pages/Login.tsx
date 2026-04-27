@@ -61,16 +61,16 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-green-200 via-blue-100 to-blue-300 p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
           {/* Logo */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-4 sm:mb-6">
             <img 
               src="/escr-logo.png" 
               alt="ESCR Logo" 
-              className="w-50 h-50 object-contain mx-auto mb-4 bg-white rounded-full"
+              className="w-32 h-32 sm:w-40 sm:h-40 object-contain mx-auto mb-3 sm:mb-4 bg-white rounded-full"
             />
-            <h1 className="text-2xl font-bold text-gray-800">ESCR Digital Queue</h1>
-            <p className="text-gray-500 mt-1">Sign in to your account</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">ESCR Digital Queue</h1>
+            <p className="text-gray-500 mt-1 text-sm sm:text-base">Sign in to your account</p>
           </div>
 
           {/* Messages */}
@@ -103,9 +103,9 @@ export default function Login() {
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Email or Username
               </label>
               <input
@@ -113,14 +113,14 @@ export default function Login() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-base sm:text-lg"
                 placeholder="Enter your email or username"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Password
               </label>
               <div className="relative">
@@ -129,7 +129,7 @@ export default function Login() {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-12"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-10 sm:pr-12 text-base sm:text-lg"
                   placeholder="Enter your password"
                   required
                 />
@@ -146,7 +146,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 sm:py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg"
             >
               {isLoading ? (
                 <>
@@ -163,12 +163,12 @@ export default function Login() {
           </form>
 
           {/* Google Sign In Button */}
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isGoogleLoading}
-              className="w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-lg border border-gray-300 transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 sm:py-3 px-4 rounded-lg border border-gray-300 transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg"
             >
               {isGoogleLoading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-500 border-t-transparent"></div>

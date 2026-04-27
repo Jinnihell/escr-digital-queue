@@ -100,7 +100,7 @@ export default function WindowSelection() {
     <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 p-4">
       {/* Navbar */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <div className="px-4 py-3 bg-gradient-to-r from-blue-800/90 to-blue-600/90 backdrop-blur-sm">
+        <div className="px-4 py-3 bg-emerald-700 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button
@@ -108,7 +108,7 @@ export default function WindowSelection() {
                 onClick={() => navigate(-1)}
                 title="Go back"
                 aria-label="Go back"
-                className="flex items-center gap-2 text-white hover:text-blue-200 transition"
+                className="flex items-center gap-2 text-white hover:text-emerald-200 transition"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -119,7 +119,7 @@ export default function WindowSelection() {
               />
               <div>
                 <h1 className="text-lg font-bold text-white">ESCR DQMS</h1>
-                <p className="text-xs text-blue-200">East Systems Colleges of Rizal</p>
+                <p className="text-xs text-emerald-200">East Systems Colleges of Rizal</p>
               </div>
             </div>
           </div>

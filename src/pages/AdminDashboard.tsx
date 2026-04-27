@@ -130,7 +130,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   // Load initial data without subscription to prevent issues
   useEffect(() => {
     const initData = async () => {
-      console.log('Initializing AdminDashboard...');
       try {
         await loadData();
       } catch (err) {
@@ -236,8 +235,112 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     setShowFilter(false);
   };
 
-  const handleExportPDF = () => {
-    const printContent = `
+  const generateReportHTML = (extended: boolean = false) => {
+    const filteredTickets = getFilteredTickets();
+    const commonStats = `
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-number">${filteredTickets.length}</div>
+          <div>Total Tickets</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">${filteredTickets.filter(t => t.status === 'completed').length}</div>
+          <div>Completed</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">${filteredTickets.filter(t => t.status === 'waiting').length}</div>
+          <div>Waiting</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">${filteredTickets.filter(t => t.status === 'serving').length}</div>
+          <div>Serving</div>
+        </div>
+      </div>
+    `;
+
+    let content = `
+      <h2>Summary Statistics</h2>
+      ${commonStats}
+      
+      <h2>Tickets by Transaction</h2>
+      <table>
+        <tr><th>Transaction Type</th><th>Count</th></tr>
+        ${getTicketsByTransaction().map(t => `<tr><td>${t.name}</td><td>${t.value}</td></tr>`).join('')}
+      </table>
+      
+      <h2>Tickets by Window</h2>
+      <table>
+        <tr><th>Window</th><th>Count</th></tr>
+        ${getTicketsByWindow().map(w => `<tr><td>${w.name}</td><td>${w.value}</td></tr>`).join('')}
+      </table>
+      
+      <h2>Most Served Windows</h2>
+      <table>
+        <tr><th>Rank</th><th>Window</th><th>Tickets Served</th></tr>
+        ${getMostServedWindows().map((w, i) => `<tr><td>${i + 1}</td><td>${w.name}</td><td>${w.value}</td></tr>`).join('')}
+      </table>
+    `;
+
+    if (extended) {
+      content = `
+        <h2>Summary Statistics</h2>
+        ${commonStats}
+        <div class="stats">
+          <div class="stat-box">
+            <div class="stat-number">${filteredTickets.filter(t => t.status === 'cancelled' || t.status === 'no_show').length}</div>
+            <div>Cancelled</div>
+          </div>
+        </div>
+
+        <h2>Transaction Breakdown</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Transaction Type</th>
+              <th>Total</th>
+              <th>Completed</th>
+              <th>Waiting</th>
+              <th>Cancelled</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${transactions.map(t => {
+              const total = filteredTickets.filter(tk => tk.transactionTypeId === t.id).length;
+              const completed = filteredTickets.filter(tk => tk.transactionTypeId === t.id && tk.status === 'completed').length;
+              const waiting = filteredTickets.filter(tk => tk.transactionTypeId === t.id && tk.status === 'waiting').length;
+              const cancelled = filteredTickets.filter(tk => tk.transactionTypeId === t.id && (tk.status === 'cancelled' || tk.status === 'no_show')).length;
+              return `<tr><td>${t.name}</td><td>${total}</td><td>${completed}</td><td>${waiting}</td><td>${cancelled}</td></tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+
+        <h2>Recent Transactions</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Transaction</th>
+              <th>Student</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredTickets.slice(0, 20).map(t => `
+              <tr>
+                <td>${t.ticketNumber}</td>
+                <td>${t.transactionTypeName}</td>
+                <td>${t.studentName || 'N/A'}</td>
+                <td>${t.status}</td>
+                <td>${t.createdAt?.toLocaleDateString() || 'N/A'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -259,53 +362,17 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
         <body>
           <h1>ESCR DQMS - Reports</h1>
           <p style="text-align:center">Generated on: ${new Date().toLocaleString()}</p>
-          
-          <h2>Summary Statistics</h2>
-          <div class="stats">
-            <div class="stat-box">
-              <div class="stat-number">${getFilteredTickets().length}</div>
-              <div>Total Tickets</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'completed').length}</div>
-              <div>Completed</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'waiting').length}</div>
-              <div>Waiting</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'serving').length}</div>
-              <div>Serving</div>
-            </div>
-          </div>
-          
-          <h2>Tickets by Transaction</h2>
-          <table>
-            <tr><th>Transaction Type</th><th>Count</th></tr>
-            ${getTicketsByTransaction().map(t => `<tr><td>${t.name}</td><td>${t.value}</td></tr>`).join('')}
-          </table>
-          
-          <h2>Tickets by Window</h2>
-          <table>
-            <tr><th>Window</th><th>Count</th></tr>
-            ${getTicketsByWindow().map(w => `<tr><td>${w.name}</td><td>${w.value}</td></tr>`).join('')}
-          </table>
-          
-          <h2>Most Served Windows</h2>
-          <table>
-            <tr><th>Rank</th><th>Window</th><th>Tickets Served</th></tr>
-            ${getMostServedWindows().map((w, i) => `<tr><td>${i + 1}</td><td>${w.name}</td><td>${w.value}</td></tr>`).join('')}
-          </table>
-          
+          ${content}
           <div class="footer">
-            <p>East Systems Colleges of Rizal - Digital Queue Management System</p>
+            <p>ESCR Digital Queue Management System</p>
           </div>
         </body>
       </html>
     `;
+  };
 
-    const blob = new Blob([printContent], { type: 'text/html' });
+  const handleExportPDF = () => {
+    const blob = new Blob([generateReportHTML(false)], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -317,105 +384,9 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
   };
 
   const handlePrint = () => {
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>ESCR Reports - ${new Date().toLocaleDateString()}</title>
-          <style>
-            @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { color: #1e40af; text-align: center; }
-            h2 { color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: left; }
-            th { background-color: #f3f4f6; }
-            .stats { display: flex; gap: 20px; margin: 20px 0; }
-            .stat-box { background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; flex: 1; }
-            .stat-number { font-size: 24px; font-weight: bold; }
-            .footer { margin-top: 30px; text-align: center; color: #6b7280; font-size: 12px; }
-          </style>
-        </head>
-        <body>
-          <h1>ESCR DQMS - Reports</h1>
-          <p style="text-align:center">Generated on: ${new Date().toLocaleString()}</p>
-          
-          <h2>Summary Statistics</h2>
-          <div class="stats">
-            <div class="stat-box">
-              <div class="stat-number">${getFilteredTickets().length}</div>
-              <div>Total Tickets</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'completed').length}</div>
-              <div>Completed</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'waiting').length}</div>
-              <div>Waiting</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-number">${getFilteredTickets().filter(t => t.status === 'cancelled' || t.status === 'no_show').length}</div>
-              <div>Cancelled</div>
-            </div>
-          </div>
-
-          <h2>Transaction Breakdown</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Transaction Type</th>
-                <th>Total</th>
-                <th>Completed</th>
-                <th>Waiting</th>
-                <th>Cancelled</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${transactions.map(t => {
-                const total = getFilteredTickets().filter(tk => tk.transactionTypeId === t.id).length;
-                const completed = getFilteredTickets().filter(tk => tk.transactionTypeId === t.id && tk.status === 'completed').length;
-                const waiting = getFilteredTickets().filter(tk => tk.transactionTypeId === t.id && tk.status === 'waiting').length;
-                const cancelled = getFilteredTickets().filter(tk => tk.transactionTypeId === t.id && (tk.status === 'cancelled' || tk.status === 'no_show')).length;
-                return `<tr><td>${t.name}</td><td>${total}</td><td>${completed}</td><td>${waiting}</td><td>${cancelled}</td></tr>`;
-              }).join('')}
-            </tbody>
-          </table>
-
-          <h2>Recent Transactions</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Ticket #</th>
-                <th>Transaction</th>
-                <th>Student</th>
-                <th>Status</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${getFilteredTickets().slice(0, 20).map(t => `
-                <tr>
-                  <td>${t.ticketNumber}</td>
-                  <td>${t.transactionTypeName}</td>
-                  <td>${t.studentName || 'N/A'}</td>
-                  <td>${t.status}</td>
-                  <td>${t.createdAt?.toLocaleDateString() || 'N/A'}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-
-          <div class="footer">
-            <p>ESCR Digital Queue Management System</p>
-          </div>
-        </body>
-      </html>
-    `;
-
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      printWindow.document.write(printContent);
+      printWindow.document.write(generateReportHTML(true));
       printWindow.document.close();
       printWindow.onload = () => {
         printWindow.print();
@@ -423,18 +394,15 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     }
   };
 
-const loadData = async () => {
+  const loadData = async () => {
     setIsLoading(true);
     setLoadError(null);
     
     try {
-      console.log('Loading admin data...');
-      
       // Load settings first with fallback
       let systemSettings: SystemSettings | null = null;
       try {
         systemSettings = await getSettings();
-        console.log('Settings loaded:', systemSettings);
       } catch (settingsErr) {
         console.warn('Settings not loaded, using defaults:', settingsErr);
         systemSettings = {
@@ -489,8 +457,6 @@ const loadData = async () => {
       setStats(queueStats);
       setWindows(windowList);
       setSettingsForm(systemSettings);
-      
-console.log('Admin data loaded successfully');
     } catch (err) {
       console.error('Critical error loading data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -503,7 +469,7 @@ console.log('Admin data loaded successfully');
   // Show error state if data failed to load
   if (loadError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
           <div className="text-red-500 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -695,7 +661,7 @@ console.log('Admin data loaded successfully');
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
       </div>
     );
@@ -739,14 +705,18 @@ console.log('Admin data loaded successfully');
     }
   };
 
-  // Debug: log current state
-  console.log('AdminDashboard - activeTab:', activeTab, 'isLoading:', isLoading, 'settingsForm:', settingsForm);
-
   const adminHelpContent = (
     <div className="space-y-3 text-gray-600">
-      <p><b>Dashboard:</b> Overview of system stats and quick actions.</p>
-      <p><b>Reports:</b> View analytics and export reports.</p>
-      <p><b>Settings:</b> Configure system settings.</p>
+      <p><b>Dashboard:</b> Overview of system stats, queue status, and quick actions.</p>
+      <p><b>Reports:</b> View analytics, transaction history, and export reports.</p>
+      <p><b>Appointments:</b> Manage and view scheduled appointments.</p>
+      <p><b>Feedback:</b> View user feedback and ratings.</p>
+      <p><b>Settings:</b> Configure windows, transactions, and system settings.</p>
+      <ul className="list-disc list-inside ml-2 space-y-1 mt-2">
+        <li><b>Cashier</b> - for payments</li>
+        <li><b>Information</b> - for inquiries and document requests</li>
+        <li><b>Registrar</b> - for admissions, etc.</li>
+      </ul>
       <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
         <p className="text-red-800 text-sm">
           <b>Warning:</b> Reset Queue clears all active tickets!
@@ -756,7 +726,7 @@ console.log('Admin data loaded successfully');
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
+    <div className="min-h-screen ! from-green-200 via-blue-100 to-blue-300 pt-16">
       <Navbar 
         title="Admin Dashboard" 
         showBackButton 

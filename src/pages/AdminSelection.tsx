@@ -34,22 +34,22 @@ export default function AdminSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300">
       {/* Fixed Navbar */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <div className="px-4 py-3 bg-gradient-to-r from-blue-800/90 to-blue-600/90 backdrop-blur-sm">
+        <div className="px-4 py-3 bg-emerald-700 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img src={logo} alt="ESCR Logo" className="w-14 h-14 object-contain bg-white/20 rounded-full p-1" />
               <div>
                 <h1 className="text-xl font-bold text-white">Admin Portal</h1>
-                <p className="text-xs text-blue-200">East Systems Colleges of Rizal</p>
+                <p className="text-xs text-emerald-200">East Systems Colleges of Rizal</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right text-white hidden sm:block">
                 <p className="text-sm font-medium">{user?.username}</p>
-                <p className="text-xs text-blue-200">Admin</p>
+                <p className="text-xs text-emerald-200">Admin</p>
               </div>
               <button onClick={handleLogout} className="flex items-center gap-2 text-white hover:text-red-300 transition">
                 <LogOut className="w-5 h-5" />

@@ -44,7 +44,7 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
               {showBackButton && (
                 <button
                   onClick={onBack || (() => navigate(-1))}
-                  className="flex items-center gap-2 text-white hover:text-blue-200 transition"
+                  className="flex items-center gap-2 text-white hover:text-emerald-200 transition"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
@@ -57,7 +57,7 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
                 />
                 <div>
                   <h1 className="text-xl font-bold text-white">{title || 'ESCR DQMS'}</h1>
-                  <p className="text-xs text-blue-200 hidden sm:block">East Systems Colleges of Rizal</p>
+                  <p className="text-xs text-emerald-200 hidden sm:block">East Systems Colleges of Rizal</p>
                 </div>
               </div>
             </div>
@@ -73,7 +73,7 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition ${
                         isActive
                           ? 'bg-orange-500 text-white'
-                          : 'text-blue-200 hover:bg-gradient-to-r hover:from-orange-400 hover:to-orange-500 hover:text-white'
+                          : 'text-white hover:bg-orange-500 hover:text-white'
                       }`}
                     >
                         <item.icon className="w-4 h-4" />
@@ -99,7 +99,7 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
       {showHelp && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowHelp(false)}>
           <div 
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-t-4 border-blue-800" 
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-t-4 border-emerald-700" 
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
@@ -116,7 +116,7 @@ export default function Navbar({ title, showBackButton, onBack, helpContent, sho
             </div>
             <button 
               onClick={() => setShowHelp(false)}
-              className="w-full bg-gradient-to-r from-blue-800 to-blue-600 text-white py-2 rounded-xl font-semibold"
+              className="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-2 rounded-xl font-semibold"
             >
               Got it
             </button>

@@ -44,6 +44,8 @@ export interface StudentDetails {
   studentId?: string;
   course: Course | '';
   yearLevel: YearLevel | '';
+  email?: string;
+  phone?: string;
 }
 
 // Transaction types (services)
@@ -184,6 +186,9 @@ export interface Appointment {
   createdAt: Date;
   confirmedAt: Date | null;
   completedAt: Date | null;
+  // Queue ticket generated when appointment is confirmed
+  ticketId?: string;
+  ticketNumber?: string;
 }
 
 export interface AppointmentSettings {
