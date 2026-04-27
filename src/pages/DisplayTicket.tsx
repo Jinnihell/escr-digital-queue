@@ -302,7 +302,7 @@ export default function DisplayTicket() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-slate-600">{stats.completedTickets}</p>
-                    <p className="text-xs text-gray-500">Done</p>
+                    <p className="text-xs text-gray-500">Done</p> .
                   </div>
                 </div>
               </div>
