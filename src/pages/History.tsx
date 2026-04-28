@@ -78,7 +78,10 @@ export default function History() {
       );
     }
     
-    return filtered.slice(0, 50);  const handleReset = () => {
+    return filtered.slice(0, 50);
+  };
+
+  const handleReset = () => {
     setStartDate('');
     setEndDate('');
     setWindowFilter('');
