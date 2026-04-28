@@ -71,10 +71,10 @@ export default function AppointmentBooking() {
       if (dates.length > 0) {
         setSelectedDate(dates[0]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error loading data:', err);
-      showAlert('error', err.message || 'Failed to load data');
-    } finally {
+      const message = (err instanceof Error) ? err.message : String(err);
+      showAlert("error", message || "Failed to load data");
       setLoading(false);
     }
   };

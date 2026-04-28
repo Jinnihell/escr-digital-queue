@@ -23,7 +23,7 @@ import {
 import { RefreshCw, Settings, Download, Printer, Bell, Save, RotateCcw, DatabaseBackup, Filter } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import Navbar from '../components/Navbar';
-import type { TransactionType, QueueStats, Window as WindowType, QueueTicket, SystemSettings, Appointment } from '../types';
+import type { TransactionType, QueueStats, Window as WindowType, QueueTicket, SystemSettings, Appointment, Course, YearLevel } from '../types';
 
 interface AdminDashboardProps {
   tab?: 'dashboard' | 'reports' | 'settings' | 'transactions' | 'windows' | 'appointments';
@@ -691,8 +691,8 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
         {
           name: apt.studentName,
           studentId: apt.studentId || undefined,
-          course: apt.course as any || '',
-          yearLevel: apt.yearLevel as any || ''
+          course: (apt.course || '') as Course | '',
+          yearLevel: (apt.yearLevel || '') as YearLevel | '',
         }
       );
 
