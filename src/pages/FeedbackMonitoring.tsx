@@ -43,7 +43,7 @@ export default function FeedbackMonitoring() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-700 font-medium">Loading feedback...</p>
@@ -53,7 +53,7 @@ export default function FeedbackMonitoring() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       <Navbar title="Feedback Monitoring" showBackButton onBack={handleBack} showHelpButton={false} />
 
       <div className="max-w-4xl mx-auto p-6">

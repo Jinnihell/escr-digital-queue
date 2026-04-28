@@ -87,7 +87,7 @@ export default function WindowSelection() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-700 font-medium">Loading windows...</p>
@@ -97,7 +97,7 @@ export default function WindowSelection() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 p-4">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 p-4">
       {/* Navbar */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <div className="px-4 py-3 bg-emerald-700 backdrop-blur-sm">

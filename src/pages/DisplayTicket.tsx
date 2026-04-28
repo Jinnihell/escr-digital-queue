@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { createTicket, getQueueStats, subscribeToActiveTickets, getUserActiveTicket } from '../services/queueService';
@@ -17,7 +17,7 @@ interface SelectedTransaction {
 const statusThemes = {
   waiting: {
     header: 'from-amber-500 to-orange-500',
-    headerBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
+    headerBg: 'bg-linear-to-br from-amber-500 to-orange-500',
     textColor: 'text-orange-700',
     badge: 'bg-orange-100 text-orange-700',
     progress: 'bg-orange-200',
@@ -25,7 +25,7 @@ const statusThemes = {
   },
   serving: {
     header: 'from-emerald-500 to-teal-500',
-    headerBg: 'bg-gradient-to-br from-emerald-500 to-teal-500',
+    headerBg: 'bg-linear-to-br from-emerald-500 to-teal-500',
     textColor: 'text-emerald-700',
     badge: 'bg-emerald-100 text-emerald-700',
     progress: 'bg-emerald-200',
@@ -33,7 +33,7 @@ const statusThemes = {
   },
   missed: {
     header: 'from-rose-500 to-red-500',
-    headerBg: 'bg-gradient-to-br from-rose-500 to-red-500',
+    headerBg: 'bg-linear-to-br from-rose-500 to-red-500',
     textColor: 'text-rose-700',
     badge: 'bg-rose-100 text-rose-700',
     progress: 'bg-rose-200',
@@ -41,7 +41,7 @@ const statusThemes = {
   },
   completed: {
     header: 'from-blue-500 to-indigo-500',
-    headerBg: 'bg-gradient-to-br from-blue-500 to-indigo-500',
+    headerBg: 'bg-linear-to-br from-blue-500 to-indigo-500',
     textColor: 'text-blue-700',
     badge: 'bg-blue-100 text-blue-700',
     progress: 'bg-blue-200',
@@ -63,61 +63,61 @@ export default function DisplayTicket() {
   const [showQueueModal, setShowQueueModal] = useState(true);
   const [currentStatus, setCurrentStatus] = useState<'waiting' | 'serving' | 'missed' | 'completed'>('waiting');
 
-  const generateTicket = async () => {
+const generateTicket = useCallback(async () => {
     const stored = sessionStorage.getItem('selectedTransaction');
     const studentStored = sessionStorage.getItem('studentDetails');
     
     if (!stored) {
-      navigate('/transactions');
-      return;
+        navigate('/transactions');
+        return;
     }
 
     const selected: SelectedTransaction = JSON.parse(stored);
     const studentDetails = studentStored ? JSON.parse(studentStored) : undefined;
 
     try {
-      if (user?.id) {
-        const existingTicket = await getUserActiveTicket(user.id, selected.id);
-        if (existingTicket) {
-          setTicket(existingTicket);
-          setCurrentStatus(existingTicket.status === 'serving' ? 'serving' : existingTicket.status === 'completed' ? 'completed' : 'waiting');
-          const queueStats = await getQueueStats(selected.id);
-          setStats(queueStats);
-          setIsLoading(false);
-          return;
+        if (user?.id) {
+            const existingTicket = await getUserActiveTicket(user.id, selected.id);
+            if (existingTicket) {
+                setTicket(existingTicket);
+                setCurrentStatus(existingTicket.status === 'serving' ? 'serving' : existingTicket.status === 'completed' ? 'completed' : 'waiting');
+                const queueStats = await getQueueStats(selected.id);
+                setStats(queueStats);
+                setIsLoading(false);
+                return;
+            }
         }
-      }
 
-      const queueStats = await getQueueStats(selected.id);
-      setStats(queueStats);
-      setWaitingPosition(queueStats.waitingTickets);
+        const queueStats = await getQueueStats(selected.id);
+        setStats(queueStats);
+        setWaitingPosition(queueStats.waitingTickets);
 
-      try {
-        const newTicket = await createTicket(
-          selected.id,
-          selected.name,
-          selected.prefix,
-          false,
-          user?.id || null,
-          studentDetails
-        );
-        setTicket(newTicket);
-      } catch (ticketErr) {
-        console.error('Ticket creation error:', ticketErr);
-        const errMsg = ticketErr instanceof Error ? ticketErr.message : 'Unknown error';
-        setError(`Failed to create ticket: ${errMsg}`);
-      }
+        try {
+            const newTicket = await createTicket(
+                selected.id,
+                selected.name,
+                selected.prefix,
+                false,
+                user?.id || null,
+                studentDetails
+            );
+            setTicket(newTicket);
+        } catch (ticketErr) {
+            console.error('Ticket creation error:', ticketErr);
+            const errMsg = ticketErr instanceof Error ? ticketErr.message : 'Unknown error';
+            setError(`Failed to create ticket: ${errMsg}`);
+        }
     } catch (err) {
-      console.error('Error generating ticket:', err);
-      setError('Failed to generate ticket. Please try again.');
+        console.error('Error generating ticket:', err);
+        setError('Failed to generate ticket. Please try again.');
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+}, [user, navigate]);
 
   useEffect(() => {
     generateTicket();
-  }, []);
+  }, [generateTicket]);
 
   useEffect(() => {
     const unsubscribe = subscribeToActiveTickets((tickets) => {
@@ -139,7 +139,7 @@ export default function DisplayTicket() {
           setCurrentStatus('completed');
           setTimeout(() => setShowFeedback(true), 500);
         }
-
+        
         if (currentTicket.status === 'no_show' || currentTicket.status === 'cancelled') {
           setCurrentStatus('missed');
         }
@@ -155,9 +155,9 @@ export default function DisplayTicket() {
       
       setWaitingPosition(position - 1);
     });
-
+    
     return () => unsubscribe();
-  }, [ticket]);
+  }, [ticket, ticketServed]);
 
   const speakNotification = (message: string) => {
     if ('speechSynthesis' in window) {
@@ -171,7 +171,7 @@ export default function DisplayTicket() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-700 font-medium">Generating your ticket...</p>
@@ -182,7 +182,7 @@ export default function DisplayTicket() {
 
   if (error || !ticket) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-800 mb-2">Error</h2>
@@ -216,7 +216,7 @@ export default function DisplayTicket() {
   const { label: statusLabel, icon: StatusIcon } = statusLabels[currentStatus];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       <Navbar 
         title="Your Ticket" 
         showBackButton 
@@ -302,7 +302,7 @@ export default function DisplayTicket() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-slate-600">{stats.completedTickets}</p>
-                    <p className="text-xs text-gray-500">Done</p> .
+                    <p className="text-xs text-gray-500">Done</p> 
                   </div>
                 </div>
               </div>

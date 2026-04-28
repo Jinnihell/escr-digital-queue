@@ -10,7 +10,7 @@ interface QueueStatusModalProps {
 
 const statusThemes = {
   waiting: {
-    headerBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
+    headerBg: 'bg-linear-to-br from-amber-500 to-orange-500',
     textColor: 'text-orange-600',
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-400',
@@ -22,7 +22,7 @@ const statusThemes = {
     progressFill: 'from-amber-400 to-orange-400'
   },
   serving: {
-    headerBg: 'bg-gradient-to-br from-emerald-500 to-teal-500',
+    headerBg: 'bg-linear-to-br from-emerald-500 to-teal-500',
     textColor: 'text-emerald-600',
     bgColor: 'bg-emerald-50',
     borderColor: 'border-emerald-400',
@@ -34,7 +34,7 @@ const statusThemes = {
     progressFill: 'from-emerald-400 to-teal-400'
   },
   completed: {
-    headerBg: 'bg-gradient-to-br from-blue-500 to-indigo-500',
+    headerBg: 'bg-linear-to-br from-blue-500 to-indigo-500',
     textColor: 'text-blue-600',
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-400',
@@ -46,7 +46,7 @@ const statusThemes = {
     progressFill: 'from-blue-400 to-indigo-400'
   },
   default: {
-    headerBg: 'bg-gradient-to-br from-slate-500 to-gray-500',
+    headerBg: 'bg-linear-to-br from-slate-500 to-gray-500',
     textColor: 'text-slate-600',
     bgColor: 'bg-slate-50',
     borderColor: 'border-slate-400',

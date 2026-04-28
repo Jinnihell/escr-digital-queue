@@ -71,7 +71,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300">
       {/* Help Button - matches PHP design */}
       <div className="fixed top-4 right-4 z-50 sm:top-6 sm:right-6">
         <button 

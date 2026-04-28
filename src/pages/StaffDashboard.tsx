@@ -255,14 +255,14 @@ export default function StaffDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-800 border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300">
       {/* Sidebar - matches PHP design */}
       <div className="fixed left-0 top-0 h-full w-64 bg-emerald-700 text-white p-5 flex flex-col z-10">
         <div className="text-center mb-8">
@@ -313,40 +313,6 @@ className="text-xs text-emerald-200 underline mt-1"
           </button>
         </div>
 
-        <nav className="grow">
-          <ul className="space-y-2">
-            <li>
-              <button className="w-full text-left p-3 rounded-lg bg-white/10">
-                Dashboard
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => navigate('/admin/appointments')}
-                className="w-full text-left p-3 rounded-lg hover:bg-white/10 flex items-center justify-between"
-              >
-                <span>Appointments</span>
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => navigate('/history')}
-                className="w-full text-left p-3 rounded-lg hover:bg-white/10"
-              >
-                History
-              </button>
-            </li>
-          </ul>
-        </nav>
-
-        <div className="border-t border-white/20 pt-4">
-          <button 
-            onClick={handleLogout}
-            className="w-full text-left p-3 rounded-lg hover:bg-white/10 flex items-center gap-2"
-          >
-            Logout
-          </button>
-        </div>
       </div>
 
       {/* Main Content */}

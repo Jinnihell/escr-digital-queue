@@ -19,17 +19,20 @@ export default function History() {
   const [windowFilter, setWindowFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  const loadWindows = async () => {
-    try {
-      const windowList = await getWindows();
-      setWindows(windowList);
-    } catch (err) {
-      console.error('Error loading windows:', err);
-    }
-  };
+
 
   useEffect(() => {
+    let mounted = true;
+    const loadWindows = async () => {
+      try {
+        const windowList = await getWindows();
+        if (mounted) setWindows(windowList);
+      } catch (err) {
+        console.error("Error loading windows:", err);
+      }
+    };
     loadWindows();
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
@@ -75,10 +78,7 @@ export default function History() {
       );
     }
     
-    return filtered.slice(0, 50);
-  };
-
-  const handleReset = () => {
+    return filtered.slice(0, 50);  const handleReset = () => {
     setStartDate('');
     setEndDate('');
     setWindowFilter('');
@@ -148,7 +148,7 @@ export default function History() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
+    <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
       <Navbar 
         title="Queue History" 
         showBackButton 
@@ -278,3 +278,4 @@ export default function History() {
     </div>
   );
 }
+

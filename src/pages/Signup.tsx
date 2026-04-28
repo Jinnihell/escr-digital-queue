@@ -48,7 +48,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-200 via-blue-100 to-blue-300 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-green-200 via-blue-100 to-blue-300 p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Logo */}
