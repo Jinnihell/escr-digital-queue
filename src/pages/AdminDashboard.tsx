@@ -691,8 +691,8 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
         {
           name: apt.studentName,
           studentId: apt.studentId || undefined,
-          course: apt.course || '',
-          yearLevel: apt.yearLevel || ''
+          course: apt.course as any || '',
+          yearLevel: apt.yearLevel as any || ''
         }
       );
 
