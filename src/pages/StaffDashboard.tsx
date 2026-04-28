@@ -190,9 +190,15 @@ export default function StaffDashboard() {
     // Clear session storage
     sessionStorage.removeItem('selectedWindow');
     
-    // Then logout
-    await logout();
-    navigate('/login?message=logged_out');
+    // Logout and navigate (always attempt)
+    try {
+      await logout();
+      navigate('/login?message=logged_out');
+    } catch (err) {
+      console.error('Logout failed:', err);
+      // Force navigation anyway
+      navigate('/login?message=logged_out');
+    }
   };
 
   // Ringer/Notification sound
