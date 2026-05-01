@@ -19,7 +19,9 @@ import {
   cancelAppointment,
   getAppointmentSettings,
   createTicket
-} from '../services/queueService';
+} from '../services/queueService';;
+import { updateDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase'
 import { RefreshCw, Settings, Download, Printer, Bell, Save, RotateCcw, DatabaseBackup, Filter } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import Navbar from '../components/Navbar';
@@ -695,6 +697,12 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
           yearLevel: (apt.yearLevel || '') as YearLevel | '',
         }
       );
+
+      // Update appointment with ticket reference
+      await updateDoc(doc(db, 'appointments', apt.id), {
+        ticketId: ticket.id,
+        ticketNumber: ticket.ticketNumber
+      });
 
       showAlert('success', `Queue ticket ${ticket.ticketNumber} generated for ${apt.studentName}`);
     } catch (err) {

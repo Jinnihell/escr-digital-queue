@@ -242,6 +242,18 @@ export default function TransactionSelection() {
             {/* Transaction Buttons - Horizontal Row, Centered */}
             <div className="flex flex-wrap justify-center items-center gap-4 mb-8 px-4">
               <button
+                onClick={() => setSelectedId('registrar')}
+                className={`w-60 h-60 rounded-2xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
+                  selectedId === 'registrar'
+                    ? 'bg-emerald-700 text-white shadow-xl transform scale-[1.05]'
+                    : 'bg-white hover:bg-red-500 hover:text-white text-gray-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
+                }`}
+              >
+                <Award className={`w-15 h-15 ${selectedId === 'registrar' ? 'text-white' : 'text-emerald-600'}`} />
+                <span className="font-bold text-xl">Registrar</span>
+              </button>
+
+              <button
                 onClick={() => setSelectedId('cashier')}
                 className={`w-60 h-60 rounded-2xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
                   selectedId === 'cashier'
@@ -252,7 +264,7 @@ export default function TransactionSelection() {
                 <Wallet className={`w-15 h-15 ${selectedId === 'cashier' ? 'text-white' : 'text-emerald-600'}`} />
                 <span className="font-bold text-xl">Cashier</span>
               </button>
-              
+
               <button
                 onClick={() => setSelectedId('information')}
                 className={`w-60 h-60 rounded-2xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
@@ -263,18 +275,6 @@ export default function TransactionSelection() {
               >
                 <Info className={`w-15 h-15 ${selectedId === 'information' ? 'text-white' : 'text-emerald-600'}`} />
                 <span className="font-bold text-xl">Information</span>
-              </button>
-              
-              <button
-                onClick={() => setSelectedId('registrar')}
-                className={`w-60 h-60 rounded-2xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
-                  selectedId === 'registrar'
-                    ? 'bg-emerald-700 text-white shadow-xl transform scale-[1.05]'
-                    : 'bg-white hover:bg-red-500 hover:text-white text-gray-800 shadow-lg hover:shadow-xl hover:-translate-y-1'
-                }`}
-              >
-                <Award className={`w-15 h-15 ${selectedId === 'registrar' ? 'text-white' : 'text-emerald-600'}`} />
-                <span className="font-bold text-xl">Registrar</span>
               </button>
             </div>
 

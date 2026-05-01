@@ -132,6 +132,8 @@ export default function StaffDashboard() {
     try {
       const ticket = await callNextTicket(transactionToUse, selectedWindow.id, selectedWindow.name);
       if (ticket) {
+        // Optimistic update for immediate UI response
+        setAllTickets(prev => prev.map(t => t.id === ticket.id ? { ...t, status: "serving", calledAt: new Date(), windowId: selectedWindow.id, windowName: selectedWindow.name } : t));
         setCurrentTicket(ticket);
         playNotificationSound();
         speakTicket(ticket.ticketNumber, selectedWindow.number.toString());

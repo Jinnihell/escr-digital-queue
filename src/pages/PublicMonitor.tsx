@@ -6,7 +6,8 @@ export default function PublicMonitor() {
   const [tickets, setTickets] = useState<QueueTicket[]>([]);
   const [windows, setWindows] = useState<Window[]>([]);
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
-  const [dataLoaded, setDataLoaded] = useState(false);
+  const [ticketsLoaded, setTicketsLoaded] = useState(false);
+  const [windowsLoaded, setWindowsLoaded] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
 
@@ -27,7 +28,7 @@ export default function PublicMonitor() {
   useEffect(() => {
     const unsubscribeTickets = subscribeToActiveTickets((updatedTickets) => {
       setTickets(updatedTickets);
-      setDataLoaded(true);
+      setTicketsLoaded(true);
     });
     return () => unsubscribeTickets();
   }, []);
@@ -35,7 +36,7 @@ export default function PublicMonitor() {
   useEffect(() => {
     const unsubscribeWindows = subscribeToWindows((updatedWindows) => {
       setWindows(updatedWindows.filter(w => w.active));
-      setDataLoaded(true);
+      setWindowsLoaded(true);
     });
     return () => unsubscribeWindows();
   }, []);
@@ -88,7 +89,7 @@ export default function PublicMonitor() {
       .slice(0, 4);
   };
 
-  if (!dataLoaded || windows.length === 0) {
+  if (!ticketsLoaded || !windowsLoaded || windows.length === 0) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex items-center justify-center">
         <div className="text-center">

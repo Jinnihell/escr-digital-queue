@@ -59,7 +59,6 @@ export default function DisplayTicket() {
   const [waitingPosition, setWaitingPosition] = useState(0);
   const [showThankYou, setShowThankYou] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [ticketServed, setTicketServed] = useState(false);
   const [showQueueModal, setShowQueueModal] = useState(true);
   const [currentStatus, setCurrentStatus] = useState<'waiting' | 'serving' | 'missed' | 'completed'>('waiting');
 
@@ -120,44 +119,32 @@ const generateTicket = useCallback(async () => {
   }, [generateTicket]);
 
   useEffect(() => {
+    if (!ticket) return;
     const unsubscribe = subscribeToActiveTickets((tickets) => {
-      if (!ticket) return;
-      
       const currentTicket = tickets.find(t => t.id === ticket.id);
-      
       if (currentTicket) {
-        const wasServing = ticket.status === 'serving';
-        
-        if (currentTicket.status === 'serving' && !wasServing) {
+        const wasServing = currentTicket.status === "serving";
+        setTicket(currentTicket);
+        if (currentTicket.status === "serving" && !wasServing) {
           setWaitingPosition(0);
-          setCurrentStatus('serving');
-          speakNotification(`Ticket ${ticket.ticketNumber}, please proceed to window ${currentTicket.windowName}`);
+          setCurrentStatus("serving");
+          speakNotification("Ticket " + currentTicket.ticketNumber + ", proceed to window " + currentTicket.windowName);
         }
-        
-        if (currentTicket.status === 'completed' && !ticketServed) {
-          setTicketServed(true);
-          setCurrentStatus('completed');
+        if (currentTicket.status === "completed") {
+          setCurrentStatus("completed");
           setTimeout(() => setShowFeedback(true), 500);
         }
-        
-        if (currentTicket.status === 'no_show' || currentTicket.status === 'cancelled') {
-          setCurrentStatus('missed');
+        if (currentTicket.status === "no_show" || currentTicket.status === "cancelled") {
+          setCurrentStatus("missed");
         }
       }
-      
-      const waitingTickets = tickets.filter(t => 
-        t.transactionTypeId === ticket.transactionTypeId && 
-        t.status === 'waiting'
-      );
-      
+      const waitingTickets = tickets.filter(t => t.transactionTypeId === ticket.transactionTypeId && t.status === "waiting");
       const userTicketIndex = waitingTickets.findIndex(t => t.id === ticket.id);
       const position = userTicketIndex >= 0 ? userTicketIndex + 1 : waitingTickets.length + 1;
-      
-      setWaitingPosition(position - 1);
+      setWaitingPosition(Math.max(0, position - 1));
     });
-    
     return () => unsubscribe();
-  }, [ticket, ticketServed]);
+  }, [ticket?.id, ticket?.transactionTypeId]);
 
   const speakNotification = (message: string) => {
     if ('speechSynthesis' in window) {
