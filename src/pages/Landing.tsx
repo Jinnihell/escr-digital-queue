@@ -113,7 +113,7 @@ export default function Landing() {
         {/* Book Appointment Button */}
         <button
           onClick={handleAppointment}
-          className="mt-3 sm:mt-4 w-full sm:w-auto bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-600 hover:to-blue-400 text-white text-lg sm:text-xl font-semibold px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2"
+          className="mt-3 sm:mt-4 w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-lg sm:text-xl font-semibold px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2"
         >
           Book Appointment
         </button>
@@ -121,7 +121,7 @@ export default function Landing() {
         {/* About Button - matches PHP design */}
         <button
           onClick={() => setShowAbout(true)}
-          className="mt-3 sm:mt-4 text-blue-800 hover:text-blue-600 flex items-center justify-center gap-2 font-semibold border-2 border-blue-800 px-5 sm:px-6 py-2 rounded-full hover:bg-blue-50 transition"
+          className="mt-3 sm:mt-4 w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-lg sm:text-xl font-semibold px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
         >
           About
         </button>
