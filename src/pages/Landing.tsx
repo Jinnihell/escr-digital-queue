@@ -105,7 +105,7 @@ export default function Landing() {
         {/* Get Started Button - matches PHP design */}
         <button
           onClick={handleGetStarted}
-          className="w-full sm:w-auto bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white text-lg sm:text-xl font-semibold px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+          className="w-full sm:w-auto bg-gradient-to-r from-emerald-700 to-emerald-500 hover:from-emerald-600 hover:to-emerald-400 text-white text-lg sm:text-xl font-semibold px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
         >
           Get Started
         </button>
@@ -113,7 +113,7 @@ export default function Landing() {
         {/* Book Appointment Button */}
         <button
           onClick={handleAppointment}
-          className="mt-3 sm:mt-4 w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-lg sm:text-xl font-semibold px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2"
+          className="mt-3 sm:mt-4 w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-white text-lg sm:text-xl font-semibold px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2"
         >
           Book Appointment
         </button>
