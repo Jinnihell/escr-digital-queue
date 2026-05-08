@@ -29,9 +29,20 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Check sessionStorage for cached user (instant restore)
+    const cached = sessionStorage.getItem('user');
+    if (cached) {
+      try {
+        return JSON.parse(cached) as User;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Cached immediately
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

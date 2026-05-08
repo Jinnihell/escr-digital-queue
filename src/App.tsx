@@ -22,7 +22,7 @@ import Alert from './components/Alert';
 function AppRoutes() {
   const { user, loading } = useAuth();
 
-  if (loading) {
+  if (loading && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-green-200 via-blue-100 to-blue-300">
         <div className="text-center">
