@@ -144,7 +144,7 @@ const generateTicket = useCallback(async () => {
       setWaitingPosition(Math.max(0, position - 1));
     });
     return () => unsubscribe();
-  }, [ticket?.id, ticket?.transactionTypeId]);
+  }, [ticket]);
 
   const speakNotification = (message: string) => {
     if ('speechSynthesis' in window) {
@@ -358,3 +358,4 @@ const generateTicket = useCallback(async () => {
     </div>
   );
 }
+

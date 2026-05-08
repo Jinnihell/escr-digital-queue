@@ -13,6 +13,7 @@ import {
   Timestamp,
   setDoc,
   increment,
+  runTransaction,
   type QueryDocumentSnapshot,
   type DocumentData
 } from 'firebase/firestore';
@@ -47,35 +48,45 @@ const toDate = (timestamp: Timestamp | Date | null | undefined): Date | null => 
   return new Date(timestamp);
 };
 
+// Helper to convert Firestore document to QueueTicket
+const docToQueueTicket = (docData: DocumentData, docId: string): QueueTicket => {
+  return {
+    id: docId,
+    ...docData,
+    createdAt: toDate(docData.createdAt)!,
+    calledAt: toDate(docData.calledAt),
+    startedAt: toDate(docData.startedAt),
+    completedAt: toDate(docData.completedAt)
+  } as QueueTicket;
+};
+
+// Helper to clear window assignment
+const clearWindowAssignment = async (windowId: string | null | undefined): Promise<void> => {
+  if (windowId) {
+    await updateDoc(doc(db, WINDOWS_COLLECTION, windowId), {
+      currentTicketId: null
+    });
+  }
+};
 // Generate ticket number
 export const generateTicketNumber = async (prefix: string): Promise<string> => {
   const today = new Date();
   const dateStr = `${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
-  
-  // Get or create daily counter with atomic increment to prevent duplicates
   const counterRef = doc(db, COUNTERS_COLLECTION, `${prefix}_${dateStr}`);
-  
+
   try {
-    // Use atomic increment to prevent race conditions
-    const counterDoc = await getDoc(counterRef);
-    let currentCount = 0;
-    
-    if (counterDoc.exists()) {
-      currentCount = counterDoc.data().count || 0;
-    } else {
-      // Initialize counter with 0
-      await setDoc(counterRef, { count: 0, date: dateStr, prefix });
-    }
-    
-    // Use atomic increment for thread-safe counter
-    await setDoc(counterRef, { count: increment(1) }, { merge: true });
-    
-    // Get the incremented value after update
-    const updatedDoc = await getDoc(counterRef);
-    const newCount = updatedDoc.data()?.count || currentCount + 1;
-    
-    // Format: X001 (e.g., A001, E001, P001, O001)
-    return `${prefix}${newCount.toString().padStart(3, '0')}`;
+    const result = await runTransaction(db, async (transaction) => {
+      const counterDoc = await transaction.get(counterRef);
+      if (counterDoc.exists()) {
+        const currentCount = counterDoc.data().count || 0;
+        transaction.update(counterRef, { count: increment(1) });
+        return currentCount + 1;
+      } else {
+        transaction.set(counterRef, { count: 1, date: dateStr, prefix });
+        return 1;
+      }
+    });
+    return `${prefix}${result.toString().padStart(3, '0')}`;
   } catch (err) {
     console.error('Error generating ticket number:', err);
     throw err;
@@ -93,14 +104,7 @@ export const getWaitingTickets = async (transactionTypeId: string): Promise<Queu
   );
   
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: toDate(doc.data().createdAt),
-    calledAt: toDate(doc.data().calledAt),
-    startedAt: toDate(doc.data().startedAt),
-    completedAt: toDate(doc.data().completedAt)
-  })) as QueueTicket[];
+  return snapshot.docs.map(doc => docToQueueTicket(doc.data(), doc.id)) as QueueTicket[];
 };
 
 // Get all active tickets (waiting + serving)
@@ -114,14 +118,7 @@ export const getActiveTickets = async (): Promise<QueueTicket[]> => {
   );
   
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: toDate(doc.data().createdAt),
-    calledAt: toDate(doc.data().calledAt),
-    startedAt: toDate(doc.data().startedAt),
-    completedAt: toDate(doc.data().completedAt)
-  })) as QueueTicket[];
+  return snapshot.docs.map(doc => docToQueueTicket(doc.data(), doc.id)) as QueueTicket[];
 };
 
 // Create new ticket
@@ -224,11 +221,7 @@ export const completeTicket = async (ticketId: string): Promise<void> => {
   });
   
   // Clear window if assigned
-  if (ticketData.windowId) {
-    await updateDoc(doc(db, WINDOWS_COLLECTION, ticketData.windowId), {
-      currentTicketId: null
-    });
-  }
+  await clearWindowAssignment(ticketData.windowId);
 };
 
 // Cancel ticket
@@ -245,11 +238,7 @@ export const cancelTicket = async (ticketId: string): Promise<void> => {
   });
   
   // Clear window if assigned
-  if (ticketData.windowId) {
-    await updateDoc(doc(db, WINDOWS_COLLECTION, ticketData.windowId), {
-      currentTicketId: null
-    });
-  }
+  await clearWindowAssignment(ticketData.windowId);
 };
 
 // Mark ticket as no-show (when student doesn't appear)
@@ -266,11 +255,7 @@ export const markNoShow = async (ticketId: string): Promise<void> => {
   });
   
   // Clear window if assigned
-  if (ticketData.windowId) {
-    await updateDoc(doc(db, WINDOWS_COLLECTION, ticketData.windowId), {
-      currentTicketId: null
-    });
-  }
+  await clearWindowAssignment(ticketData.windowId);
 };
 
 // Auto-expire serving tickets that have been waiting too long (5 minutes)
@@ -299,11 +284,7 @@ export const checkAndExpireServingTickets = async (timeoutSeconds: number = 300)
         });
         
         // Clear window if assigned
-        if (ticketData.windowId) {
-          await updateDoc(doc(db, WINDOWS_COLLECTION, ticketData.windowId), {
-            currentTicketId: null
-          });
-        }
+        await clearWindowAssignment(ticketData.windowId);
         
         expiredCount++;
       }
@@ -645,14 +626,7 @@ export const subscribeToActiveTickets = (
   );
   
   return onSnapshot(q, (snapshot) => {
-    const tickets = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: toDate(doc.data().createdAt),
-      calledAt: toDate(doc.data().calledAt),
-      startedAt: toDate(doc.data().startedAt),
-      completedAt: toDate(doc.data().completedAt)
-    })) as QueueTicket[];
+    const tickets = snapshot.docs.map(doc => docToQueueTicket(doc.data(), doc.id)) as QueueTicket[];
     callback(tickets);
   });
 };
@@ -667,14 +641,7 @@ export const subscribeToAllTickets = (
   );
   
   return onSnapshot(q, (snapshot) => {
-    const tickets = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: toDate(doc.data().createdAt),
-      calledAt: toDate(doc.data().calledAt),
-      startedAt: toDate(doc.data().startedAt),
-      completedAt: toDate(doc.data().completedAt)
-    })) as QueueTicket[];
+    const tickets = snapshot.docs.map(doc => docToQueueTicket(doc.data(), doc.id)) as QueueTicket[];
     callback(tickets);
   });
 };
@@ -704,14 +671,7 @@ export const getAllTickets = async (
   const q = query(collection(db, TICKETS_COLLECTION), orderBy('createdAt', 'desc'));
   
   const snapshot = await getDocs(q);
-  let tickets = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: toDate(doc.data().createdAt),
-    calledAt: toDate(doc.data().calledAt),
-    startedAt: toDate(doc.data().startedAt),
-    completedAt: toDate(doc.data().completedAt)
-  })) as QueueTicket[];
+  let tickets = snapshot.docs.map(doc => docToQueueTicket(doc.data(), doc.id)) as QueueTicket[];
   
   // Filter by status if provided
   if (status) {
@@ -738,14 +698,7 @@ export const getTicketsByTransaction = async (transactionTypeId: string): Promis
   );
   
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: toDate(doc.data().createdAt),
-    calledAt: toDate(doc.data().calledAt),
-    startedAt: toDate(doc.data().startedAt),
-    completedAt: toDate(doc.data().completedAt)
-  })) as QueueTicket[];
+  return snapshot.docs.map(doc => docToQueueTicket(doc.data(), doc.id)) as QueueTicket[];
 };
 
 // Get active ticket for a specific user and transaction type
@@ -783,14 +736,7 @@ export const getUserActiveTickets = async (userId: string): Promise<QueueTicket[
   );
   
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: toDate(doc.data().createdAt),
-    calledAt: toDate(doc.data().calledAt),
-    startedAt: toDate(doc.data().startedAt),
-    completedAt: toDate(doc.data().completedAt)
-  })) as QueueTicket[];
+  return snapshot.docs.map(doc => docToQueueTicket(doc.data(), doc.id)) as QueueTicket[];
 };
 
 // Get tickets by window
@@ -802,14 +748,7 @@ export const getTicketsByWindow = async (windowId: string): Promise<QueueTicket[
   );
   
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: toDate(doc.data().createdAt),
-    calledAt: toDate(doc.data().calledAt),
-    startedAt: toDate(doc.data().startedAt),
-    completedAt: toDate(doc.data().completedAt)
-  })) as QueueTicket[];
+  return snapshot.docs.map(doc => docToQueueTicket(doc.data(), doc.id)) as QueueTicket[];
 };
 
 // Get history with filters (matches PHP history.php)
@@ -827,14 +766,7 @@ export const getHistoryWithFilters = async (
   );
   
   const snapshot = await getDocs(q);
-  let tickets = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: toDate(doc.data().createdAt),
-    calledAt: toDate(doc.data().calledAt),
-    startedAt: toDate(doc.data().startedAt),
-    completedAt: toDate(doc.data().completedAt)
-  })) as QueueTicket[];
+  let tickets = snapshot.docs.map(doc => docToQueueTicket(doc.data(), doc.id)) as QueueTicket[];
   
   // Apply filters
   if (startDate && endDate) {
@@ -1246,3 +1178,6 @@ export const cancelAppointment = async (appointmentId: string): Promise<void> =>
     });
   }
 };
+
+
+

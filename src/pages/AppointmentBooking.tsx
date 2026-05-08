@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAlert } from '../context/AlertContext';
@@ -35,15 +35,7 @@ export default function AppointmentBooking() {
 
   const [viewMonth, setViewMonth] = useState(new Date());
 
-  useEffect(() => {
-    loadData();
-    const unsubscribe = subscribeToAppointments((appointments) => {
-      setCurrentAppointments(appointments);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const trans = await getTransactionTypes();
       
@@ -78,7 +70,15 @@ export default function AppointmentBooking() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showAlert]);
+  useEffect(() => {
+    loadData();
+    const unsubscribe = subscribeToAppointments((appointments) => {
+      setCurrentAppointments(appointments);
+    });
+    return () => unsubscribe();
+  }, [loadData]);
+
 
   useEffect(() => {
     if (selectedDate) {
@@ -526,3 +526,5 @@ export default function AppointmentBooking() {
     </div>
   );
 }
+
+
