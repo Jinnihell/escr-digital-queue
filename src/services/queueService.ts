@@ -361,10 +361,10 @@ export const initializeDefaultTransactions = async (): Promise<void> => {
   if (existing.length > 0) return;
 
   const defaultTransactions = [
-    { name: 'WINDOW 1', description: 'Assessment of fees and charges', code: 'ASSESS', prefix: 'A', windowNumber: 1 },
-    { name: 'WINDOW 2', description: 'New enrollment and registration', code: 'ENROLL', prefix: 'E', windowNumber: 2 },
-    { name: 'WINDOW 3', description: 'Payment of tuition and other fees', code: 'PAY', prefix: 'P', windowNumber: 3 },
-    { name: 'WINDOW 4', description: 'Other inquiries and concerns', code: 'OTHER', prefix: 'O', windowNumber: 4 }
+    { name: 'Registrar', description: 'Assessment of fees and charges', code: 'ASSESS', prefix: 'A', windowNumber: 1 },
+    { name: 'Cashier', description: 'New enrollment and registration', code: 'ENROLL', prefix: 'E', windowNumber: 2 },
+    { name: 'Information', description: 'Payment of tuition and other fees', code: 'PAY', prefix: 'P', windowNumber: 3 },
+    { name: '', description: '', code: 'OTHER', prefix: 'O', windowNumber: 4 }
   ];
 
   for (const t of defaultTransactions) {
@@ -381,10 +381,10 @@ export const initializeDefaultWindows = async (): Promise<void> => {
   if (existing.length > 0) return;
 
   const defaultWindows = [
-    { name: 'WINDOW 1', number: 1, active: true },
-    { name: 'WINDOW 2', number: 2, active: true },
-    { name: 'WINDOW 3', number: 3, active: true },
-    { name: 'WINDOW 4', number: 4, active: true }
+    { name: 'Registrar', number: 1, active: true },
+    { name: 'Cashier', number: 2, active: true },
+    { name: 'Information', number: 3, active: true },
+    { name: '', number: 4, active: true }
   ];
 
   for (const w of defaultWindows) {
@@ -1178,6 +1178,9 @@ export const cancelAppointment = async (appointmentId: string): Promise<void> =>
     });
   }
 };
+
+
+
 
 
 

@@ -11,18 +11,16 @@ import { firebaseConfig } from './firebase/config';
 
 // Default transaction types - matches queueService.ts initializeDefaultTransactions
 const defaultTransactions = [
-  { id: 'assessments', name: 'Assessments', description: 'Assessment of fees and charges', code: 'ASSESS', prefix: 'A', active: true, windowNumber: 1 },
-  { id: 'enrollment', name: 'Enrollment', description: 'New enrollment and registration', code: 'ENROLL', prefix: 'E', active: true, windowNumber: 2 },
-  { id: 'payments', name: 'Payments', description: 'Payment of tuition and other fees', code: 'PAY', prefix: 'P', active: true, windowNumber: 3 },
-  { id: 'other', name: 'Other Concerns', description: 'Other inquiries and concerns', code: 'OTHER', prefix: 'O', active: true, windowNumber: 4 }
+  { id: 'registrar', name: 'Registrar', description: 'Assessment of fees and charges', code: 'REG', prefix: 'R', active: true, windowNumber: 1 },
+  { id: 'cashier', name: 'Cashier', description: 'New enrollment and registration', code: 'CASH', prefix: 'C', active: true, windowNumber: 2 },
+  { id: 'information', name: 'Information', description: 'Payment of tuition and other fees', code: 'INFO', prefix: 'I', active: true, windowNumber: 3 }
 ];
 
 // Default windows - matches queueService.ts initializeDefaultWindows
 const defaultWindows = [
-  { id: 'window1', name: 'Assessments', number: 1, active: true, currentTicketId: null, staffId: null, lockedAt: null },
-  { id: 'window2', name: 'Enrollment', number: 2, active: true, currentTicketId: null, staffId: null, lockedAt: null },
-  { id: 'window3', name: 'Payments', number: 3, active: true, currentTicketId: null, staffId: null, lockedAt: null },
-  { id: 'window4', name: 'Other Concerns', number: 4, active: true, currentTicketId: null, staffId: null, lockedAt: null }
+  { id: 'window1', name: 'WINDOW 1', number: 1, active: true, currentTicketId: null, staffId: null, lockedAt: null },
+  { id: 'window2', name: 'WINDOW 2', number: 2, active: true, currentTicketId: null, staffId: null, lockedAt: null },
+  { id: 'window3', name: 'WINDOW 3', number: 3, active: true, currentTicketId: null, staffId: null, lockedAt: null }
 ];
 
 // Default system settings
@@ -59,7 +57,8 @@ async function seedDatabase() {
   await setDoc(doc(db, 'settings', 'system'), defaultSettings);
   console.log('Added system settings');
   
-  console.log('✅ Database seeded successfully!');
+  console.log('? Database seeded successfully!');
 }
 
 seedDatabase().catch(console.error);
+
