@@ -41,7 +41,7 @@ export default function StaffDashboard() {
     const windowData = JSON.parse(storedWindow);
     setSelectedWindow(windowData);
     loadData();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (!selectedWindow) return;
