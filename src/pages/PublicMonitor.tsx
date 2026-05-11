@@ -89,6 +89,15 @@ export default function PublicMonitor() {
       .slice(0, 4);
   };
 
+
+  // Format window display name (e.g., "WINDOW 01" or "CASHIER WINDOW 1")
+  const getWindowDisplayName = (window: Window) => {
+    const numberPadded = window.number.toString().padStart(2, '0');
+    if (window.name && window.name.trim() !== '') {
+      return `${window.name.toUpperCase()} WINDOW ${window.number}`;
+    }
+    return `WINDOW ${numberPadded}`;
+  };
   if (!ticketsLoaded || !windowsLoaded || windows.length === 0) {
     return (
       <div className="min-h-screen bg-[#0a1628] flex items-center justify-center">
@@ -130,7 +139,7 @@ export default function PublicMonitor() {
                   className={`bg-white rounded-3xl p-8 text-gray-800 shadow-2xl border-4 ${hasTicket ? 'border-orange-500 shadow-orange-500/50' : 'border-gray-300'}`}
                 >
                   <div className={`${hasTicket ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 'bg-gray-400'} text-white px-6 py-3 rounded-xl text-center font-bold text-xl mb-6`}>
-                    {window.name}
+                    {getWindowDisplayName(window)}
                   </div>
                   <p className={`text-7xl md:text-8xl font-black text-center mb-4 ${hasTicket ? 'text-orange-600' : 'text-gray-400'}`}>
                     {windowTicket?.ticketNumber || '---'}

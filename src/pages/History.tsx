@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getWindows, subscribeToAllTickets } from '../services/queueService';
-import { History as HistoryIcon, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { History as HistoryIcon, Clock, CheckCircle, XCircle, AlertTriangle, type LucideIcon } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import type { QueueTicket, Window } from '../types';
 
@@ -18,8 +18,6 @@ export default function History() {
   const [endDate, setEndDate] = useState<string>('');
   const [windowFilter, setWindowFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
-
-
 
   useEffect(() => {
     let mounted = true;
@@ -44,6 +42,16 @@ export default function History() {
 
     return () => unsubscribe();
   }, [user]);
+
+  // Get window display string from windowId
+  const getWindowDisplay = (windowId: string | null) => {
+    if (!windowId) return 'N/A';
+    const window = windows.find(w => w.id === windowId);
+    if (window) {
+      return `Window ${window.number}`;
+    }
+    return 'N/A';
+  };
 
   // Filtered tickets - memoized filtering
   const getFilteredTickets = () => {
@@ -88,51 +96,52 @@ export default function History() {
     setSearchTerm('');
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'cancelled':
-        return <XCircle className="w-5 h-5 text-red-500" />;
-      case 'no_show':
-        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
-      default:
-        return <Clock className="w-5 h-5 text-gray-500" />;
+  // Status configuration - consolidated to avoid code duplication
+  const statusConfig: Record<string, {
+    icon: LucideIcon;
+    label: string;
+    color: string;
+    iconClass: string;
+  }> = {
+    completed: {
+      icon: CheckCircle,
+      label: 'Completed',
+      color: 'bg-green-100 text-green-700',
+      iconClass: 'text-green-500'
+    },
+    cancelled: {
+      icon: XCircle,
+      label: 'Cancelled',
+      color: 'bg-red-100 text-red-700',
+      iconClass: 'text-red-500'
+    },
+    no_show: {
+      icon: AlertTriangle,
+      label: 'No Show',
+      color: 'bg-yellow-100 text-yellow-700',
+      iconClass: 'text-yellow-500'
+    },
+    waiting: {
+      icon: Clock,
+      label: 'Waiting',
+      color: 'bg-blue-100 text-blue-700',
+      iconClass: 'text-gray-500'
+    },
+    serving: {
+      icon: Clock,
+      label: 'Serving',
+      color: 'bg-purple-100 text-purple-700',
+      iconClass: 'text-gray-500'
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'Completed';
-      case 'cancelled':
-        return 'Cancelled';
-      case 'no_show':
-        return 'No Show';
-      case 'waiting':
-        return 'Waiting';
-      case 'serving':
-        return 'Serving';
-      default:
-        return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-700';
-      case 'cancelled':
-        return 'bg-red-100 text-red-700';
-      case 'no_show':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'waiting':
-        return 'bg-blue-100 text-blue-700';
-      case 'serving':
-        return 'bg-purple-100 text-purple-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
+  const getStatusInfo = (status: string) => {
+    return statusConfig[status] || {
+      icon: Clock,
+      label: status,
+      color: 'bg-gray-100 text-gray-700',
+      iconClass: 'text-gray-500'
+    };
   };
 
   const formatDate = (date: Date | null) => {
@@ -245,33 +254,37 @@ export default function History() {
                   </tr>
                 </thead>
                 <tbody>
-                  {getFilteredTickets().map((ticket) => (
-                    <tr key={ticket.id} className="border-t hover:bg-gray-50">
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-lg">{ticket.ticketNumber}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-gray-600">
-                        {ticket.studentName || 'N/A'}
-                      </td>
-                      <td className="py-4 px-6 text-gray-600">
-                        {ticket.transactionTypeName}
-                      </td>
-                      <td className="py-4 px-6 text-gray-600">
-                        {ticket.windowName || 'N/A'}
-                      </td>
-                      <td className="py-4 px-6 text-gray-600">
-                        {formatDate(ticket.createdAt)}
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(ticket.status)}`}>
-                          {getStatusIcon(ticket.status)}
-                          {getStatusLabel(ticket.status)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {getFilteredTickets().map((ticket) => {
+                    const statusInfo = getStatusInfo(ticket.status);
+                    const StatusIconComponent = statusInfo.icon;
+                    return (
+                      <tr key={ticket.id} className="border-t hover:bg-gray-50">
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-lg">{ticket.ticketNumber}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-gray-600">
+                          {ticket.studentName || 'N/A'}
+                        </td>
+                        <td className="py-4 px-6 text-gray-600">
+                          {ticket.transactionTypeName}
+                        </td>
+                        <td className="py-4 px-6 text-gray-600">
+                          {getWindowDisplay(ticket.windowId)}
+                        </td>
+                        <td className="py-4 px-6 text-gray-600">
+                          {formatDate(ticket.createdAt)}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}>
+                            <StatusIconComponent className={`w-5 h-5 ${statusInfo.iconClass}`} />
+                            {statusInfo.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -281,4 +294,3 @@ export default function History() {
     </div>
   );
 }
-
