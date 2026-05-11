@@ -90,13 +90,9 @@ export default function PublicMonitor() {
   };
 
 
-  // Format window display name (e.g., "WINDOW 01" or "CASHIER WINDOW 1")
+  // Format window display as 'Window 1', 'Window 2', etc.
   const getWindowDisplayName = (window: Window) => {
-    const numberPadded = window.number.toString().padStart(2, '0');
-    if (window.name && window.name.trim() !== '') {
-      return `${window.name.toUpperCase()} WINDOW ${window.number}`;
-    }
-    return `WINDOW ${numberPadded}`;
+    return `Window ${window.number}`;
   };
   if (!ticketsLoaded || !windowsLoaded || windows.length === 0) {
     return (
@@ -210,3 +206,4 @@ export default function PublicMonitor() {
     </div>
   );
 }
+
