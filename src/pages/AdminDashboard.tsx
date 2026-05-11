@@ -145,17 +145,16 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
   const getFilteredTickets = () => {
     if (!dateFilter.startDate && !dateFilter.endDate) return allTickets;
+    
+    // Pre-calculate date boundaries once
+    const startDateObj = dateFilter.startDate ? new Date(dateFilter.startDate).setHours(0, 0, 0, 0) : null;
+    const endDateObj = dateFilter.endDate ? new Date(dateFilter.endDate).setHours(23, 59, 59, 999) : null;
+    
     return allTickets.filter(ticket => {
-      const ticketDate = ticket.createdAt ? new Date(ticket.createdAt) : null;
-      if (!ticketDate) return false;
-      const start = dateFilter.startDate ? new Date(dateFilter.startDate) : null;
-      const end = dateFilter.endDate ? new Date(dateFilter.endDate) : null;
-      if (start && ticketDate < start) return false;
-      if (end) {
-        const endDate = new Date(end);
-        endDate.setHours(23, 59, 59);
-        if (ticketDate > endDate) return false;
-      }
+      const ticketTime = ticket.createdAt ? new Date(ticket.createdAt).getTime() : null;
+      if (!ticketTime) return false;
+      if (startDateObj && ticketTime < startDateObj) return false;
+      if (endDateObj && ticketTime > endDateObj) return false;
       return true;
     });
   };

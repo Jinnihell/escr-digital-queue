@@ -67,18 +67,36 @@ export default function PublicMonitor() {
       utterance.volume = 1;
       utterance.lang = 'en-US';
       
-      // Try to get English voice
-      const speak = () => {
+      let resolved = false;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      
+      const trySpeak = () => {
+        if (resolved) return;
+        
         const voices = window.speechSynthesis?.getVoices() || [];
-        const englishVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
-        if (englishVoice) utterance.voice = englishVoice;
-        window.speechSynthesis?.speak(utterance);
+        if (voices.length > 0) {
+          resolved = true;
+          const englishVoice = voices.find((v: SpeechSynthesisVoice) => v.lang.startsWith('en')) || voices[0];
+          if (englishVoice) utterance.voice = englishVoice;
+          window.speechSynthesis.onvoiceschanged = null;
+          if (timeoutId) clearTimeout(timeoutId);
+          window.speechSynthesis?.speak(utterance);
+        }
       };
       
+      // Initial attempt - voices might already be loaded
       if (window.speechSynthesis?.getVoices()?.length > 0) {
-        speak();
+        trySpeak();
       } else {
-        window.speechSynthesis.onvoiceschanged = speak;
+        // Set up listener with timeout fallback
+        window.speechSynthesis.onvoiceschanged = trySpeak;
+        timeoutId = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            window.speechSynthesis.onvoiceschanged = null;
+            window.speechSynthesis?.speak(utterance);
+          }
+        }, 3000);
       }
     }
   }, [servingTickets, windows, soundEnabled]);

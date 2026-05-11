@@ -31,7 +31,6 @@ export default function StaffDashboard() {
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const [allTransactions, setAllTransactions] = useState<TransactionType[]>([]);
 
-  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     const storedWindow = sessionStorage.getItem('selectedWindow');
     if (!storedWindow) {
@@ -227,37 +226,52 @@ export default function StaffDashboard() {
   };
 
   // Voice announcement
+  // Voice announcement - fixed with timeout to prevent infinite loops
   const speakTicket = (ticketNumber: string, windowNum: string) => {
     if (!('speechSynthesis' in window)) {
       console.log('Speech synthesis not supported');
       return;
     }
-    
+
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
-    
+
     const utterance = new SpeechSynthesisUtterance(`Ticket ${ticketNumber}, please proceed to window ${windowNum}`);
     utterance.rate = 0.9;
     utterance.pitch = 1;
     utterance.volume = 1;
     utterance.lang = 'en-US';
-    
-    // Try to get an English voice
+
+    let resolved = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
     const trySpeak = () => {
+      if (resolved) return;
+      
       const voices = window.speechSynthesis.getVoices();
-      const englishVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
-      if (englishVoice) {
-        utterance.voice = englishVoice;
+      if (voices.length > 0) {
+        resolved = true;
+        const englishVoice = voices.find((v: SpeechSynthesisVoice) => v.lang.startsWith('en')) || voices[0];
+        if (englishVoice) utterance.voice = englishVoice;
+        window.speechSynthesis.onvoiceschanged = null;
+        if (timeoutId) clearTimeout(timeoutId);
+        window.speechSynthesis.speak(utterance);
       }
-      window.speechSynthesis.speak(utterance);
     };
-    
-    // If voices are already loaded, speak now
+
+    // Initial attempt - voices might already be loaded
     if (window.speechSynthesis.getVoices().length > 0) {
       trySpeak();
     } else {
-      // Wait for voices to load
+      // Set up listener with timeout fallback to prevent infinite loop
       window.speechSynthesis.onvoiceschanged = trySpeak;
+      timeoutId = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          window.speechSynthesis.onvoiceschanged = null;
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 3000);
     }
   };
 
@@ -361,7 +375,7 @@ className="text-xs text-emerald-200 underline mt-1"
                     disabled={!selectedTransaction || !selectedWindow || isCalling}
                     className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm md:text-base"
                   >
-                    {isCalling ? 'â³ Calling...' : 'ğŸ“ Call Next Ticket'}
+                    {isCalling ? 'GÅ¦ Calling...' : '=ƒôP Call Next Ticket'}
                   </button>
                   
                   {/* Call Others Button */}
@@ -369,7 +383,7 @@ className="text-xs text-emerald-200 underline mt-1"
                     onClick={() => setShowAllTransactions(!showAllTransactions)}
                     className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 md:py-3 px-6 md:px-8 rounded-xl shadow-lg hover:shadow-xl transition-all text-sm md:text-base"
                   >
-                    ğŸ“‹ {showAllTransactions ? 'Hide Others' : 'Call Others'}
+                    =ƒôï {showAllTransactions ? 'Hide Others' : 'Call Others'}
                   </button>
                   
                   {/* Other Transactions Dropdown */}
@@ -406,14 +420,14 @@ className="text-xs text-emerald-200 underline mt-1"
                       }}
                       className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 md:py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm md:text-base"
                     >
-                      ğŸ”” Ring
+                      =ƒöö Ring
                     </button>
                     <button
                       onClick={handleComplete}
                       disabled={!currentTicket || isCompleting}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 md:py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 text-sm md:text-base"
                     >
-                      {isCompleting ? 'â³' : 'âœ“ Complete'}
+                      {isCompleting ? 'GÅ¦' : 'G£ô Complete'}
                     </button>
                   </div>
                 </div>

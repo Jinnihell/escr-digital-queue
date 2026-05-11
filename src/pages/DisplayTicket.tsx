@@ -147,12 +147,47 @@ const generateTicket = useCallback(async () => {
   }, [ticket]);
 
   const speakNotification = (message: string) => {
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.rate = 0.9;
-      utterance.volume = 1;
-      speechSynthesis.speak(utterance);
+    if (!('speechSynthesis' in window)) {
+      console.log('Speech synthesis not supported');
+      return;
+    }
+
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = 0.9;
+    utterance.volume = 1;
+    utterance.lang = 'en-US';
+
+    let resolved = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const trySpeak = () => {
+      if (resolved) return;
+      
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        resolved = true;
+        const englishVoice = voices.find((v: SpeechSynthesisVoice) => v.lang.startsWith('en')) || voices[0];
+        if (englishVoice) utterance.voice = englishVoice;
+        window.speechSynthesis.onvoiceschanged = null;
+        if (timeoutId) clearTimeout(timeoutId);
+        window.speechSynthesis.speak(utterance);
+      }
+    };
+
+    if (window.speechSynthesis.getVoices().length > 0) {
+      trySpeak();
+    } else {
+      window.speechSynthesis.onvoiceschanged = trySpeak;
+      timeoutId = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          window.speechSynthesis.onvoiceschanged = null;
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 3000);
     }
   };
 

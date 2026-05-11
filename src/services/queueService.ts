@@ -42,7 +42,7 @@ const APPOINTMENT_SLOTS_COLLECTION = 'appointmentSlots';
 
 // Helper to convert Firestore timestamp to Date
 const toDate = (timestamp: Timestamp | Date | null | undefined): Date | null => {
-  if (!timestamp) return null;
+  if (timestamp == null) return null;
   if (timestamp instanceof Date) return timestamp;
   if (timestamp instanceof Timestamp) return timestamp.toDate();
   return new Date(timestamp);
@@ -206,20 +206,29 @@ export const callNextTicket = async (
 // Complete ticket
 export const completeTicket = async (ticketId: string): Promise<void> => {
   const ticketDoc = await getDoc(doc(db, TICKETS_COLLECTION, ticketId));
-  
-  if (!ticketDoc.exists()) return;
-  
+
+  if (!ticketDoc.exists()) {
+    throw new Error('Ticket not found');
+  }
+
   const ticketData = ticketDoc.data();
+  const currentStatus = ticketData.status as TicketStatus;
+
+  // Validate ticket can be completed
+  if (!['waiting', 'serving'].includes(currentStatus)) {
+        throw new Error(`Cannot complete ticket in status: ${currentStatus}`);
+  }
+
   const completedAt = new Date();
   const startedAt = ticketData.startedAt?.toDate() || ticketData.calledAt?.toDate();
   const serveTime = startedAt ? Math.floor((completedAt.getTime() - startedAt.getTime()) / 1000) : 0;
-  
+
   await updateDoc(doc(db, TICKETS_COLLECTION, ticketId), {
     status: 'completed',
     completedAt: serverTimestamp(),
     serveTime
   });
-  
+
   // Clear window if assigned
   await clearWindowAssignment(ticketData.windowId);
 };
@@ -227,16 +236,24 @@ export const completeTicket = async (ticketId: string): Promise<void> => {
 // Cancel ticket
 export const cancelTicket = async (ticketId: string): Promise<void> => {
   const ticketDoc = await getDoc(doc(db, TICKETS_COLLECTION, ticketId));
-  
-  if (!ticketDoc.exists()) return;
-  
+
+  if (!ticketDoc.exists()) {
+    throw new Error('Ticket not found');
+  }
+
   const ticketData = ticketDoc.data();
-  
+  const currentStatus = ticketData.status as TicketStatus;
+
+  // Validate ticket can be cancelled
+  if (!['waiting', 'serving'].includes(currentStatus)) {
+        throw new Error(`Cannot cancel ticket in status: ${currentStatus}`);
+  }
+
   await updateDoc(doc(db, TICKETS_COLLECTION, ticketId), {
     status: 'cancelled',
     completedAt: serverTimestamp()
   });
-  
+
   // Clear window if assigned
   await clearWindowAssignment(ticketData.windowId);
 };
@@ -244,16 +261,24 @@ export const cancelTicket = async (ticketId: string): Promise<void> => {
 // Mark ticket as no-show (when student doesn't appear)
 export const markNoShow = async (ticketId: string): Promise<void> => {
   const ticketDoc = await getDoc(doc(db, TICKETS_COLLECTION, ticketId));
-  
-  if (!ticketDoc.exists()) return;
-  
+
+  if (!ticketDoc.exists()) {
+    throw new Error('Ticket not found');
+  }
+
   const ticketData = ticketDoc.data();
-  
+  const currentStatus = ticketData.status as TicketStatus;
+
+  // Only serving tickets can be marked as no-show
+  if (currentStatus !== 'serving') {
+    throw new Error(`Only serving tickets can be marked as no-show. Current status: ${currentStatus}`);
+  }
+
   await updateDoc(doc(db, TICKETS_COLLECTION, ticketId), {
     status: 'no_show',
     completedAt: serverTimestamp()
   });
-  
+
   // Clear window if assigned
   await clearWindowAssignment(ticketData.windowId);
 };
@@ -1178,6 +1203,65 @@ export const cancelAppointment = async (appointmentId: string): Promise<void> =>
     });
   }
 };
+// Safe voice announcement with timeout and cleanup to prevent infinite loops
+export const speakText = (text: string, rate: number = 0.9, volume: number = 1): void => {
+  if (!('speechSynthesis' in window)) {
+    console.log('Speech synthesis not supported');
+    return;
+  }
+
+  // Cancel any ongoing speech
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = rate;
+  utterance.volume = volume;
+  utterance.lang = 'en-US';
+
+  let resolved = false;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  const trySpeak = () => {
+    if (resolved) return;
+    
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      resolved = true;
+      const englishVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+      if (englishVoice) utterance.voice = englishVoice;
+      window.speechSynthesis.onvoiceschanged = null; // Clear listener
+      if (timeoutId) clearTimeout(timeoutId);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Initial attempt - voices might already be loaded
+  if (window.speechSynthesis.getVoices().length > 0) {
+    trySpeak();
+  } else {
+    // Set up one-time listener with timeout fallback
+    window.speechSynthesis.onvoiceschanged = trySpeak;
+    
+    // Timeout after 3 seconds to prevent infinite waiting
+    timeoutId = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        window.speechSynthesis.onvoiceschanged = null;
+        window.speechSynthesis.speak(utterance);
+      }
+    }, 3000);
+  }
+};
+
+
+
+
+
+
+
+
+
+
 
 
 
