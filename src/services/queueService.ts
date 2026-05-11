@@ -220,7 +220,7 @@ export const completeTicket = async (ticketId: string): Promise<void> => {
   }
 
   const completedAt = new Date();
-  const startedAt = ticketData.startedAt?.toDate() || ticketData.calledAt?.toDate();
+  const startedAt = ticketData.startedAt?.toDate() || ticketData.calledAt?.toDate(); // Fallback to calledAt if startedAt not set
   const serveTime = startedAt ? Math.floor((completedAt.getTime() - startedAt.getTime()) / 1000) : 0;
 
   await updateDoc(doc(db, TICKETS_COLLECTION, ticketId), {
@@ -283,7 +283,7 @@ export const markNoShow = async (ticketId: string): Promise<void> => {
   await clearWindowAssignment(ticketData.windowId);
 };
 
-// Auto-expire serving tickets that have been waiting too long (5 minutes)
+// Auto-expire serving tickets that have been in serving status too long
 export const checkAndExpireServingTickets = async (timeoutSeconds: number = 300): Promise<number> => {
   const q = query(
     collection(db, TICKETS_COLLECTION),
@@ -1252,6 +1252,8 @@ export const speakText = (text: string, rate: number = 0.9, volume: number = 1):
     }, 3000);
   }
 };
+
+
 
 
 
