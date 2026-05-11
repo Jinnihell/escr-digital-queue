@@ -375,7 +375,7 @@ className="text-xs text-emerald-200 underline mt-1"
                     disabled={!selectedTransaction || !selectedWindow || isCalling}
                     className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm md:text-base"
                   >
-                    {isCalling ? 'GÅ¦ Calling...' : '=ƒôP Call Next Ticket'}
+                    {isCalling ? '? Calling...' : '?? Call Next Ticket'}
                   </button>
                   
                   {/* Call Others Button */}
@@ -383,7 +383,7 @@ className="text-xs text-emerald-200 underline mt-1"
                     onClick={() => setShowAllTransactions(!showAllTransactions)}
                     className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 md:py-3 px-6 md:px-8 rounded-xl shadow-lg hover:shadow-xl transition-all text-sm md:text-base"
                   >
-                    =ƒôï {showAllTransactions ? 'Hide Others' : 'Call Others'}
+                    ?? {showAllTransactions ? 'Hide Others' : 'Call Others'}
                   </button>
                   
                   {/* Other Transactions Dropdown */}
@@ -420,14 +420,14 @@ className="text-xs text-emerald-200 underline mt-1"
                       }}
                       className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 md:py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm md:text-base"
                     >
-                      =ƒöö Ring
+                      ?? Ring
                     </button>
                     <button
                       onClick={handleComplete}
                       disabled={!currentTicket || isCompleting}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 md:py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 text-sm md:text-base"
                     >
-                      {isCompleting ? 'GÅ¦' : 'G£ô Complete'}
+                      {isCompleting ? '?' : '? Complete'}
                     </button>
                   </div>
                 </div>
@@ -483,3 +483,4 @@ className="text-xs text-emerald-200 underline mt-1"
     </div>
   );
 }
+
