@@ -9,7 +9,7 @@ import {
   sendPasswordResetEmail
 } from 'firebase/auth';
 import type { User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, DocumentSnapshot } from 'firebase/firestore';
 import { auth, db, googleProvider, actionCodeSettings } from '../firebase';
 import type { User, UserRole } from '../types';
 
@@ -45,12 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (firebaseUser) {
           // Fetch user data from Firestore with timeout
-          const userDoc = await Promise.race([
+          const userDoc: DocumentSnapshot = await Promise.race([
             getDoc(doc(db, 'users', firebaseUser.uid)),
             new Promise((_, reject) => 
               setTimeout(() => reject(new Error('User fetch timeout')), 5000)
             )
-          ]) as typeof userDoc;
+          ]);
 
           if (userDoc.exists()) {
             const userData = userDoc.data();
@@ -105,12 +105,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await signInWithEmailAndPassword(auth, email, password);
         
         // Fetch user data from Firestore with timeout
-        const userDoc = await Promise.race([
+        const userDoc: DocumentSnapshot = await Promise.race([
           getDoc(doc(db, 'users', result.user.uid)),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('User fetch timeout')), 5000)
           )
-        ]) as typeof userDoc;
+        ]);
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('User fetch timeout')), 5000)
           )
-        ]) as typeof userDoc;
+        ]);
 
         if (updatedUserDoc.exists()) {
           const userData = updatedUserDoc.data();
