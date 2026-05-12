@@ -6,9 +6,7 @@ export default function PublicMonitor() {
   const [tickets, setTickets] = useState<QueueTicket[]>([]);
   const [windows, setWindows] = useState<Window[]>([]);
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
-  const [ticketsLoaded, setTicketsLoaded] = useState(false);
-  const [windowsLoaded, setWindowsLoaded] = useState(false);
-  const [soundEnabled] = useState(true);
+   const [soundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
 
   const lastAnnouncedRef = useRef<string>('');
@@ -110,16 +108,14 @@ export default function PublicMonitor() {
   useEffect(() => {
     const unsubscribe = subscribeToWindows(windows => {
       setWindows(windows.filter(w => w.active));
-      setWindowsLoaded(true);
-    });
+          });
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     const unsubscribe = subscribeToActiveTickets(tickets => {
       setTickets(tickets);
-      setTicketsLoaded(true);
-    });
+          });
     return () => unsubscribe();
   }, []);
 
@@ -228,3 +224,5 @@ export default function PublicMonitor() {
     </div>
   );
 }
+
+
