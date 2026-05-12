@@ -144,9 +144,9 @@ const generateTicket = useCallback(async () => {
       setWaitingPosition(Math.max(0, position - 1));
     });
     return () => unsubscribe();
-  }, [ticket]);
+  }, [ticket, speakNotification]);
 
-  const speakNotification = (message: string) => {
+  const speakNotification = useCallback((message: string) => {
     if (!('speechSynthesis' in window)) {
       console.log('Speech synthesis not supported');
       return;
@@ -189,7 +189,7 @@ const generateTicket = useCallback(async () => {
         }
       }, 3000);
     }
-  };
+  }, []);
 
   if (isLoading) {
     return (

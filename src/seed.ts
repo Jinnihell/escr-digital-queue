@@ -57,8 +57,9 @@ async function seedDatabase() {
   await setDoc(doc(db, 'settings', 'system'), defaultSettings);
   console.log('Added system settings');
   
-  console.log('? Database seeded successfully!');
+  console.log('Database seeded successfully!');
 }
 
 seedDatabase().catch(console.error);
+
 

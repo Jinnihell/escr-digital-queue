@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getTransactionTypes, initializeDefaultTransactions, initializeDefaultWindows, subscribeToActiveTickets, getUserActiveTickets } from '../services/queueService';
@@ -23,10 +23,32 @@ export default function TransactionSelection() {
   const [servingNumber, setServingNumber] = useState<string>('---');
   const [trackerStatus, setTrackerStatus] = useState<string>('Waiting');
 
-  useEffect(() => {
-    loadTransactions();
+  const loadTransactions = useCallback(async () => {
+    try {
+      setError(null);
+      
+      // Initialize default data if needed
+      try {
+        await initializeDefaultTransactions();
+        await initializeDefaultWindows();
+      } catch (initErr) {
+        console.warn('Initialization skipped (may already exist):', initErr);
+      }
+      
+      await getTransactionTypes();
+    } catch (err) {
+      console.error('Error loading transactions:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to load transactions: ${errorMessage}. Please check Firestore rules.`);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+
+  useEffect(() => {
+    loadTransactions();
+   }, [loadTransactions]);
   useEffect(() => {
     if (!user?.id) return;
     
@@ -85,27 +107,6 @@ export default function TransactionSelection() {
     return () => unsubscribe();
   }, [myTicket]);
 
-  const loadTransactions = async () => {
-    try {
-      setError(null);
-      
-      // Initialize default data if needed
-      try {
-        await initializeDefaultTransactions();
-        await initializeDefaultWindows();
-      } catch (initErr) {
-        console.warn('Initialization skipped (may already exist):', initErr);
-      }
-      
-      await getTransactionTypes();
-    } catch (err) {
-      console.error('Error loading transactions:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Failed to load transactions: ${errorMessage}. Please check Firestore rules.`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleContinue = () => {
     if (!selectedId) return;
@@ -298,3 +299,8 @@ export default function TransactionSelection() {
     </div>
   );
 }
+
+
+
+
+

@@ -10,6 +10,7 @@ import {
   subscribeToAppointments
 } from '../services/queueService';
 import type { TransactionType, Appointment } from '../types';
+import { COURSES, YEAR_LEVELS } from '../constants/options';
 import { Calendar, ChevronLeft, ChevronRight, Check, Clock } from 'lucide-react';
 
 export default function AppointmentBooking() {
@@ -384,21 +385,7 @@ export default function AppointmentBooking() {
                     required
                   >
                     <option value="">Select course *</option>
-                    <option value="Senior High - Grade 11">Senior High - Grade 11</option>
-                    <option value="Senior High - Grade 12">Senior High - Grade 12</option>
-                    <option value="Senior High - GAS">Senior High - GAS</option>
-                    <option value="Senior High - HUMSS">Senior High - HUMSS</option>
-                    <option value="Senior High - ICT">Senior High - ICT</option>
-                    <option value="Senior High - STEM">Senior High - STEM</option>
-                    <option value="BSBA">BSBA</option>
-                    <option value="BSAIS">BSAIS</option>
-                    <option value="BSOA">BSOA</option>
-                    <option value="BSCS">BSCS</option>
-                    <option value="BSIT">BSIT</option>
-                    <option value="BTVTED ELEC">BTVTED ELEC</option>
-                    <option value="BTVTED">BTVTED</option>
-                    <option value="BSBA-FM">BSBA-FM</option>
-                    <option value="BSBA-HM">BSBA-HM</option>
+                    {COURSES.map(course => <option key={course} value={course}>{course}</option>)}
                   </select>
                 </div>
                 <div>
@@ -412,12 +399,7 @@ export default function AppointmentBooking() {
                     required
                   >
                     <option value="">Select year *</option>
-                    <option value="Senior High - Grade 11">Senior High - Grade 11</option>
-                    <option value="Senior High - Grade 12">Senior High - Grade 12</option>
-                    <option value="1st Year">1st Year</option>
-                    <option value="2nd Year">2nd Year</option>
-                    <option value="3rd Year">3rd Year</option>
-                    <option value="4th Year">4th Year</option>
+                    {YEAR_LEVELS.map(year => <option key={year} value={year}>{year}</option>)}
                   </select>
                 </div>
                 <div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAlert } from '../context/AlertContext';
 import { 
@@ -19,7 +19,7 @@ import {
   cancelAppointment,
   getAppointmentSettings,
   createTicket
-} from '../services/queueService';;
+} from '../services/queueService';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase'
 import { RefreshCw, Settings, Download, Printer, Bell, Save, RotateCcw, DatabaseBackup, Filter } from 'lucide-react';
@@ -139,7 +139,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       }
     };
     initData();
-  }, []);
+  }, [loadData]);
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -395,7 +395,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     }
   };
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     setLoadError(null);
     
@@ -433,7 +433,8 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
           autoResetTime: '00:00',
           maxWaitTime: 3600,
           lastBackup: null
-        };
+
+  }, []);
       }
       
       // Load other data with fallbacks
@@ -465,7 +466,7 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Show error state if data failed to load
   if (loadError) {
@@ -1491,3 +1492,5 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     </div>
   );
 }
+
+

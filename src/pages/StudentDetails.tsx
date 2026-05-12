@@ -1,41 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, User, GraduationCap, Clock } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import type { Course, YearLevel } from '../types';
+import { COURSES, YEAR_LEVELS } from '../constants/options';
 
 interface SelectedTransaction {
   id: string;
   name: string;
   prefix: string;
 }
-
-// Course options from PHP system
-const COURSES: Course[] = [
-  'Senior High - GAS',
-  'Senior High - HUMSS',
-  'Senior High - ICT',
-  'Senior High - STEM',
-  'BSBA',
-  'BSAIS',
-  'BSOA',
-  'BSCS',
-  'BSIT',
-  'BTVTED ELEC',
-  'BTVTED',
-  'BSBA-FM',
-  'BSBA-HM'
-];
-
-// Year level options from PHP system
-const YEAR_LEVELS: YearLevel[] = [
-  'Senior High - Grade 11',
-  'Senior High - Grade 12', 
-  '1st Year',
-  '2nd Year',
-  '3rd Year',
-  '4th Year'
-];
 
 export default function StudentDetails() {
   const navigate = useNavigate();
@@ -44,6 +18,21 @@ export default function StudentDetails() {
   const [course, setCourse] = useState<Course | ''>('');
   const [yearLevel, setYearLevel] = useState<YearLevel | ''>('');
   const [error, setError] = useState('');
+  const [selectedTransaction] = useState<SelectedTransaction | null>(() => {
+    const stored = sessionStorage.getItem('selectedTransaction');
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored) as SelectedTransaction;
+    } catch {
+      return null;
+    }
+  });
+
+    useEffect(() => {
+    if (!selectedTransaction) {
+      navigate('/transactions');
+    }
+  }, [selectedTransaction, navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,14 +67,13 @@ export default function StudentDetails() {
     navigate('/transactions');
   };
 
-  // Get transaction info from session
-  const stored = sessionStorage.getItem('selectedTransaction');
-  if (!stored) {
-    navigate('/transactions');
-    return null;
+  if (!selectedTransaction) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-green-200 via-blue-100 to-blue-300">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent"></div>
+      </div>
+    );
   }
-
-  const selectedTransaction: SelectedTransaction = JSON.parse(stored);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-green-200 via-blue-100 to-blue-300 pt-16">
@@ -107,13 +95,13 @@ export default function StudentDetails() {
       {/* Main Content */}
       <div className="max-w-2xl mx-auto p-3 sm:p-4 pt-16 sm:pt-20">
         <h1 className="text-lg sm:text-xl font-bold text-gray-800 text-center mb-3">
-         📌 Student Details
+          📌 Student Details
         </h1>
         <p className="text-gray-600 text-center mb-4 text-xs sm:text-sm">
         Kindly enter your details to generate your queue ticket for the selected transaction.
         </p>
         <p className="text-gray-600 text-center mb-4 text-xs sm:text-sm">
-          Transaction: <span className="font-semibold text-blue-600">{selectedTransaction.name}</span>
+          Transaction: <span className="font-semibold text-blue-600">{selectedTransaction!.name}</span>
         </p>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-3 sm:p-4">
@@ -205,3 +193,4 @@ export default function StudentDetails() {
     </div>
   );
 }
+

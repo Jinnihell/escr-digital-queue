@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAlert } from '../context/AlertContext';
@@ -41,7 +41,7 @@ export default function StaffDashboard() {
     const windowData = JSON.parse(storedWindow);
     setSelectedWindow(windowData);
     loadData();
-  }, [navigate]);
+  }, [navigate, loadData]);
 
   useEffect(() => {
     if (!selectedWindow) return;
@@ -58,7 +58,7 @@ export default function StaffDashboard() {
     });
 
     return () => unsubscribe();
-  }, [selectedWindow]);
+  }, [selectedWindow, selectedTransaction]);
 
   // Auto-check for expired tickets every 30 seconds (5 minute timeout)
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function StaffDashboard() {
     return () => clearInterval(interval);
   }, [showAlert]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       // Load stats only (transactions will be loaded via real-time subscription)
       const queueStats = await getQueueStats();
@@ -93,7 +93,7 @@ export default function StaffDashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Real-time subscription for transaction types
   useEffect(() => {
@@ -115,7 +115,7 @@ export default function StaffDashboard() {
     });
 
     return () => unsubscribe();
-  }, [selectedWindow]);
+  }, [selectedWindow, selectedTransaction]);
 
   // Get waiting tickets for selected transaction
   const waitingTickets = allTickets.filter(t => 
@@ -483,4 +483,13 @@ className="text-xs text-emerald-200 underline mt-1"
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
 

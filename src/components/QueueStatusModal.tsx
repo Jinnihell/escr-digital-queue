@@ -136,7 +136,7 @@ export default function QueueStatusModal({ isOpen, onClose, ticket, waitingPosit
             </span>
           </div>
 
-          <div className={`flex items-center justify-between bg-gradient-to-r ${theme.progress} p-2 sm:p-3 rounded-lg`}>
+          <div className={`flex items-center justify-between bg-linear-to-r ${theme.progress} p-2 sm:p-3 rounded-lg`}>
             <div className="flex items-center gap-2">
               <div className={`w-7 h-7 sm:w-8 sm:h-8 bg-white/50 rounded-full flex items-center justify-center`}>
                 <ArrowRight className={`w-3 h-3 sm:w-4 sm:h-4 ${theme.iconColor}`} />
@@ -175,13 +175,13 @@ export default function QueueStatusModal({ isOpen, onClose, ticket, waitingPosit
 
         <div className="px-3 pb-3">
           {ticket.status === 'serving' ? (
-            <div className={`bg-gradient-to-r ${theme.progress} border-2 ${theme.borderColor} rounded-lg p-2 sm:p-3 text-center`}>
+            <div className={`bg-linear-to-r ${theme.progress} border-2 ${theme.borderColor} rounded-lg p-2 sm:p-3 text-center`}>
               <p className={`${theme.badgeText} font-bold text-sm`}>
                 Go to Window {ticket.windowName} now!
               </p>
             </div>
           ) : ticket.status === 'waiting' ? (
-            <div className={`bg-gradient-to-r ${theme.progress} border-2 ${theme.borderColor} rounded-lg p-2 sm:p-3 text-center`}>
+            <div className={`bg-linear-to-r ${theme.progress} border-2 ${theme.borderColor} rounded-lg p-2 sm:p-3 text-center`}>
               <p className={`${theme.badgeText} text-xs font-medium`}>
                 Please wait. Your turn will be announced.
               </p>
