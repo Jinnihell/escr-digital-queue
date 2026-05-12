@@ -42,9 +42,12 @@ export default function WindowSelection() {
   const isWindowLocked = (window: WindowType) => {
     // Admin can access any window without being blocked
     if (user?.role === 'admin') return false;
-    if (!window.staffId) return false;
-    // Window is locked if it has a staffId and it's not the current user
-    return window.staffId !== user?.id;
+    
+    // If no user ID or window has no lock, window is unlocked
+    if (!user?.id || !window.staffId) return false;
+    
+    // Window is locked if it's locked by a different user
+    return window.staffId !== user.id;
   };
 
   const handleWindowSelect = (windowId: string) => {

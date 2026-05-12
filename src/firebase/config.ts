@@ -1,9 +1,9 @@
-// Firebase configuration
+// Firebase configuration - loaded from environment variables
 export const firebaseConfig = {
-  apiKey: "AIzaSyAodBTXJtAms7AiLTCV656OIC2my0JY5eA",
-  authDomain: "queuebyescr.firebaseapp.com",
-  projectId: "queuebyescr",
-  storageBucket: "queuebyescr.firebasestorage.app",
-  messagingSenderId: "641492955348",
-  appId: "1:641492955348:web:865472c6f0453da2974b41"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };

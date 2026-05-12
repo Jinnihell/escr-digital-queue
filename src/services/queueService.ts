@@ -94,6 +94,8 @@ export const generateTicketNumber = async (prefix: string): Promise<string> => {
 };
 
 // Get waiting tickets for a transaction type
+// NOTE: Requires composite index on (transactionTypeId, status, createdAt)
+// If queries fail in production, create the index in Firebase Console
 export const getWaitingTickets = async (transactionTypeId: string): Promise<QueueTicket[]> => {
   // Use composite index for efficient query
   const q = query(
@@ -167,40 +169,61 @@ export const createTicket = async (
   } as QueueTicket;
 };
 
-// Call next ticket
+// Call next ticket (atomic operation using transaction)
 export const callNextTicket = async (
   transactionTypeId: string,
   windowId: string,
   windowName: string
 ): Promise<QueueTicket | null> => {
-  const waitingTickets = await getWaitingTickets(transactionTypeId);
-  
-  if (waitingTickets.length === 0) {
-    return null;
+  try {
+    // Use transaction for atomic updates
+    const result = await runTransaction(db, async (transaction) => {
+      // Get waiting tickets within transaction
+      const ticketsRef = collection(db, TICKETS_COLLECTION);
+      const q = query(
+        ticketsRef,
+        where('transactionTypeId', '==', transactionTypeId),
+        where('status', '==', 'waiting'),
+        orderBy('createdAt', 'asc')
+      );
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.docs.length === 0) {
+        return null;
+      }
+      
+      const nextTicketDoc = snapshot.docs[0];
+      const nextTicket = docToQueueTicket(nextTicketDoc.data(), nextTicketDoc.id);
+      
+      // Update ticket and window atomically
+      transaction.update(nextTicketDoc.ref, {
+        status: 'serving',
+        calledAt: serverTimestamp(),
+        windowId,
+        windowName
+      });
+      
+      // Update window
+      transaction.update(doc(db, WINDOWS_COLLECTION, windowId), {
+        currentTicketId: nextTicket.id
+      });
+      
+      return nextTicket;
+    });
+    
+    if (!result) return null;
+    
+    return {
+      ...result,
+      status: 'serving',
+      calledAt: new Date(),
+      windowId,
+      windowName
+    };
+  } catch (err) {
+    console.error('Error calling next ticket:', err);
+    throw err;
   }
-  
-  const nextTicket = waitingTickets[0];
-  
-  // Update ticket to serving
-  await updateDoc(doc(db, TICKETS_COLLECTION, nextTicket.id), {
-    status: 'serving',
-    calledAt: serverTimestamp(),
-    windowId,
-    windowName
-  });
-  
-  // Update window
-  await updateDoc(doc(db, WINDOWS_COLLECTION, windowId), {
-    currentTicketId: nextTicket.id
-  });
-  
-  return {
-    ...nextTicket,
-    status: 'serving',
-    calledAt: new Date(),
-    windowId,
-    windowName
-  };
 };
 
 // Complete ticket
@@ -216,16 +239,27 @@ export const completeTicket = async (ticketId: string): Promise<void> => {
 
   // Validate ticket can be completed
   if (!['waiting', 'serving'].includes(currentStatus)) {
-        throw new Error(`Cannot complete ticket in status: ${currentStatus}`);
+    throw new Error(`Cannot complete ticket in status: ${currentStatus}`);
   }
 
   const completedAt = new Date();
-  const startedAt = ticketData.startedAt?.toDate() || ticketData.calledAt?.toDate(); // Fallback to calledAt if startedAt not set
-  const serveTime = startedAt ? Math.floor((completedAt.getTime() - startedAt.getTime()) / 1000) : 0;
+  
+  // Calculate wait time: from creation to when called
+  const createdAt = ticketData.createdAt?.toDate();
+  const calledAt = ticketData.calledAt?.toDate();
+  const waitTime = (createdAt && calledAt) 
+    ? Math.floor((calledAt.getTime() - createdAt.getTime()) / 1000)
+    : 0;
+  
+  // Calculate serve time: from call to completion
+  const serveTime = (calledAt) 
+    ? Math.floor((completedAt.getTime() - calledAt.getTime()) / 1000)
+    : 0;
 
   await updateDoc(doc(db, TICKETS_COLLECTION, ticketId), {
     status: 'completed',
     completedAt: serverTimestamp(),
+    waitTime,
     serveTime
   });
 

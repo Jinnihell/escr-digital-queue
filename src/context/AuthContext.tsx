@@ -29,77 +29,108 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    // Check sessionStorage for cached user (instant restore)
-    const cached = sessionStorage.getItem('user');
-    if (cached) {
-      try {
-        return JSON.parse(cached) as User;
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  });
+  const [user, setUser] = useState<User | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(false); // Cached immediately
+  const [loading, setLoading] = useState(true); // Start as true until auth state verified
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Use AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setFirebaseUser(firebaseUser);
-      
-      if (firebaseUser) {
-        // Fetch user data from Firestore
-        try {
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      try {
+        setFirebaseUser(firebaseUser);
+        
+        if (firebaseUser) {
+          // Fetch user data from Firestore with timeout
+          const userDoc = await Promise.race([
+            getDoc(doc(db, 'users', firebaseUser.uid)),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('User fetch timeout')), 5000)
+            )
+          ]) as typeof userDoc;
+
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            const userObj = {
-              id: firebaseUser.uid,
-              email: firebaseUser.email || '',
-              username: userData.username || '',
-              role: userData.role || 'student',
-              createdAt: userData.createdAt?.toDate() || new Date()
-            };
-            setUser(userObj);
-            sessionStorage.setItem('user', JSON.stringify(userObj));
+            // Validate data exists before accessing
+            if (userData) {
+              const userObj: User = {
+                id: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                username: userData.username || '',
+                role: userData.role || 'student',
+                createdAt: userData.createdAt?.toDate() || new Date()
+              };
+              setUser(userObj);
+            } else {
+              setUser(null);
+            }
+          } else {
+            setUser(null);
           }
-        } catch (err) {
-          console.error('Error fetching user data:', err);
+        } else {
+          setUser(null);
         }
-      } else {
+      } catch (err) {
+        // Don't expose sensitive errors - log securely
+        const message = err instanceof Error ? err.message : 'Authentication error';
+        console.error('Auth error:', message);
         setUser(null);
-        sessionStorage.removeItem('user');
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timeoutId);
+      unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<User | null> => {
     setError(null);
+    // Validate inputs
+    if (!email || !password) {
+      setError('Email and password are required');
+      throw new Error('Missing credentials');
+    }
+    
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Fetch user data from Firestore immediately after login
-      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        const userObj: User = {
-          id: result.user.uid,
-          email: result.user.email || '',
-          username: userData.username || '',
-          role: userData.role || 'student',
-          createdAt: userData.createdAt?.toDate() || new Date()
-        };
-        setUser(userObj);
-        sessionStorage.setItem('user', JSON.stringify(userObj));
-        return userObj;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        
+        // Fetch user data from Firestore with timeout
+        const userDoc = await Promise.race([
+          getDoc(doc(db, 'users', result.user.uid)),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('User fetch timeout')), 5000)
+          )
+        ]) as typeof userDoc;
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (!userData) {
+            throw new Error('Invalid user data');
+          }
+          const userObj: User = {
+            id: result.user.uid,
+            email: result.user.email || '',
+            username: userData.username || '',
+            role: userData.role || 'student',
+            createdAt: userData.createdAt?.toDate() || new Date()
+          };
+          setUser(userObj);
+          return userObj;
+        }
+        return null;
+      } finally {
+        clearTimeout(timeoutId);
       }
-      return null;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);
@@ -110,38 +141,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = async (): Promise<User | null> => {
     setError(null);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      
-      // Check if user document exists, if not create one
-      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-      if (!userDoc.exists()) {
-        // Create new user document for Google sign-in
-        await setDoc(doc(db, 'users', result.user.uid), {
-          username: result.user.displayName || result.user.email?.split('@')[0] || 'User',
-          email: result.user.email || '',
-          role: 'student', // Default role for Google sign-in
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          photoURL: result.user.photoURL || null
-        });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        
+        // Check if user document exists, if not create one (atomic operation preferred)
+        const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+        if (!userDoc.exists()) {
+          // Create new user document for Google sign-in
+          await setDoc(doc(db, 'users', result.user.uid), {
+            username: result.user.displayName || result.user.email?.split('@')[0] || 'User',
+            email: result.user.email || '',
+            role: 'student', // Default role for Google sign-in
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            photoURL: result.user.photoURL || null
+          });
+        }
+        
+        // Fetch user data with timeout
+        const updatedUserDoc = await Promise.race([
+          getDoc(doc(db, 'users', result.user.uid)),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('User fetch timeout')), 5000)
+          )
+        ]) as typeof userDoc;
+
+        if (updatedUserDoc.exists()) {
+          const userData = updatedUserDoc.data();
+          if (!userData) {
+            throw new Error('Invalid user data');
+          }
+          const userObj: User = {
+            id: result.user.uid,
+            email: result.user.email || '',
+            username: userData.username || '',
+            role: userData.role || 'student',
+            createdAt: userData.createdAt?.toDate() || new Date()
+          };
+          setUser(userObj);
+          return userObj;
+        }
+        return null;
+      } finally {
+        clearTimeout(timeoutId);
       }
-      
-      // Fetch user data
-      const updatedUserDoc = await getDoc(doc(db, 'users', result.user.uid));
-      if (updatedUserDoc.exists()) {
-        const userData = updatedUserDoc.data();
-        const userObj: User = {
-          id: result.user.uid,
-          email: result.user.email || '',
-          username: userData.username || '',
-          role: userData.role || 'student',
-          createdAt: userData.createdAt?.toDate() || new Date()
-        };
-        setUser(userObj);
-        sessionStorage.setItem('user', JSON.stringify(userObj));
-        return userObj;
-      }
-      return null;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Google login failed';
       setError(message);
@@ -151,17 +197,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = async (email: string, password: string, username: string, role: UserRole) => {
     setError(null);
+    
+    // Validate inputs
+    if (!email || !password || !username) {
+      setError('All fields are required');
+      throw new Error('Missing fields');
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Invalid email format');
+      throw new Error('Invalid email');
+    }
+    
+    // Validate password strength (minimum 8 chars, 1 uppercase, 1 number, 1 special char)
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError('Password must be at least 8 characters with uppercase, number, and special character');
+      throw new Error('Weak password');
+    }
+    
+    // Sanitize username
+    const sanitizedUsername = username.replace(/<[^>]*>/g, '').trim();
+    if (sanitizedUsername.length < 2 || sanitizedUsername.length > 50) {
+      setError('Username must be between 2 and 50 characters');
+      throw new Error('Invalid username');
+    }
+    
     try {
-      const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
-        username,
-        email,
-        role,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Create user document in Firestore
+        await setDoc(doc(db, 'users', firebaseUser.uid), {
+          username: sanitizedUsername,
+          email,
+          role,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Signup failed';
       setError(message);
@@ -173,7 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await signOut(auth);
       setUser(null);
-      sessionStorage.removeItem('user');
+      // User state will be cleared by onAuthStateChanged listener
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Logout failed';
       setError(message);

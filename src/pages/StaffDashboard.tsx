@@ -31,6 +31,19 @@ export default function StaffDashboard() {
   const [showAllTransactions, setShowAllTransactions] = useState(false);
   const [allTransactions, setAllTransactions] = useState<TransactionType[]>([]);
 
+  const loadData = useCallback(async () => {
+    try {
+      // Load stats only (transactions will be loaded via real-time subscription)
+      const queueStats = await getQueueStats();
+      setStats(queueStats);
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error loading data:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     const storedWindow = sessionStorage.getItem('selectedWindow');
     if (!storedWindow) {
@@ -81,19 +94,6 @@ export default function StaffDashboard() {
 
     return () => clearInterval(interval);
   }, [showAlert]);
-
-  const loadData = useCallback(async () => {
-    try {
-      // Load stats only (transactions will be loaded via real-time subscription)
-      const queueStats = await getQueueStats();
-      setStats(queueStats);
-      setIsLoading(false);
-    } catch (err) {
-      console.error('Error loading data:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
   // Real-time subscription for transaction types
   useEffect(() => {
@@ -341,7 +341,7 @@ className="text-xs text-emerald-200 underline mt-1"
       <div className="ml-0 md:ml-64 p-3 md:p-6">
         <div className="flex flex-wrap gap-4 md:gap-6">
           {/* Left Panel */}
-          <div className="flex-1 min-w-[280px] md:min-w-[300px]">
+          <div className="flex-1 min-w-70 md:min-w-75">
             {/* Serving Card - matches PHP design */}
             <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6 mb-4 md:mb-6">
               <div className="text-center">
@@ -373,7 +373,7 @@ className="text-xs text-emerald-200 underline mt-1"
                   <button
                     onClick={() => handleCallNext()}
                     disabled={!selectedTransaction || !selectedWindow || isCalling}
-                    className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm md:text-base"
+                    className="bg-linear-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] text-sm md:text-base"
                   >
                     {isCalling ? 'dY"z Calling...' : 'dY"z Call Next Ticket'}
                   </button>
@@ -383,7 +383,7 @@ className="text-xs text-emerald-200 underline mt-1"
                     onClick={() => setShowAllTransactions(!showAllTransactions)}
                     className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 md:py-3 px-6 md:px-8 rounded-xl shadow-lg hover:shadow-xl transition-all text-sm md:text-base"
                   >
-                    âz¡ï,? {showAllTransactions ? 'Hide Others' : 'Call Others'}
+                    ï¿½zï¿½ï¿½,? {showAllTransactions ? 'Hide Others' : 'Call Others'}
                   </button>
                   
                   {/* Other Transactions Dropdown */}
@@ -427,7 +427,7 @@ className="text-xs text-emerald-200 underline mt-1"
                       disabled={!currentTicket || isCompleting}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 md:py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 text-sm md:text-base"
                     >
-                      {isCompleting ? 'â?3' : 'âo. Complete'}
+                      {isCompleting ? 'ï¿½?3' : 'ï¿½o. Complete'}
                     </button>
                   </div>
                 </div>
@@ -458,13 +458,13 @@ className="text-xs text-emerald-200 underline mt-1"
               <div className="bg-orange-500 text-white p-3 text-center font-bold">
                 Next Serving Queue
               </div>
-              <div className="p-3 max-h-[300px] overflow-y-auto">
+              <div className="p-3 max-h-75 overflow-y-auto">
                 {waitingTickets.length > 0 ? (
                   <div className="space-y-2">
                     {waitingTickets.slice(0, 5).map((ticket) => (
                       <div 
                         key={ticket.id} 
-                        className="bg-gradient-to-r from-blue-800 to-blue-600 text-white p-3 rounded-lg text-center"
+                        className="bg-linear-to-r from-blue-800 to-blue-600 text-white p-3 rounded-lg text-center"
                       >
                         <span className="font-bold text-xl">{ticket.ticketNumber}</span>
                       </div>

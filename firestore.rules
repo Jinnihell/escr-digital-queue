@@ -2,99 +2,115 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user is authenticated
+    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // ============================================
-    // FEEDBACK COLLECTION
-    // ============================================
-    match /feedback/{feedbackId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // ============================================
-    // TRANSACTIONS COLLECTION (Transaction Types)
-    // ============================================
-    match /transactions/{transactionId} {
-      allow read: if true;
-      allow write: if true;
+    function isStaff() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['staff', 'admin'];
     }
     
-    // ============================================
-    // WINDOWS COLLECTION
-    // ============================================
-    match /windows/{windowId} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    // ============================================
-    // TICKETS COLLECTION
-    // ============================================
-    match /tickets/{ticketId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
-    }
-    
-    // ============================================
-    // SETTINGS COLLECTION
-    // ============================================
-    match /settings/{settingId} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    // ============================================
-    // COUNTERS COLLECTION
-    // ============================================
-    match /counters/{counterId} {
-      allow read: if true;
-      allow write: if true;
+    function isStudent() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'student';
     }
     
     // ============================================
     // USERS COLLECTION
     // ============================================
     match /users/{userId} {
-      allow create: if true;
-      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow create: if request.auth.uid == userId;
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
       allow update: if isAuthenticated() && request.auth.uid == userId;
-      allow delete: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // TICKETS COLLECTION
+    // ============================================
+    match /tickets/{ticketId} {
+      allow read: if isAuthenticated();
+      allow create: if isStudent();
+      allow update: if isStaff();
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // TRANSACTIONS COLLECTION (Transaction Types)
+    // ============================================
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // WINDOWS COLLECTION
+    // ============================================
+    match /windows/{windowId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // SETTINGS COLLECTION
+    // ============================================
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // ============================================
+    // COUNTERS COLLECTION
+    // ============================================
+    match /counters/{counterId} {
+      allow read: if isAuthenticated();
+      allow write: if isStaff();
+    }
+    
+    // ============================================
+    // FEEDBACK COLLECTION
+    // ============================================
+    match /feedback/{feedbackId} {
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
+      allow create: if isAuthenticated();
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
+      allow delete: if isAdmin();
     }
     
     // ============================================
     // APPOINTMENTS COLLECTION
     // ============================================
     match /appointments/{appointmentId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      allow read: if isAuthenticated();
+      allow create: if isStudent();
+      allow update: if isStaff();
+      allow delete: if isAdmin();
     }
     
     // ============================================
     // APPOINTMENT SLOTS COLLECTION
     // ============================================
     match /appointmentSlots/{slotId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      allow read: if isAuthenticated();
+      allow create, update: if isStaff();
+      allow delete: if isAdmin();
     }
     
     // ============================================
     // APOSETTINGS COLLECTION (Appointment Settings)
     // ============================================
     match /aposettings/{settingId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
   }
 }

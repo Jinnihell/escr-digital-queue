@@ -52,10 +52,28 @@ export default function StudentDetails() {
       return;
     }
 
+    // Sanitize inputs to prevent XSS
+    const sanitizeName = (name: string) => name.replace(/<[^>]*>/g, '').trim();
+    const sanitizeId = (id: string) => id.replace(/<[^>]*>/g, '').trim();
+
+    // Validate name length
+    const sanitizedName = sanitizeName(studentName);
+    if (sanitizedName.length < 2 || sanitizedName.length > 100) {
+      setError('Name must be between 2 and 100 characters');
+      return;
+    }
+
+    // Validate student ID if provided
+    const sanitizedId = sanitizeId(studentId);
+    if (sanitizedId && sanitizedId.length > 50) {
+      setError('Student ID is too long');
+      return;
+    }
+
     // Store student details
     sessionStorage.setItem('studentDetails', JSON.stringify({
-      name: studentName.trim(),
-      studentId: studentId.trim() || undefined,
+      name: sanitizedName,
+      studentId: sanitizedId || undefined,
       course,
       yearLevel
     }));

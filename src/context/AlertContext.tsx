@@ -8,7 +8,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const generateId = () => Math.random().toString(36).substring(2, 11);
+  const generateId = () => crypto.randomUUID();
 
   const showAlert = (type: AlertType, message: string, duration: number = 5000) => {
     const id = generateId();

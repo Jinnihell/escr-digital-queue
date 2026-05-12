@@ -104,6 +104,78 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
 
   const { showAlert } = useAlert();
 
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    
+    try {
+      // Load settings first with fallback
+      let systemSettings: SystemSettings | null = null;
+      try {
+        systemSettings = await getSettings();
+      } catch (settingsErr) {
+        console.warn('Settings not loaded, using defaults:', settingsErr);
+        systemSettings = {
+          systemName: 'ESCR Digital Queueing System',
+          resetTime: '00:00',
+          maxDailyTickets: 100,
+          enablePriority: true,
+          enableNotifications: true,
+          averageServiceTime: 300,
+          operatingHours: {
+            enabled: false,
+            monday: { start: '08:00', end: '17:00' },
+            tuesday: { start: '08:00', end: '17:00' },
+            wednesday: { start: '08:00', end: '17:00' },
+            thursday: { start: '08:00', end: '17:00' },
+            friday: { start: '08:00', end: '17:00' },
+            saturday: { start: '08:00', end: '12:00' },
+            sunday: { start: '08:00', end: '00:00' }
+          },
+          alerts: {
+            enabled: true,
+            announcerVoice: true,
+            showAllWindows: true
+          },
+          displayMode: 'standard',
+          autoReset: false,
+          autoResetTime: '00:00',
+          maxWaitTime: 3600,
+          lastBackup: null
+        };
+      }
+      
+      // Load other data with fallbacks
+      let transactionTypes: TransactionType[] = [];
+      let queueStats: QueueStats | null = null;
+      let windowList: WindowType[] = [];
+      
+      try {
+        const results = await Promise.all([
+          getTransactionTypes(),
+          getQueueStats(),
+          getWindows()
+        ]);
+        transactionTypes = results[0];
+        queueStats = results[1];
+        windowList = results[2];
+      } catch (dataErr) {
+        console.warn('Some data failed to load:', dataErr);
+      }
+      
+      setTransactions(transactionTypes);
+      setStats(queueStats);
+      setWindows(windowList);
+      setSettingsForm(systemSettings);
+    } catch (err) {
+      console.error('Critical error loading data:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setLoadError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     setActiveTab(tab);
   }, [tab]);
@@ -394,79 +466,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
       };
     }
   };
-
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    setLoadError(null);
-    
-    try {
-      // Load settings first with fallback
-      let systemSettings: SystemSettings | null = null;
-      try {
-        systemSettings = await getSettings();
-      } catch (settingsErr) {
-        console.warn('Settings not loaded, using defaults:', settingsErr);
-        systemSettings = {
-          systemName: 'ESCR Digital Queueing System',
-          resetTime: '00:00',
-          maxDailyTickets: 100,
-          enablePriority: true,
-          enableNotifications: true,
-          averageServiceTime: 300,
-          operatingHours: {
-            enabled: false,
-            monday: { start: '08:00', end: '17:00' },
-            tuesday: { start: '08:00', end: '17:00' },
-            wednesday: { start: '08:00', end: '17:00' },
-            thursday: { start: '08:00', end: '17:00' },
-            friday: { start: '08:00', end: '17:00' },
-            saturday: { start: '08:00', end: '12:00' },
-            sunday: { start: '08:00', end: '00:00' }
-          },
-          alerts: {
-            enabled: true,
-            announcerVoice: true,
-            showAllWindows: true
-          },
-          displayMode: 'standard',
-          autoReset: false,
-          autoResetTime: '00:00',
-          maxWaitTime: 3600,
-          lastBackup: null
-
-  }, []);
-      }
-      
-      // Load other data with fallbacks
-      let transactionTypes: TransactionType[] = [];
-      let queueStats: QueueStats | null = null;
-      let windowList: WindowType[] = [];
-      
-      try {
-        const results = await Promise.all([
-          getTransactionTypes(),
-          getQueueStats(),
-          getWindows()
-        ]);
-        transactionTypes = results[0];
-        queueStats = results[1];
-        windowList = results[2];
-      } catch (dataErr) {
-        console.warn('Some data failed to load:', dataErr);
-      }
-      
-      setTransactions(transactionTypes);
-      setStats(queueStats);
-      setWindows(windowList);
-      setSettingsForm(systemSettings);
-    } catch (err) {
-      console.error('Critical error loading data:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setLoadError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
   // Show error state if data failed to load
   if (loadError) {
@@ -1492,5 +1491,6 @@ export default function AdminDashboard({ tab = 'dashboard' }: AdminDashboardProp
     </div>
   );
 }
+
 
 

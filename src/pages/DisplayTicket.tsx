@@ -144,50 +144,72 @@ const generateTicket = useCallback(async () => {
       setWaitingPosition(Math.max(0, position - 1));
     });
     return () => unsubscribe();
-  }, [ticket, speakNotification]);
+  }, [ticket]);
 
   const speakNotification = useCallback((message: string) => {
-    if (!('speechSynthesis' in window)) {
-      console.log('Speech synthesis not supported');
-      return;
-    }
+    try {
+      if (!('speechSynthesis' in window)) {
+        console.warn('Speech synthesis not supported in this browser');
+        return;
+      }
 
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
+      // Cancel any ongoing speech
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
 
-    const utterance = new SpeechSynthesisUtterance(message);
-    utterance.rate = 0.9;
-    utterance.volume = 1;
-    utterance.lang = 'en-US';
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.rate = 0.9;
+      utterance.volume = 1;
+      utterance.lang = 'en-US';
 
-    let resolved = false;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      // Error handling
+      utterance.onerror = (event) => {
+        console.warn('Speech synthesis error:', event.error);
+      };
 
-    const trySpeak = () => {
-      if (resolved) return;
-      
+      let resolved = false;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      const trySpeak = () => {
+        if (resolved) return;
+        
+        try {
+          const voices = window.speechSynthesis.getVoices();
+          if (voices.length > 0) {
+            resolved = true;
+            const englishVoice = voices.find((v: SpeechSynthesisVoice) => v.lang.startsWith('en')) || voices[0];
+            if (englishVoice) utterance.voice = englishVoice;
+            window.speechSynthesis.onvoiceschanged = null;
+            if (timeoutId) clearTimeout(timeoutId);
+            window.speechSynthesis.speak(utterance);
+          }
+        } catch (err) {
+          console.error('Error in speech synthesis:', err);
+          resolved = true;
+        }
+      };
+
+      // Get voices or wait for them to load
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
-        resolved = true;
-        const englishVoice = voices.find((v: SpeechSynthesisVoice) => v.lang.startsWith('en')) || voices[0];
-        if (englishVoice) utterance.voice = englishVoice;
-        window.speechSynthesis.onvoiceschanged = null;
-        if (timeoutId) clearTimeout(timeoutId);
-        window.speechSynthesis.speak(utterance);
+        trySpeak();
+      } else {
+        window.speechSynthesis.onvoiceschanged = trySpeak;
+        timeoutId = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            window.speechSynthesis.onvoiceschanged = null;
+            try {
+              window.speechSynthesis.speak(utterance);
+            } catch (err) {
+              console.error('Timeout error in speech synthesis:', err);
+            }
+          }
+        }, 3000);
       }
-    };
-
-    if (window.speechSynthesis.getVoices().length > 0) {
-      trySpeak();
-    } else {
-      window.speechSynthesis.onvoiceschanged = trySpeak;
-      timeoutId = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          window.speechSynthesis.onvoiceschanged = null;
-          window.speechSynthesis.speak(utterance);
-        }
-      }, 3000);
+    } catch (err) {
+      console.error('Speech notification error:', err);
     }
   }, []);
 
