@@ -133,7 +133,6 @@ export default function PublicMonitor() {
     }
   }, [servingTickets, windows, soundEnabled, speakTicket]);
 
-  const isLoading = !ticketsLoaded || !windowsLoaded;
 
   const handleRing = useCallback(() => {
     playNotificationSound();
@@ -146,16 +145,6 @@ export default function PublicMonitor() {
     }
   }, [servingTickets, windows, playNotificationSound, speakTicket]);
 
-  if (isLoading) {
-    return (
-      <div className='min-h-screen bg-[#0a1628] flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-20 w-20 border-4 border-orange-500 border-t-transparent mx-auto mb-4'></div>
-          <p className='text-orange-400 font-bold'>Loading queue system...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className='min-h-screen bg-[#0a1628] text-white'>
